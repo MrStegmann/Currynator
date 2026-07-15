@@ -1,0 +1,89 @@
+import React from 'react';
+import { Pencil, Trash2, Code2, Link as LinkIcon, Calendar } from 'lucide-react';
+import type { Project } from '../../types/Data';
+
+interface ProjectCardProps extends Project {
+  onEdit: () => void;
+  onDelete: () => void;
+}
+
+const ProjectCard: React.FC<ProjectCardProps> = ({
+  name,
+  description,
+  keywords,
+  roles,
+  url,
+  startDate,
+  endDate,
+  highlights,
+  onEdit,
+  onDelete
+}) => {
+  return (
+    <div className="bg-slate-900 border border-[#1E293B] rounded-lg p-5 flex flex-col gap-3 relative group">
+      <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+        <button onClick={onEdit} className="p-2 bg-[#1E293B] hover:bg-blue-600 text-white rounded-md transition-colors shadow-sm" title="Editar">
+          <Pencil size={16} />
+        </button>
+        <button onClick={onDelete} className="p-2 bg-[#1E293B] hover:bg-red-500 text-white rounded-md transition-colors shadow-sm" title="Eliminar">
+          <Trash2 size={16} />
+        </button>
+      </div>
+
+      <div>
+        <h3 className="text-lg font-semibold text-[#d3e4fe] pr-20 flex items-center gap-2">
+          <Code2 size={18} className="text-blue-400" />
+          {name}
+        </h3>
+
+        <div className="flex flex-wrap items-center gap-4 text-sm text-[#8c909f] mt-2">
+          {(startDate || endDate) && (
+            <div className="flex items-center gap-1">
+              <Calendar size={14} className="text-blue-400" />
+              <span>{startDate} — {endDate ? endDate : 'Presente'}</span>
+            </div>
+          )}
+          {url && (
+            <a href={url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:text-blue-400 hover:underline transition-colors">
+              <LinkIcon size={14} /> URL
+            </a>
+          )}
+        </div>
+      </div>
+
+      <p className="text-sm text-[#c2c6d6] leading-relaxed">
+        {description}
+      </p>
+
+      {roles && roles.length > 0 && (
+        <div className="text-sm mt-1">
+          <span className="text-[#8c909f] font-medium mr-2">Roles:</span>
+          <span className="text-[#c2c6d6]">{roles.join(', ')}</span>
+        </div>
+      )}
+
+      {highlights && highlights.length > 0 && (
+        <div className="mt-2">
+          <h4 className="text-sm font-medium text-[#8c909f] mb-1">Highlights:</h4>
+          <ul className="list-disc list-inside text-sm text-[#c2c6d6] flex flex-col gap-1">
+            {highlights.map((h, i) => (
+              <li key={i}>{h}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {keywords && keywords.length > 0 && (
+        <div className="flex flex-wrap gap-2 mt-2 pt-3 border-t border-[#1E293B]">
+          {keywords.map((kw, i) => (
+            <span key={i} className="px-2 py-1 bg-[#1E293B] text-blue-200 text-xs rounded-md">
+              {kw}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default ProjectCard;

@@ -1,0 +1,110 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #f8fafc;
+  --color-text: #64748b;
+  --color-text-h: #0f172a;
+  --color-border: #e2e8f0;
+  --color-accent: #6366f1;
+  --color-accent-bg: rgba(99, 102, 241, 0.1);
+  --color-accent-border: rgba(99, 102, 241, 0.5);
+  
+  --font-inter: 'Inter', sans-serif;
+  --font-geist: 'Geist', monospace;
+  --color-slate-900: #0F172A;
+  --color-slate-600: #475569;
+  --color-slate-400: #94A3B8;
+  --color-cyan-accent: #0EA5E9;
+  --color-emerald-metrics: #10B981;
+  --color-surface-gray: #F8FAFC;
+  --color-border-subtle: #E2E8F0;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #0f172a;
+    --color-text: #94a3b8;
+    --color-text-h: #f8fafc;
+    --color-border: #1e293b;
+    --color-accent: #818cf8;
+    --color-accent-bg: rgba(129, 140, 248, 0.15);
+    --color-accent-border: rgba(129, 140, 248, 0.5);
+  }
+}
+
+:root {
+  color-scheme: light dark;
+  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+  color: var(--color-text);
+  background-color: var(--color-bg);
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+@layer utilities {
+  .animate-in {
+    animation: animate-in 0.5s ease-out;
+  }
+  
+  @keyframes animate-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+@media print {
+  @page { 
+    margin: 1cm; 
+    size: A4; 
+  }
+  
+  body {
+    background-color: white !important;
+  }
+  
+  .print-avoid-break {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+  
+  /* Overrides para convertir el tema oscuro a claro en la impresión del CV */
+  #cv-print-container {
+    background-color: white !important;
+    color: black !important;
+  }
+  
+  #cv-print-container * {
+    color: black !important;
+  }
+  
+  /* Eliminar fondos oscuros de las tarjetas */
+  #cv-print-container .bg-\[\#0F172A\],
+  #cv-print-container .bg-\[\#020617\],
+  #cv-print-container .bg-\[\#1E293B\] {
+    background-color: white !important;
+  }
+  
+  /* Aclarar los bordes para que se vean en papel blanco */
+  #cv-print-container .border-\[\#1E293B\] {
+    border-color: #cbd5e1 !important;
+  }
+  
+  /* Mantener el color azul para acentos, pero ligeramente más oscuro */
+  #cv-print-container .text-\[\#3B82F6\] {
+    color: #2563eb !important;
+  }
+}
