@@ -69,6 +69,9 @@ export const Layout = ({ children, currentPage, onNavigate, hasApiKey = true }: 
               Añadir datos
             </div>
 
+            <div className="flex items-center gap-2 px-3 border-b-3 border-[#1E293B]">
+              <h2 className="text-lg font-bold tracking-tight">AI Powered</h2>
+            </div>
             <div
               onClick={() => hasApiKey && onNavigate('generate-cv')}
               title={!hasApiKey ? "Debes configurar una API-Key de Gemini para generar currículums." : ""}
@@ -79,10 +82,10 @@ export const Layout = ({ children, currentPage, onNavigate, hasApiKey = true }: 
 
             <div
               onClick={() => hasApiKey && onNavigate('generate-guide')}
-              title={!hasApiKey ? "Debes configurar una API-Key de Gemini para generar guiones." : ""}
+              title={!hasApiKey ? "Debes configurar una API-Key de Gemini para generar guías de estudio." : ""}
               className={`px-3 py-2 rounded-md transition-colors ${!hasApiKey ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-[#0b1c30]'} ${currentPage === 'generate-guide' ? 'bg-[#102034] text-blue-400' : ''}`}
             >
-              Generar Guión
+              Generar Study Guide
             </div>
 
             {/* Spacer para empujar el botón al fondo */}
@@ -102,7 +105,7 @@ export const Layout = ({ children, currentPage, onNavigate, hasApiKey = true }: 
             {children}
           </section>
         </main>
-        
+
         <DebugTerminal />
       </div>
     </div>
