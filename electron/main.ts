@@ -2,10 +2,13 @@ import { app, BrowserWindow, screen, ipcMain, dialog, shell } from 'electron';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 import * as fs from 'fs/promises';
+import * as dotenv from 'dotenv';
 import { validateCVData } from './utils/validation.js';
 import { generateCVFromGemini, generateStudyGuideFromGemini } from './services/gemini.js';
 import { generatePDF, closePDFEngine } from './services/pdf.js';
 import { readSettings, saveSettings } from './utils/settings.js';
+
+dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -68,6 +71,11 @@ ipcMain.handle('window:maximize', () => {
 
 ipcMain.handle('window:close', () => {
   mainWindow?.close();
+});
+
+ipcMain.handle('open-external', async (event, url) => {
+  await shell.openExternal(url);
+  return { success: true };
 });
 
 ipcMain.handle('get-settings', async () => {
@@ -436,6 +444,126 @@ ipcMain.handle('rename-file', async (event, oldFilename, newFilename, type: 'cv'
     console.error(`Error renaming file ${oldFilename} to ${newFilename}:`, error);
     return { success: false, error: error.message };
   }
+});
+
+ipcMain.handle('validate-github-token', async (event, token) => {
+  try {
+    const response = await fetch('https://api.github.com/user', {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/vnd.github.v3+json',
+        'User-Agent': 'Currynator'
+      }
+    });
+    if (response.ok) {
+      const data = await response.json();
+      return { success: true, user: { login: data.login, name: data.name } };
+    } else {
+      return { success: false, error: 'Token inválido' };
+    }
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle('google-oauth', async () => {
+  return new Promise((resolve) => {
+    const clientId = process.env.GOOGLE_CLIENT_ID;
+    const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+    const redirectUri = 'http://127.0.0.1:4200/auth/callback';
+
+    if (!clientId || !clientSecret) {
+      resolve({ success: false, error: 'Missing Google OAuth credentials in .env' });
+      return;
+    }
+
+    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=email%20profile&access_type=offline`;
+
+    const authWindow = new BrowserWindow({
+      width: 500,
+      height: 600,
+      show: true,
+      webPreferences: { nodeIntegration: false, contextIsolation: true }
+    });
+
+    authWindow.loadURL(authUrl);
+
+    authWindow.webContents.on('will-redirect', async (event, newUrl) => {
+      if (newUrl.startsWith(redirectUri)) {
+        event.preventDefault();
+        const urlObj = new URL(newUrl);
+        const code = urlObj.searchParams.get('code');
+        const error = urlObj.searchParams.get('error');
+
+        if (error) {
+          authWindow.close();
+          resolve({ success: false, error });
+          return;
+        }
+
+        if (code) {
+          try {
+            // Exchange code for token
+            const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+              body: new URLSearchParams({
+                code,
+                client_id: clientId,
+                client_secret: clientSecret,
+                redirect_uri: redirectUri,
+                grant_type: 'authorization_code'
+              })
+            });
+
+            const tokenData = await tokenResponse.json();
+            if (tokenData.error) {
+              authWindow.close();
+              resolve({ success: false, error: tokenData.error });
+              return;
+            }
+
+            // Get user info
+            const userResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+              headers: { Authorization: `Bearer ${tokenData.access_token}` }
+            });
+            const userData = await userResponse.json();
+
+            authWindow.close();
+            resolve({ success: true, data: {
+              firstName: userData.given_name || '',
+              lastName: userData.family_name || '',
+              email: userData.email || ''
+            }});
+          } catch (err: any) {
+            authWindow.close();
+            resolve({ success: false, error: err.message });
+          }
+        }
+      }
+    });
+
+    let isResolved = false;
+    const safeResolve = (val: any) => {
+      if (!isResolved) {
+        isResolved = true;
+        resolve(val);
+      }
+    };
+
+    authWindow.on('closed', () => {
+      safeResolve({ success: false, error: 'Authentication window was closed' });
+    });
+    
+    // Override the original resolve to track state
+    const originalResolve = resolve;
+    resolve = (val: any) => {
+      if (!isResolved) {
+        isResolved = true;
+        originalResolve(val);
+      }
+    }
+  });
 });
 
 app.on('will-quit', async () => {

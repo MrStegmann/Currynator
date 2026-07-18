@@ -23,5 +23,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   renameFile: (oldName: string, newName: string, type: 'cv' | 'guide') => ipcRenderer.invoke('rename-file', oldName, newName, type),
   getSettings: () => ipcRenderer.invoke('get-settings'),
   saveSettings: (settings: any) => ipcRenderer.invoke('save-settings', settings),
-  selectFolder: () => ipcRenderer.invoke('select-folder')
+  selectFolder: () => ipcRenderer.invoke('select-folder'),
+  validateGithubToken: (token: string) => ipcRenderer.invoke('validate-github-token', token),
+  googleOAuth: () => ipcRenderer.invoke('google-oauth'),
+  openExternal: (url: string) => ipcRenderer.invoke('open-external', url)
 });

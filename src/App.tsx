@@ -7,21 +7,24 @@ import GenerateCV from './pages/GenerateCV';
 import GenerateGuide from './pages/GenerateGuide';
 import Settings from './pages/Settings';
 import Modal from './components/Modal/Modal';
+import InstallerWizard from './features/wizard/InstallerWizard';
 
 function App() {
   const [currentPage, setCurrentPage] = useState('dashboard');
   const [selectedProfile, setSelectedProfile] = useState<any>(null);
   const [hasApiKey, setHasApiKey] = useState<boolean>(true);
   const [showApiAlert, setShowApiAlert] = useState<boolean>(false);
+  const [isSetupComplete, setIsSetupComplete] = useState<boolean | null>(null);
   const hasShownAlertRef = useRef(false);
 
   const checkApiKey = async () => {
     const res = await (window as any).electronAPI?.getSettings();
     if (res?.success) {
+      setIsSetupComplete(res.data.isSetupComplete);
       const key = res.data.geminiApiKey;
       if (!key || key.trim() === '') {
         setHasApiKey(false);
-        if (!hasShownAlertRef.current) {
+        if (res.data.isSetupComplete && !hasShownAlertRef.current) {
           setShowApiAlert(true);
           hasShownAlertRef.current = true;
         }
@@ -56,6 +59,17 @@ function App() {
     setSelectedProfile(data);
     setCurrentPage('view-data');
   };
+
+  if (isSetupComplete === null) {
+    return <div className="h-screen w-screen bg-background flex items-center justify-center text-on-surface">Cargando...</div>;
+  }
+
+  if (!isSetupComplete) {
+    return <InstallerWizard onComplete={() => {
+      setIsSetupComplete(true);
+      checkApiKey();
+    }} />;
+  }
 
   return (
     <>
