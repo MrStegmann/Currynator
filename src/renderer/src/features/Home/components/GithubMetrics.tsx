@@ -27,8 +27,8 @@ export const GithubMetrics: React.FC<GithubMetricsProps> = ({ metrics }) => {
     <div className="flex flex-col gap-6">
       
       {/* Profile README Evaluator */}
-      <div className="bg-surface-card border border-border-subtle rounded-xl p-6 shadow-sm">
-        <h3 className="text-title-md font-bold text-on-surface mb-2">Profile README.md Evaluator</h3>
+      <div className="flex flex-col gap-2">
+        <h3 className="text-lg font-bold text-on-surface border-b border-border-subtle mb-2.5 pb-2">Profile README.md Evaluator</h3>
         
         {metrics.profileReadme.exists ? (
           <div className="flex flex-col gap-4">
@@ -60,8 +60,8 @@ export const GithubMetrics: React.FC<GithubMetricsProps> = ({ metrics }) => {
       </div>
 
       {/* Polyglot Language Distribution */}
-      <div className="bg-surface-card border border-border-subtle rounded-xl p-6 shadow-sm">
-        <h3 className="text-title-md font-bold text-on-surface mb-4">Language Distribution</h3>
+      <div className="flex flex-col gap-2">
+        <h3 className="text-lg font-bold text-on-surface border-b border-border-subtle mb-2.5 pb-2">Language Distribution</h3>
         
         {metrics.languages.length > 0 ? (
           <>
@@ -91,8 +91,8 @@ export const GithubMetrics: React.FC<GithubMetricsProps> = ({ metrics }) => {
       </div>
 
       {/* Top Projects Quality Valuation */}
-      <div className="bg-surface-card border border-border-subtle rounded-xl p-6 shadow-sm">
-        <h3 className="text-title-md font-bold text-on-surface mb-4">Top Projects Quality</h3>
+      <div className="flex flex-col gap-2">
+        <h3 className="text-lg font-bold text-on-surface border-b border-border-subtle mb-2.5 pb-2">Top Projects Quality</h3>
         
         {metrics.topProjects.length > 0 ? (
           <div className="flex flex-col gap-4">

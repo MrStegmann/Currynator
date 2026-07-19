@@ -16,7 +16,7 @@ export const Home: React.FC = () => {
       try {
         setIsLoading(true);
         setError(null);
-        
+
         // Fetch data in parallel
         const [profileData, metricsData] = await Promise.all([
           fetchProfileData(),
@@ -37,7 +37,7 @@ export const Home: React.FC = () => {
         if (metricsData) {
           setMetrics(metricsData);
         }
-        
+
       } catch (err: any) {
         setError(err.message || 'An unexpected error occurred while loading Home.');
       } finally {
@@ -73,25 +73,27 @@ export const Home: React.FC = () => {
       </header>
 
       {/* Section One: Basic Information */}
-      <section>
+      <section className="w-full p-5 flex flex-col space-y-5 border-none">
+        <h2 className="text-3xl border-b border-border-subtle pb-2 font-bold text-on-surface">Basic Profile</h2>
         {profile ? (
-          <BasicInformation 
-            initialProfile={profile} 
-            onProfileUpdated={(updatedProfile) => setProfile(updatedProfile)} 
+          <BasicInformation
+            initialProfile={profile}
+            onProfileUpdated={(updatedProfile) => setProfile(updatedProfile)}
           />
         ) : (
-          <div className="p-6 bg-surface-card rounded-xl text-on-surface-variant border border-border-subtle">
+          <div className="text-on-surface-variant">
             Profile data not found. Please complete the setup wizard.
           </div>
         )}
       </section>
 
       {/* Section Two: GitHub Metrics */}
-      <section>
+      <section className="w-full p-5 mt-5 flex flex-col space-y-5 border-none">
+        <h2 className="text-3xl border-b border-border-subtle pb-2 font-bold text-on-surface">GitHub Metrics</h2>
         {metrics ? (
           <GithubMetrics metrics={metrics} />
         ) : (
-          <div className="p-6 bg-surface-card rounded-xl text-on-surface-variant border border-border-subtle">
+          <div className="text-on-surface-variant">
             Unable to load GitHub metrics. Please ensure your token is valid.
           </div>
         )}

@@ -67,17 +67,17 @@ const Settings: React.FC<SettingsProps> = ({ onSaveSettings }) => {
       <h2 className="text-3xl font-semibold mb-2 border-b border-[#1E293B] pb-4">Configuración del Sistema</h2>
 
       {/* Gemini API Key */}
-      <div className="flex flex-col gap-2 bg-slate-900 border-[1.5px] border-[#1E293B] rounded-xl p-6 shadow-md">
-        <label className="text-lg font-medium">API-Key de Gemini</label>
+      <div className="flex flex-col gap-2 bg-slate-900 border-[1.5px] border-[#1E293B] rounded-xl p-6 shadow-md opacity-70">
+        <label className="text-lg font-medium">API-Key de Gemini <span className="text-red-500 text-sm ml-2 font-bold">[DEPRECATED]</span></label>
         <p className="text-sm text-[#8c909f] mb-2">
-          La aplicación utiliza la inteligencia artificial de Gemini para analizar y optimizar tus currículums. Requiere una clave API válida para funcionar.
+          Este campo está deprecado. La aplicación ahora utiliza la variable de entorno GEMINI_API_KEY desde el archivo .env.
         </p>
         <input
           type="password"
-          className="w-full px-4 py-2 bg-[#020617] border border-[#1E293B] rounded-md text-[#d3e4fe] font-mono text-sm focus:outline-none focus:border-blue-500 transition-colors"
-          placeholder="AIzaSy..."
-          value={apiKey}
-          onChange={(e) => setApiKey(e.target.value)}
+          className="w-full px-4 py-2 bg-[#020617] border border-[#1E293B] rounded-md text-[#d3e4fe] font-mono text-sm focus:outline-none focus:border-blue-500 transition-colors cursor-not-allowed"
+          placeholder="Configurado en .env"
+          value={apiKey ? "••••••••••••••••" : ""}
+          disabled
         />
       </div>
 

@@ -65,6 +65,7 @@ app.on('window-all-closed', () => {
 ipcMain.handle('get-settings', async () => {
   try {
     const settings = await readSettings();
+    settings.geminiApiKey = process.env.GEMINI_API_KEY || '';
     return { success: true, data: settings };
   } catch (error: any) {
     return { success: false, error: error.message };

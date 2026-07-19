@@ -66,7 +66,7 @@ async function evaluateProfileReadme(username: string, token: string) {
   } catch (err) {
     // 404 or other error
   }
-  
+
   // if text is an object (error JSON), it means 404 since it didn't parse as text correctly
   if (!text || typeof text === 'object' || text.includes('"message":"Not Found"')) {
     return {
@@ -118,7 +118,7 @@ async function calculateLanguageDistribution(repos: any[], token: string) {
 
   // Process only top 10 repos to avoid rate limits / slow execution
   const topRepos = repos.slice(0, 10);
-  
+
   for (const repo of topRepos) {
     try {
       const langs = await fetchGithubApi(repo.languages_url, token);
@@ -159,7 +159,7 @@ async function evaluateSingleProject(repo: any, token: string) {
 
   let repoScore = 50; // base score
   const structuralFeedback: string[] = [];
-  
+
   if (!missingReadme) repoScore += 20; else structuralFeedback.push('Add a README.md to describe setup and usage.');
   if (repo.description) repoScore += 15; else structuralFeedback.push('Add a short repository description.');
   if (repo.has_issues) repoScore += 5;
@@ -183,12 +183,12 @@ async function evaluateSingleProject(repo: any, token: string) {
 async function evaluateTopProjects(repos: any[], token: string) {
   const topRepos = repos.slice(0, 5);
   const evaluations = [];
-  
+
   for (const repo of topRepos) {
     const evaluation = await evaluateSingleProject(repo, token);
     evaluations.push(evaluation);
   }
-  
+
   return evaluations;
 }
 
@@ -204,11 +204,11 @@ export async function analyzeGithubProfile(): Promise<GithubMetricsPayload> {
 
   const username = await getGithubUsername(token);
   const profileReadme = await evaluateProfileReadme(username, token);
-  
+
   // Fetch repos (public only, sorted by recently pushed)
   let repos = await fetchGithubApi('/user/repos?visibility=public&sort=pushed&per_page=30', token);
   if (repos.message) repos = []; // Handle errors cleanly
-  
+
   const languages = await calculateLanguageDistribution(repos, token);
   const topProjects = await evaluateTopProjects(repos, token);
 

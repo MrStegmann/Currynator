@@ -74,21 +74,20 @@ function App() {
         {currentPage === 'settings' && <Settings onSaveSettings={checkApiKey} />}
       </Layout>
 
-      <Modal isOpen={showApiAlert} onClose={() => setShowApiAlert(false)} title="API-Key Requerida">
+      <Modal isOpen={showApiAlert} onClose={() => setShowApiAlert(false)} title="[DEPRECATED] API-Key Requerida">
         <div className="flex flex-col gap-4 text-[#d3e4fe]">
-          <p>La aplicación no tiene configurada una clave API de Gemini.</p>
+          <p>La configuración de API Key desde la UI está deprecada.</p>
           <p className="text-sm text-yellow-500">
-            Para poder generar currículums optimizados y guiones de estudio, necesitas configurar tu API-Key. Por favor, ve a <strong>Configuración</strong> en el menú lateral.
+            Ahora debes configurar tu API-Key directamente en el archivo <strong>.env</strong> (GEMINI_API_KEY).
           </p>
           <div className="flex justify-end mt-4">
             <button
               onClick={() => {
                 setShowApiAlert(false);
-                handleNavigate('settings');
               }}
               className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-md transition-colors"
             >
-              Ir a Configuración
+              Entendido
             </button>
           </div>
         </div>

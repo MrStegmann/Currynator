@@ -12,11 +12,11 @@ export async function generateCVFromGemini(
 ) {
   const model = 'gemini-2.5-flash';
 
-  const settings = await readSettings();
-  if (!settings.geminiApiKey) {
-    throw new Error("API Key de Gemini no configurada. Por favor, configúrala en Ajustes.");
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    throw new Error("API Key de Gemini no configurada en el archivo .env.");
   }
-  const ai = new GoogleGenAI({ apiKey: settings.geminiApiKey });
+  const ai = new GoogleGenAI({ apiKey });
 
   let prompt = `Eres un experto consultor de carrera y optimizador de ATS (Applicant Tracking Systems).\n\n`;
   prompt += `A continuación tienes el perfil completo de un candidato en formato JSON:\n${JSON.stringify(profileData, null, 2)}\n\n`;
@@ -113,11 +113,11 @@ import { studyGuideSchema } from '../utils/validation.js';
 export async function generateStudyGuideFromGemini(profileData: any, jobDetails: any, aiInstructions?: string) {
   const model = 'gemini-2.5-flash';
 
-  const settings = await readSettings();
-  if (!settings.geminiApiKey) {
-    throw new Error("API Key de Gemini no configurada. Por favor, configúrala en Ajustes.");
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    throw new Error("API Key de Gemini no configurada en el archivo .env.");
   }
-  const ai = new GoogleGenAI({ apiKey: settings.geminiApiKey });
+  const ai = new GoogleGenAI({ apiKey });
 
   let prompt = `Eres un experto Headhunter y Entrevistador Técnico. A continuación, tienes el perfil optimizado de un candidato.\n\n`;
   prompt += `PERFIL DEL CANDIDATO (JSON):\n${JSON.stringify(profileData, null, 2)}\n\n`;
