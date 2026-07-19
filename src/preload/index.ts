@@ -27,5 +27,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
   githubOAuthFlow: () => ipcRenderer.invoke('github-oauth-flow'),
   saveSecureToken: (tokenType: string, value: string) => ipcRenderer.invoke('save-secure-token', tokenType, value),
 
-  analyzeGithub: () => ipcRenderer.invoke('analyze-github')
+  analyzeGithub: () => ipcRenderer.invoke('analyze-github'),
+
+  executeTerminalCommand: (commandStr: string) => ipcRenderer.invoke('execute-terminal-command', commandStr),
+  onTerminalLog: (callback: (event: any, log: any) => void) => {
+    ipcRenderer.on('terminal-log', callback);
+    return () => ipcRenderer.removeListener('terminal-log', callback);
+  }
 });

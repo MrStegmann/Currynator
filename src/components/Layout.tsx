@@ -1,14 +1,12 @@
 import React from 'react';
-import DebugTerminal from './Debug/DebugTerminal';
 
 interface LayoutProps {
   children: React.ReactNode;
   currentPage: string;
   onNavigate: (page: string) => void;
-  hasApiKey?: boolean;
 }
 
-export const Layout = ({ children, currentPage, onNavigate, hasApiKey = true }: LayoutProps) => {
+export const Layout = ({ children, currentPage, onNavigate }: LayoutProps) => {
   return (
     <div className="h-screen w-full p-0.75 bg-transparent overflow-hidden">
       <div className="h-full w-full flex flex-col bg-[#020617]/95 backdrop-blur-md text-[#d3e4fe] font-sans rounded-xl border-[3px] border-white/70 shadow-2xl overflow-hidden relative">
@@ -73,17 +71,15 @@ export const Layout = ({ children, currentPage, onNavigate, hasApiKey = true }: 
               <h2 className="text-lg font-bold tracking-tight">AI Powered</h2>
             </div>
             <div
-              onClick={() => hasApiKey && onNavigate('generate-cv')}
-              title={!hasApiKey ? "Debes configurar una API-Key de Gemini para generar currículums." : ""}
-              className={`px-3 py-2 rounded-md transition-colors ${!hasApiKey ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-[#0b1c30]'} ${currentPage === 'generate-cv' ? 'bg-[#102034] text-blue-400' : ''}`}
+              onClick={() => onNavigate('generate-cv')}
+              className={`px-3 py-2 rounded-md cursor-pointer transition-colors ${currentPage === 'generate-cv' ? 'bg-[#102034] text-blue-400' : 'hover:bg-[#0b1c30]'}`}
             >
               Generar CV
             </div>
 
             <div
-              onClick={() => hasApiKey && onNavigate('generate-guide')}
-              title={!hasApiKey ? "Debes configurar una API-Key de Gemini para generar guías de estudio." : ""}
-              className={`px-3 py-2 rounded-md transition-colors ${!hasApiKey ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-[#0b1c30]'} ${currentPage === 'generate-guide' ? 'bg-[#102034] text-blue-400' : ''}`}
+              onClick={() => onNavigate('generate-guide')}
+              className={`px-3 py-2 rounded-md cursor-pointer transition-colors ${currentPage === 'generate-guide' ? 'bg-[#102034] text-blue-400' : 'hover:bg-[#0b1c30]'}`}
             >
               Generar Study Guide
             </div>
@@ -91,10 +87,17 @@ export const Layout = ({ children, currentPage, onNavigate, hasApiKey = true }: 
             {/* Spacer para empujar el botón al fondo */}
             <div className="flex-1"></div>
 
+            <div
+              onClick={() => onNavigate('terminal')}
+              className={`px-3 py-2 rounded-md cursor-pointer transition-colors mt-auto ${currentPage === 'terminal' ? 'bg-[#102034] text-blue-400' : 'hover:bg-[#0b1c30]'}`}
+            >
+              Terminal
+            </div>
+
             {/* Settings Button */}
             <div
               onClick={() => onNavigate('settings')}
-              className={`px-3 py-2 rounded-md cursor-pointer transition-colors mt-auto ${currentPage === 'settings' ? 'bg-[#102034] text-blue-400' : 'hover:bg-[#0b1c30]'}`}
+              className={`px-3 py-2 rounded-md cursor-pointer transition-colors ${currentPage === 'settings' ? 'bg-[#102034] text-blue-400' : 'hover:bg-[#0b1c30]'}`}
             >
               Configuración
             </div>
@@ -105,8 +108,6 @@ export const Layout = ({ children, currentPage, onNavigate, hasApiKey = true }: 
             {children}
           </section>
         </main>
-
-        <DebugTerminal />
       </div>
     </div>
   );

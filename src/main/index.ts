@@ -10,6 +10,7 @@ import { readSettings, saveSettings } from './utils/settings.js';
 import { registerAuthIpcHandlers } from './ipc/auth.ipc.js';
 import { registerSecureIpcHandlers } from './ipc/secure.ipc.js';
 import { registerGithubIpcHandlers } from './ipc/github.ipc.js';
+import { registerTerminalIpcHandlers } from './ipc/terminal.ipc.js';
 
 dotenv.config();
 
@@ -51,6 +52,7 @@ app.whenReady().then(() => {
   registerAuthIpcHandlers();
   registerSecureIpcHandlers();
   registerGithubIpcHandlers();
+  registerTerminalIpcHandlers();
   createWindow();
 
   app.on('activate', () => {

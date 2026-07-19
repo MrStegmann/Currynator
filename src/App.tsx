@@ -1,56 +1,26 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Layout } from './components/Layout';
 import Home from './renderer/src/features/Home';
-import AddData from './pages/AddData';
-import ViewData from './pages/ViewData';
-import GenerateCV from './pages/GenerateCV';
-import GenerateGuide from './pages/GenerateGuide';
-import Settings from './pages/Settings';
-import Modal from './components/Modal/Modal';
+import Terminal from './renderer/src/features/terminal';
 import InstallerWizard from './renderer/src/features/installer/InstallerWizard';
 
 function App() {
   const [currentPage, setCurrentPage] = useState('home');
-  const [selectedProfile, setSelectedProfile] = useState<any>(null);
-  const [hasApiKey, setHasApiKey] = useState<boolean>(true);
-  const [showApiAlert, setShowApiAlert] = useState<boolean>(false);
   const [isSetupComplete, setIsSetupComplete] = useState<boolean | null>(null);
-  const hasShownAlertRef = useRef(false);
-
-  const checkApiKey = async () => {
-    const res = await (window as any).electronAPI?.getSettings();
-    if (res?.success) {
-      setIsSetupComplete(res.data.isSetupComplete);
-      const key = res.data.geminiApiKey;
-      if (!key || key.trim() === '') {
-        setHasApiKey(false);
-        if (res.data.isSetupComplete && !hasShownAlertRef.current) {
-          setShowApiAlert(true);
-          hasShownAlertRef.current = true;
-        }
-      } else {
-        setHasApiKey(true);
-      }
-    }
-  };
 
   useEffect(() => {
-    // Check when app starts or when navigating
-    checkApiKey();
-  }, [currentPage]);
+    const checkSetup = async () => {
+      const res = await (window as any).electronAPI?.getSettings();
+      if (res?.success) {
+        setIsSetupComplete(res.data.isSetupComplete);
+      }
+    };
+    checkSetup();
+  }, []);
 
   const handleNavigate = (page: string) => {
-    if (!hasApiKey && (page === 'generate-cv' || page === 'generate-guide')) {
-      return; // Bloquear navegación si no hay API Key
-    }
-
     setCurrentPage(page);
-    if (page !== 'add-data' && page !== 'view-data') {
-      setSelectedProfile(null);
-    }
   };
-
-
 
   if (isSetupComplete === null) {
     return <div className="h-screen w-screen bg-background flex items-center justify-center text-on-surface">Cargando...</div>;
@@ -59,39 +29,21 @@ function App() {
   if (!isSetupComplete) {
     return <InstallerWizard onComplete={() => {
       setIsSetupComplete(true);
-      checkApiKey();
     }} />;
   }
 
   return (
     <>
-      <Layout currentPage={currentPage} onNavigate={handleNavigate} hasApiKey={hasApiKey}>
+      <Layout currentPage={currentPage} onNavigate={handleNavigate}>
         {currentPage === 'home' && <Home />}
-        {currentPage === 'add-data' && <AddData initialData={selectedProfile} />}
+        {currentPage === 'terminal' && <Terminal onClose={() => handleNavigate('home')} />}
+        {/* Deprecated {currentPage === 'add-data' && <AddData initialData={selectedProfile} />}
         {currentPage === 'view-data' && <ViewData data={selectedProfile} onBack={() => handleNavigate('home')} />}
         {currentPage === 'generate-cv' && <GenerateCV />}
         {currentPage === 'generate-guide' && <GenerateGuide onSuccess={() => handleNavigate('home')} />}
-        {currentPage === 'settings' && <Settings onSaveSettings={checkApiKey} />}
-      </Layout>
+        {currentPage === 'settings' && <Settings onSaveSettings={checkApiKey} />} */}
 
-      <Modal isOpen={showApiAlert} onClose={() => setShowApiAlert(false)} title="[DEPRECATED] API-Key Requerida">
-        <div className="flex flex-col gap-4 text-[#d3e4fe]">
-          <p>La configuración de API Key desde la UI está deprecada.</p>
-          <p className="text-sm text-yellow-500">
-            Ahora debes configurar tu API-Key directamente en el archivo <strong>.env</strong> (GEMINI_API_KEY).
-          </p>
-          <div className="flex justify-end mt-4">
-            <button
-              onClick={() => {
-                setShowApiAlert(false);
-              }}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-md transition-colors"
-            >
-              Entendido
-            </button>
-          </div>
-        </div>
-      </Modal>
+      </Layout>
     </>
   );
 }

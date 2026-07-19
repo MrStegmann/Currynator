@@ -41,9 +41,12 @@ src/
 ├── main/                       # Electron Main Process (Modular Backend)
 │   ├── ipc/                    # Channel listeners & message routers
 │   │   ├── auth.ipc.ts
-│   │   └── storage.ipc.ts
+│   │   ├── terminal.ipc.ts
+│   │   ├── github.ipc.ts
+│   │   └── secure.ipc.ts
 │   ├── services/               # Heavy backend business logic controllers
 │   │   ├── auth.service.ts     # Handles Google OAuth redirect loops
+│   │   ├── terminal.service.ts # Handles terminal commands
 │   │   ├── github.service.ts   # Secure API calls to GitHub
 │   │   └── secure.service.ts   # Encrypted key storage operations
 │   └── index.ts                # App initialization ONLY
@@ -80,6 +83,14 @@ src/
     │   │   │   │   └── GithubMetrics.types.ts
     │   │   │   ├── utils/     # Utilities functions
     │   │   │   └── index.tsx     # Home core
+    │   │   ├── Terminal/      # Terminal page
+    │   │   │   ├── components/     # Terminal components
+    │   │   │   ├── services/     # Terminal services
+    │   │   │   │   ├── Terminal.service.ts
+    │   │   │   ├── types/     # Terminal types
+    │   │   │   │   ├── Terminal.types.ts
+    │   │   │   ├── utils/     # Utilities functions
+    │   │   │   └── index.tsx     # Terminal core
     │   ├── hooks/              # Shared global custom React hooks
     │   └── App.tsx
     └── index.html
