@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Mail, ArrowRight } from 'lucide-react';
 import { GithubIcon } from './GithubIcon';
-import { useNotification } from '../../../../../../contexts/NotificationContext';
 import { googleAuthService, githubAuthService } from '../services/StepOne.service';
 import type { StepOneProps } from '../types/StepOne.types';
+import { useNotification } from '../../../../context/NotificationContext';
 
 export const StepOne: React.FC<StepOneProps> = ({ state, onChange, onNext, onGithubTokenRetrieved }) => {
   const { addNotification } = useNotification();
@@ -43,11 +43,11 @@ export const StepOne: React.FC<StepOneProps> = ({ state, onChange, onNext, onGit
           email: res.profile.email,
           authProviderUsed: 'github'
         });
-        
+
         if (res.profile.token) {
-           onGithubTokenRetrieved(res.profile.token);
+          onGithubTokenRetrieved(res.profile.token);
         }
-        
+
         addNotification('Autenticado exitosamente con GitHub', 'success');
         setTimeout(() => onNext(), 300);
       } else {
@@ -74,16 +74,16 @@ export const StepOne: React.FC<StepOneProps> = ({ state, onChange, onNext, onGit
         <h2 className="text-headline-sm font-bold">Identidad y Enlace de Cuenta</h2>
         <p className="text-body-sm text-on-surface-variant mt-2">Conecta una cuenta o introduce tus datos manualmente para iniciar.</p>
       </div>
-      
+
       <div className="flex gap-4">
-        <button 
+        <button
           onClick={handleGoogleAuth}
           disabled={isProcessing}
           className="flex-1 flex items-center justify-center gap-2 p-3 bg-surface-bright hover:bg-surface-deep border border-border-subtle rounded-md transition-colors disabled:opacity-50"
         >
           <Mail className="w-5 h-5" /> Sign in with Google
         </button>
-        <button 
+        <button
           onClick={handleGithubAuth}
           disabled={isProcessing}
           className="flex-1 flex items-center justify-center gap-2 p-3 bg-surface-bright hover:bg-surface-deep border border-border-subtle rounded-md transition-colors disabled:opacity-50"
@@ -99,30 +99,30 @@ export const StepOne: React.FC<StepOneProps> = ({ state, onChange, onNext, onGit
       </div>
 
       <div className="flex flex-col gap-4">
-        <input 
-          type="text" 
-          placeholder="First Name" 
+        <input
+          type="text"
+          placeholder="First Name"
           className="p-3 bg-surface-deep border border-border-subtle rounded-md text-on-surface"
           value={state.firstName}
           onChange={e => onChange({ ...state, firstName: e.target.value })}
         />
-        <input 
-          type="text" 
-          placeholder="Last Name" 
+        <input
+          type="text"
+          placeholder="Last Name"
           className="p-3 bg-surface-deep border border-border-subtle rounded-md text-on-surface"
           value={state.lastName}
           onChange={e => onChange({ ...state, lastName: e.target.value })}
         />
-        <input 
-          type="email" 
-          placeholder="Email" 
+        <input
+          type="email"
+          placeholder="Email"
           className="p-3 bg-surface-deep border border-border-subtle rounded-md text-on-surface"
           value={state.email}
           onChange={e => onChange({ ...state, email: e.target.value })}
         />
       </div>
 
-      <button 
+      <button
         onClick={handleManualStep1}
         className="mt-4 p-3 bg-primary hover:bg-primary/90 text-on-primary rounded-md font-bold transition-colors flex items-center justify-center gap-2"
       >

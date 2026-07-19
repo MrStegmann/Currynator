@@ -19,6 +19,7 @@ const __dirname = path.dirname(__filename);
 
 let mainWindow: BrowserWindow | null = null;
 
+
 function createWindow() {
   const primaryDisplay = screen.getPrimaryDisplay();
   const { width, height } = primaryDisplay.workAreaSize;
@@ -30,14 +31,13 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: windowWidth,
     height: windowHeight,
-    frame: true, // Sin barra de acciones del SO
-    titleBarStyle: 'default', // Oculta la barra de título native y permite el diseño custom
-    titleBarOverlay: false,
-    transparent: false, // Requerido para el efecto cristal en el borde
+    frame: true,
+    transparent: false,
+    titleBarStyle: 'default',
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
-      preload: path.join(__dirname, 'preload.mjs') // asumiendo compilación de TS a JS
+      preload: path.join(__dirname, 'preload.mjs')
     }
   });
 

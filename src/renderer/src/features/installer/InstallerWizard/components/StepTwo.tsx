@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import { Loader2 } from 'lucide-react';
-import { useNotification } from '../../../../../../contexts/NotificationContext';
+import { useNotification } from '../../../../context/NotificationContext';
 import { saveTokenService } from '../services/StepTwo.service';
 import type { StepTwoProps } from '../types/StepTwo.types';
 
-export const StepTwo: React.FC<StepTwoProps> = ({ 
-  githubTokenInput, 
-  onChangeTokenInput, 
-  onNext, 
-  onSkip, 
+export const StepTwo: React.FC<StepTwoProps> = ({
+  githubTokenInput,
+  onChangeTokenInput,
+  onNext,
+  onSkip,
   authProviderUsed,
   onStateChange
 }) => {
@@ -20,19 +20,19 @@ export const StepTwo: React.FC<StepTwoProps> = ({
       addNotification('Token no válido', 'error');
       return;
     }
-    
+
     setIsProcessing(true);
     try {
       const authRes = await fetch('https://api.github.com/user', {
         headers: { Authorization: `Bearer ${githubTokenInput}` }
       });
-      
+
       if (!authRes.ok) {
         addNotification('El token de GitHub no es válido o ha expirado.', 'error');
         setIsProcessing(false);
         return;
       }
-      
+
       const res = await saveTokenService(githubTokenInput);
       if (res.success) {
         onStateChange({ tokenProvided: true });
@@ -67,16 +67,16 @@ export const StepTwo: React.FC<StepTwoProps> = ({
 
       <div className="flex flex-col gap-2">
         <label className="text-xs uppercase font-bold text-on-surface-variant tracking-wider">GitHub Access Token</label>
-        <input 
-          type="password" 
-          placeholder="ghp_..." 
+        <input
+          type="password"
+          placeholder="ghp_..."
           className="p-3 bg-surface-deep border border-border-subtle rounded-md text-on-surface font-mono"
           value={githubTokenInput}
           onChange={e => onChangeTokenInput(e.target.value)}
         />
       </div>
 
-      <button 
+      <button
         onClick={handleSaveGithubToken}
         disabled={isProcessing || githubTokenInput.length < 10}
         className="mt-4 p-3 bg-primary hover:bg-primary/90 text-on-primary rounded-md font-bold transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
@@ -84,7 +84,7 @@ export const StepTwo: React.FC<StepTwoProps> = ({
         {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Guardar y Continuar'}
       </button>
       {authProviderUsed === 'github' && (
-         <button onClick={onSkip} className="mt-2 text-sm text-primary hover:underline">Saltar (Usar token actual OAuth)</button>
+        <button onClick={onSkip} className="mt-2 text-sm text-primary hover:underline">Saltar (Usar token actual OAuth)</button>
       )}
     </div>
   );

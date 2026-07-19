@@ -1,8 +1,8 @@
 import React from 'react';
 import { Folder, CheckCircle } from 'lucide-react';
-import { useNotification } from '../../../../../../contexts/NotificationContext';
 import { selectDirectoryService } from '../services/StepThree.service';
 import type { StepThreeProps } from '../types/StepThree.types';
+import { useNotification } from '../../../../context/NotificationContext';
 
 export const StepThree: React.FC<StepThreeProps> = ({ state, onChange, onComplete }) => {
   const { addNotification } = useNotification();
@@ -28,13 +28,13 @@ export const StepThree: React.FC<StepThreeProps> = ({ state, onChange, onComplet
       <div className="flex flex-col gap-2">
         <label className="text-xs uppercase font-bold text-on-surface-variant tracking-wider">Directorio Actual</label>
         <div className="flex gap-2">
-          <input 
-            type="text" 
-            readOnly 
+          <input
+            type="text"
+            readOnly
             className="flex-1 p-3 bg-surface-deep border border-border-subtle rounded-md text-on-surface text-sm"
             value={state.outputDirectoryPath}
           />
-          <button 
+          <button
             onClick={handleBrowseDirectory}
             className="px-4 bg-surface-bright hover:bg-surface-variant border border-border-subtle rounded-md transition-colors flex items-center gap-2"
           >
@@ -43,7 +43,7 @@ export const StepThree: React.FC<StepThreeProps> = ({ state, onChange, onComplet
         </div>
       </div>
 
-      <button 
+      <button
         onClick={onComplete}
         disabled={!state.outputDirectoryPath}
         className="mt-6 p-3 bg-green-600 hover:bg-green-500 text-white rounded-md font-bold transition-colors disabled:opacity-50 flex items-center justify-center gap-2"

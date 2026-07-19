@@ -19,6 +19,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   openStudyGuide: (filename: string) => ipcRenderer.invoke('open-study-guide', filename),
   checkFileExists: (filename: string, type: 'cv' | 'guide') => ipcRenderer.invoke('check-file-exists', filename, type),
   renameFile: (oldName: string, newName: string, type: 'cv' | 'guide') => ipcRenderer.invoke('rename-file', oldName, newName, type),
+
   getSettings: () => ipcRenderer.invoke('get-settings'),
   saveSettings: (settings: any) => ipcRenderer.invoke('save-settings', settings),
   selectFolder: () => ipcRenderer.invoke('select-folder'),

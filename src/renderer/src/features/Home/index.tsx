@@ -3,7 +3,7 @@ import { BasicInformation } from './components/BasicInformation';
 import { GithubMetrics } from './components/GithubMetrics';
 import { fetchProfileData } from './services/BasicInformation.service';
 import { fetchGithubMetrics } from './services/GithubMetrics.service';
-import { useNotification } from '../../../../contexts/NotificationContext';
+import { useNotification } from '../../context/NotificationContext';
 import type { HomeFeatureState } from './types';
 
 export const Home: React.FC = () => {
@@ -110,8 +110,8 @@ export const Home: React.FC = () => {
       <section className="w-full p-5 mt-5 flex flex-col space-y-5 border-none">
         <h2 className="text-3xl border-b border-border-subtle pb-2 font-bold text-on-surface">GitHub Metrics</h2>
         {metrics ? (
-          <GithubMetrics 
-            metrics={metrics} 
+          <GithubMetrics
+            metrics={metrics}
             onRefresh={handleRefreshGithub}
             isRefreshing={isRefreshingGithub}
           />
