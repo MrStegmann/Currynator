@@ -2,8 +2,6 @@ import { GoogleGenAI } from '@google/genai';
 import { geminiResponseSchema } from '../utils/validation.js';
 import { jsonrepair } from 'jsonrepair';
 
-import { readSettings } from '../utils/settings.js';
-
 export async function generateCVFromGemini(
   profileData: any,
   generationType: 'general' | 'specific',

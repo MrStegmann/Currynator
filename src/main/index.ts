@@ -10,7 +10,6 @@ import { readSettings, saveSettings } from './utils/settings.js';
 import { registerAuthIpcHandlers } from './ipc/auth.ipc.js';
 import { registerSecureIpcHandlers } from './ipc/secure.ipc.js';
 import { registerGithubIpcHandlers } from './ipc/github.ipc.js';
-import { Log } from './utils/logger.js';
 
 dotenv.config();
 
@@ -37,7 +36,7 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
-      preload: path.join(__dirname, 'preload.mjs')
+      preload: path.join(__dirname, 'index.mjs')
     }
   });
 
@@ -51,7 +50,6 @@ function createWindow() {
 
 // Inicialización de la aplicación
 app.whenReady().then(() => {
-  new Log('System initialized and ready.');
   registerAuthIpcHandlers();
   registerSecureIpcHandlers();
   registerGithubIpcHandlers();

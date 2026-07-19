@@ -1,4 +1,3 @@
-import { ErrorLog, Log } from '../utils/logger.js';
 import { readSecureToken } from './secure.service.js';
 
 interface GithubMetricsPayload {
@@ -133,7 +132,7 @@ async function calculateLanguageDistribution(repos: any[], token: string) {
         }
       }
     } catch (e) {
-      new ErrorLog(`Error reading languages for ${repo.name} | Error: ${e}`);
+      console.error(e)
     }
   }
 
@@ -155,13 +154,35 @@ import { GoogleGenAI, Type } from '@google/genai';
  * @returns An array of top project evaluations.
  */
 async function evaluateTopProjects(repos: any[], token: string) {
-  const topRepos = repos.slice(0, 15); // Check up to 15 to find 5 valid
+  const topRepos = repos.slice(0, 30); // Allow more repos in case many are filtered out
   const processedRepos = [];
 
   for (const repo of topRepos) {
-    if (repo.fork || repo.size === 0) continue;
+    // 1. Skip projects that are forks or archived
+    if (repo.fork || repo.archived) continue;
+    
+    // 2. Skip projects that are empty
+    if (repo.size === 0) continue;
+    
+    // 3. Skip GitHub Account project used for UI theme (username repo)
+    if (repo.name.toLowerCase() === repo.owner.login.toLowerCase()) continue;
 
     try {
+      let treeData: any = null;
+      try {
+        treeData = await fetchGithubApi(`/repos/${repo.owner.login}/${repo.name}/git/trees/${repo.default_branch}?recursive=1`, token);
+      } catch (e) {
+        console.error(e);
+      }
+
+      // 4. Skip any projects that haven't a src folder with at least 1 file
+      let hasSrcFolder = false;
+      if (treeData && treeData.tree) {
+        hasSrcFolder = treeData.tree.some((f: any) => f.type === 'blob' && /(^|\/)src\//.test(f.path));
+      }
+      
+      if (!hasSrcFolder) continue;
+
       let readme = '';
       try {
         const readmeData = await fetchGithubApi(`/repos/${repo.owner.login}/${repo.name}/readme`, token, true);
@@ -169,14 +190,7 @@ async function evaluateTopProjects(repos: any[], token: string) {
           readme = readmeData;
         }
       } catch (e) {
-        new ErrorLog(`Error reading README for ${repo.name} | Error: ${e}`);
-      }
-
-      let treeData: any = null;
-      try {
-        treeData = await fetchGithubApi(`/repos/${repo.owner.login}/${repo.name}/git/trees/${repo.default_branch}?recursive=1`, token);
-      } catch (e) {
-        new ErrorLog(`Error reading tree for ${repo.name} | Error: ${e}`);
+        console.error(e);
       }
 
       const codeSamples = [];
@@ -205,7 +219,7 @@ async function evaluateTopProjects(repos: any[], token: string) {
                 content: fileContent.substring(0, 2000)
               });
             }
-          } catch (e) { console.error(`Error reading file content: ${file.path} | Error: ${e}`); }
+          } catch (e) { console.error(e) }
         }
       }
 
@@ -216,7 +230,7 @@ async function evaluateTopProjects(repos: any[], token: string) {
           languages = Object.keys(langs);
         }
       } catch (e) {
-        new ErrorLog(`Error reading languages for ${repo.name} | Error: ${e}`);
+        console.error(e)
       }
 
       processedRepos.push({
@@ -229,7 +243,7 @@ async function evaluateTopProjects(repos: any[], token: string) {
 
       if (processedRepos.length >= 5) break;
     } catch (error) {
-      new ErrorLog(`Skipping ${repo.name} due to error: ${error}`);
+      console.error(error)
     }
   }
 
@@ -284,7 +298,7 @@ async function evaluateTopProjects(repos: any[], token: string) {
         };
       });
   } catch (err) {
-    new ErrorLog(`Gemini API Error: ${err}`);
+    console.error(err)
     return processedRepos.map(repo => ({
       repositoryName: repo.name,
       score: 50,
@@ -310,16 +324,12 @@ export async function analyzeGithubProfile(): Promise<GithubMetricsPayload> {
 
   const username = await getGithubUsername(token);
   const profileReadme = await evaluateProfileReadme(username, token);
-  new Log(`GitHub profile readme evaluated: ${JSON.stringify(profileReadme).slice(0, 200)}...`);
 
   // Fetch repos (public only, sorted by recently pushed)
   let repos = await fetchGithubApi('/user/repos?visibility=public&sort=pushed&per_page=30', token);
   if (repos.message) repos = []; // Handle errors cleanly
-  new Log(`GitHub repos evaluated: ${JSON.stringify(repos).slice(0, 200)}...`);
   const languages = await calculateLanguageDistribution(repos, token);
-  new Log(`GitHub languages evaluated: ${JSON.stringify(languages).slice(0, 200)}...`);
   const topProjects = await evaluateTopProjects(repos, token);
-  new Log(`GitHub top projects evaluated: ${JSON.stringify(topProjects).slice(0, 200)}...`);
 
   return {
     profileReadme,
