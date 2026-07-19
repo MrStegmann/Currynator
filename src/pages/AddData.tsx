@@ -4,7 +4,7 @@ import ExperienceCard from '../components/Experience/ExperienceCard';
 import AcademicCard from '../components/Academic/AcademicCard';
 import ProjectCard from '../components/Project/ProjectCard';
 import CertificationCard from '../components/Certification/CertificationCard';
-import { resumeSchema } from '../../electron/utils/validation';
+import { resumeSchema } from '../main/utils/validation';
 import TagInput from '../components/TagInput';
 import Modal from '../components/Modal/Modal';
 import ExperienceForm from '../components/Experience/ExperienceForm';
@@ -248,7 +248,7 @@ const AddData: React.FC<AddDataProps> = ({ initialData }) => {
 
     if (!result.success) {
       const newErrors: Record<string, string> = {};
-      result.error.issues.forEach(err => {
+      result.error.issues.forEach((err: any) => {
         const path = err.path.join('.');
         newErrors[path] = err.message;
       });

@@ -158,3 +158,21 @@ export function validateCVData(data: unknown): ResumeData {
   }
   return result.data;
 }
+
+export const githubAnalysisSchema = z.object({
+  scoreBreakdown: z.object({
+    readme: z.number(),
+    projects: z.number(),
+    activity: z.number(),
+  }),
+  topProjectVerdict: z.string(),
+  actionableTips: z.array(z.object({
+    category: z.enum(['README', 'REPOSITORY', 'METRICS', 'WORK_EXPERIENCE']).or(z.string()),
+    priority: z.enum(['HIGH', 'MEDIUM', 'LOW']).or(z.string()),
+    tip: z.string(),
+    details: z.string(),
+  }))
+});
+
+export type GithubAnalysisData = z.infer<typeof githubAnalysisSchema>;
+

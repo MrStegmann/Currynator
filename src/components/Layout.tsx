@@ -56,10 +56,10 @@ export const Layout = ({ children, currentPage, onNavigate, hasApiKey = true }: 
             <div className="text-sm font-semibold tracking-wider text-[#8c909f] uppercase mb-2">Menú</div>
 
             <div
-              onClick={() => onNavigate('dashboard')}
-              className={`px-3 py-2 rounded-md cursor-pointer transition-colors ${currentPage === 'dashboard' ? 'bg-[#102034] text-blue-400' : 'hover:bg-[#0b1c30]'}`}
+              onClick={() => onNavigate('home')}
+              className={`px-3 py-2 rounded-md cursor-pointer transition-colors ${currentPage === 'home' ? 'bg-[#102034] text-blue-400' : 'hover:bg-[#0b1c30]'}`}
             >
-              Dashboard
+              Home
             </div>
 
             <div

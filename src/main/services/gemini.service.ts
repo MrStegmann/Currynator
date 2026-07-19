@@ -200,4 +200,3 @@ export async function generateStudyGuideFromGemini(profileData: any, jobDetails:
     throw err;
   }
 }
-

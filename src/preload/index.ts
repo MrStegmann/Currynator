@@ -1,9 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron';
 
 contextBridge.exposeInMainWorld('electronAPI', {
-  minimize: () => ipcRenderer.invoke('window:minimize'),
-  maximize: () => ipcRenderer.invoke('window:maximize'),
-  close: () => ipcRenderer.invoke('window:close'),
+
   saveResumeData: (data: any, options?: any) => ipcRenderer.invoke('save-resume-data', data, options),
   listResumeData: () => ipcRenderer.invoke('list-resume-data'),
   readResumeData: (filename: string) => ipcRenderer.invoke('read-resume-data', filename),
@@ -24,7 +22,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getSettings: () => ipcRenderer.invoke('get-settings'),
   saveSettings: (settings: any) => ipcRenderer.invoke('save-settings', settings),
   selectFolder: () => ipcRenderer.invoke('select-folder'),
-  validateGithubToken: (token: string) => ipcRenderer.invoke('validate-github-token', token),
-  googleOAuth: () => ipcRenderer.invoke('google-oauth'),
-  openExternal: (url: string) => ipcRenderer.invoke('open-external', url)
+
+  googleOAuthFlow: () => ipcRenderer.invoke('google-oauth-flow'),
+  githubOAuthFlow: () => ipcRenderer.invoke('github-oauth-flow'),
+  saveSecureToken: (tokenType: string, value: string) => ipcRenderer.invoke('save-secure-token', tokenType, value),
+
+  analyzeGithub: () => ipcRenderer.invoke('analyze-github')
 });

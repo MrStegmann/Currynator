@@ -1,16 +1,16 @@
 import { useState, useEffect, useRef } from 'react';
 import { Layout } from './components/Layout';
-import Dashboard from './pages/Dashboard';
+import Home from './renderer/src/features/Home';
 import AddData from './pages/AddData';
 import ViewData from './pages/ViewData';
 import GenerateCV from './pages/GenerateCV';
 import GenerateGuide from './pages/GenerateGuide';
 import Settings from './pages/Settings';
 import Modal from './components/Modal/Modal';
-import InstallerWizard from './features/wizard/InstallerWizard';
+import InstallerWizard from './renderer/src/features/installer/InstallerWizard';
 
 function App() {
-  const [currentPage, setCurrentPage] = useState('dashboard');
+  const [currentPage, setCurrentPage] = useState('home');
   const [selectedProfile, setSelectedProfile] = useState<any>(null);
   const [hasApiKey, setHasApiKey] = useState<boolean>(true);
   const [showApiAlert, setShowApiAlert] = useState<boolean>(false);
@@ -50,15 +50,7 @@ function App() {
     }
   };
 
-  const handleEditProfile = (data: any) => {
-    setSelectedProfile(data);
-    setCurrentPage('add-data');
-  };
 
-  const handleViewProfile = (data: any) => {
-    setSelectedProfile(data);
-    setCurrentPage('view-data');
-  };
 
   if (isSetupComplete === null) {
     return <div className="h-screen w-screen bg-background flex items-center justify-center text-on-surface">Cargando...</div>;
@@ -74,11 +66,11 @@ function App() {
   return (
     <>
       <Layout currentPage={currentPage} onNavigate={handleNavigate} hasApiKey={hasApiKey}>
-        {currentPage === 'dashboard' && <Dashboard onEditProfile={handleEditProfile} onViewProfile={handleViewProfile} />}
+        {currentPage === 'home' && <Home />}
         {currentPage === 'add-data' && <AddData initialData={selectedProfile} />}
-        {currentPage === 'view-data' && <ViewData data={selectedProfile} onBack={() => handleNavigate('dashboard')} />}
+        {currentPage === 'view-data' && <ViewData data={selectedProfile} onBack={() => handleNavigate('home')} />}
         {currentPage === 'generate-cv' && <GenerateCV />}
-        {currentPage === 'generate-guide' && <GenerateGuide onSuccess={() => handleNavigate('dashboard')} />}
+        {currentPage === 'generate-guide' && <GenerateGuide onSuccess={() => handleNavigate('home')} />}
         {currentPage === 'settings' && <Settings onSaveSettings={checkApiKey} />}
       </Layout>
 

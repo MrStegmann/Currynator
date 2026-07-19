@@ -4,9 +4,12 @@ import { fileURLToPath } from 'url';
 import * as fs from 'fs/promises';
 import * as dotenv from 'dotenv';
 import { validateCVData } from './utils/validation.js';
-import { generateCVFromGemini, generateStudyGuideFromGemini } from './services/gemini.js';
-import { generatePDF, closePDFEngine } from './services/pdf.js';
+import { generateCVFromGemini, generateStudyGuideFromGemini } from './services/gemini.service.js';
+import { generatePDF, closePDFEngine } from './services/pdf.service.js';
 import { readSettings, saveSettings } from './utils/settings.js';
+import { registerAuthIpcHandlers } from './ipc/auth.ipc.js';
+import { registerSecureIpcHandlers } from './ipc/secure.ipc.js';
+import { registerGithubIpcHandlers } from './ipc/github.ipc.js';
 
 dotenv.config();
 
@@ -45,6 +48,9 @@ function createWindow() {
 
 // Inicialización de la aplicación
 app.whenReady().then(() => {
+  registerAuthIpcHandlers();
+  registerSecureIpcHandlers();
+  registerGithubIpcHandlers();
   createWindow();
 
   app.on('activate', () => {
@@ -56,28 +62,6 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
 });
 
-// Manejo de eventos de la barra de título personalizados (IPC)
-ipcMain.handle('window:minimize', () => {
-  mainWindow?.minimize();
-});
-
-ipcMain.handle('window:maximize', () => {
-  if (mainWindow?.isMaximized()) {
-    mainWindow.unmaximize();
-  } else {
-    mainWindow?.maximize();
-  }
-});
-
-ipcMain.handle('window:close', () => {
-  mainWindow?.close();
-});
-
-ipcMain.handle('open-external', async (event, url) => {
-  await shell.openExternal(url);
-  return { success: true };
-});
-
 ipcMain.handle('get-settings', async () => {
   try {
     const settings = await readSettings();
@@ -87,7 +71,7 @@ ipcMain.handle('get-settings', async () => {
   }
 });
 
-ipcMain.handle('save-settings', async (event, settings) => {
+ipcMain.handle('save-settings', async (_event, settings) => {
   try {
     const newSettings = await saveSettings(settings);
     return { success: true, data: newSettings };
@@ -108,7 +92,7 @@ ipcMain.handle('select-folder', async () => {
 });
 
 
-ipcMain.handle('save-resume-data', async (event, data, options: any = {}) => {
+ipcMain.handle('save-resume-data', async (_event, data, options: any = {}) => {
   try {
     // 1. Validar los datos
     const validData = validateCVData(data);
@@ -169,7 +153,7 @@ ipcMain.handle('save-resume-data', async (event, data, options: any = {}) => {
   }
 });
 
-ipcMain.handle('read-ai-reasoning', async (event, filename) => {
+ipcMain.handle('read-ai-reasoning', async (_event, filename) => {
   try {
     const settings = await readSettings();
     const aiDir = path.join(settings.dataFolderPath, 'aiReasoning');
@@ -198,7 +182,7 @@ ipcMain.handle('list-resume-data', async () => {
   }
 });
 
-ipcMain.handle('read-resume-data', async (event, filename) => {
+ipcMain.handle('read-resume-data', async (_event, filename) => {
   try {
     const settings = await readSettings();
     const dataDir = path.join(settings.dataFolderPath, 'data');
@@ -211,7 +195,7 @@ ipcMain.handle('read-resume-data', async (event, filename) => {
   }
 });
 
-ipcMain.handle('delete-resume-data', async (event, filename) => {
+ipcMain.handle('delete-resume-data', async (_event, filename) => {
   try {
     const settings = await readSettings();
     const dataDir = path.join(settings.dataFolderPath, 'data');
@@ -251,7 +235,7 @@ ipcMain.handle('list-generated-cvs', async () => {
   }
 });
 
-ipcMain.handle('read-generated-cv', async (event, filename) => {
+ipcMain.handle('read-generated-cv', async (_event, filename) => {
   try {
     const settings = await readSettings();
     const dataDir = path.join(settings.dataFolderPath, 'CV');
@@ -264,7 +248,7 @@ ipcMain.handle('read-generated-cv', async (event, filename) => {
   }
 });
 
-ipcMain.handle('delete-generated-cv', async (event, filename) => {
+ipcMain.handle('delete-generated-cv', async (_event, filename) => {
   try {
     const settings = await readSettings();
     const dataDir = path.join(settings.dataFolderPath, 'CV');
@@ -277,7 +261,7 @@ ipcMain.handle('delete-generated-cv', async (event, filename) => {
   }
 });
 
-ipcMain.handle('generate-cv', async (event, { profileData, generationType, jobDetails, aiInstructions }) => {
+ipcMain.handle('generate-cv', async (_event, { profileData, generationType, jobDetails, aiInstructions }) => {
   try {
     const result = await generateCVFromGemini(profileData, generationType, jobDetails, aiInstructions);
     // Forzamos la serialización manual para evitar que el algoritmo structuredClone
@@ -291,7 +275,7 @@ ipcMain.handle('generate-cv', async (event, { profileData, generationType, jobDe
   }
 });
 
-ipcMain.handle('generate-study-guide', async (event, { profileData, jobDetails, aiInstructions }) => {
+ipcMain.handle('generate-study-guide', async (_event, { profileData, jobDetails, aiInstructions }) => {
   try {
     const result = await generateStudyGuideFromGemini(profileData, jobDetails, aiInstructions);
     const safeResult = JSON.parse(JSON.stringify(result));
@@ -302,7 +286,7 @@ ipcMain.handle('generate-study-guide', async (event, { profileData, jobDetails, 
   }
 });
 
-ipcMain.handle('export-study-guide-pdf', async (event, { html, baseName }) => {
+ipcMain.handle('export-study-guide-pdf', async (_event, { html, baseName }) => {
   try {
     const settings = await readSettings();
     const studyDir = path.join(settings.dataFolderPath, 'study');
@@ -327,7 +311,7 @@ ipcMain.handle('export-study-guide-pdf', async (event, { html, baseName }) => {
   }
 });
 
-ipcMain.handle('export-pdf', async (event, html) => {
+ipcMain.handle('export-pdf', async (_event, html) => {
   try {
     if (!mainWindow) throw new Error("No main window");
 
@@ -361,7 +345,7 @@ ipcMain.handle('list-study-guides', async () => {
   }
 });
 
-ipcMain.handle('delete-study-guide', async (event, filename) => {
+ipcMain.handle('delete-study-guide', async (_event, filename) => {
   try {
     const settings = await readSettings();
     const studyDir = path.join(settings.dataFolderPath, 'study');
@@ -374,7 +358,7 @@ ipcMain.handle('delete-study-guide', async (event, filename) => {
   }
 });
 
-ipcMain.handle('open-study-guide', async (event, filename) => {
+ipcMain.handle('open-study-guide', async (_event, filename) => {
   try {
     const settings = await readSettings();
     const studyDir = path.join(settings.dataFolderPath, 'study');
@@ -390,7 +374,7 @@ ipcMain.handle('open-study-guide', async (event, filename) => {
   }
 });
 
-ipcMain.handle('check-file-exists', async (event, filename, type: 'cv' | 'guide') => {
+ipcMain.handle('check-file-exists', async (_event, filename, type: 'cv' | 'guide') => {
   try {
     let dir = '';
     const settings = await readSettings();
@@ -415,7 +399,7 @@ ipcMain.handle('check-file-exists', async (event, filename, type: 'cv' | 'guide'
   }
 });
 
-ipcMain.handle('rename-file', async (event, oldFilename, newFilename, type: 'cv' | 'guide') => {
+ipcMain.handle('rename-file', async (_event, oldFilename, newFilename, type: 'cv' | 'guide') => {
   try {
     let dir = '';
     const settings = await readSettings();
@@ -444,126 +428,6 @@ ipcMain.handle('rename-file', async (event, oldFilename, newFilename, type: 'cv'
     console.error(`Error renaming file ${oldFilename} to ${newFilename}:`, error);
     return { success: false, error: error.message };
   }
-});
-
-ipcMain.handle('validate-github-token', async (event, token) => {
-  try {
-    const response = await fetch('https://api.github.com/user', {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Accept': 'application/vnd.github.v3+json',
-        'User-Agent': 'Currynator'
-      }
-    });
-    if (response.ok) {
-      const data = await response.json();
-      return { success: true, user: { login: data.login, name: data.name } };
-    } else {
-      return { success: false, error: 'Token inválido' };
-    }
-  } catch (error: any) {
-    return { success: false, error: error.message };
-  }
-});
-
-ipcMain.handle('google-oauth', async () => {
-  return new Promise((resolve) => {
-    const clientId = process.env.GOOGLE_CLIENT_ID;
-    const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-    const redirectUri = 'http://127.0.0.1:4200/auth/callback';
-
-    if (!clientId || !clientSecret) {
-      resolve({ success: false, error: 'Missing Google OAuth credentials in .env' });
-      return;
-    }
-
-    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=email%20profile&access_type=offline`;
-
-    const authWindow = new BrowserWindow({
-      width: 500,
-      height: 600,
-      show: true,
-      webPreferences: { nodeIntegration: false, contextIsolation: true }
-    });
-
-    authWindow.loadURL(authUrl);
-
-    authWindow.webContents.on('will-redirect', async (event, newUrl) => {
-      if (newUrl.startsWith(redirectUri)) {
-        event.preventDefault();
-        const urlObj = new URL(newUrl);
-        const code = urlObj.searchParams.get('code');
-        const error = urlObj.searchParams.get('error');
-
-        if (error) {
-          authWindow.close();
-          resolve({ success: false, error });
-          return;
-        }
-
-        if (code) {
-          try {
-            // Exchange code for token
-            const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-              body: new URLSearchParams({
-                code,
-                client_id: clientId,
-                client_secret: clientSecret,
-                redirect_uri: redirectUri,
-                grant_type: 'authorization_code'
-              })
-            });
-
-            const tokenData = await tokenResponse.json();
-            if (tokenData.error) {
-              authWindow.close();
-              resolve({ success: false, error: tokenData.error });
-              return;
-            }
-
-            // Get user info
-            const userResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-              headers: { Authorization: `Bearer ${tokenData.access_token}` }
-            });
-            const userData = await userResponse.json();
-
-            authWindow.close();
-            resolve({ success: true, data: {
-              firstName: userData.given_name || '',
-              lastName: userData.family_name || '',
-              email: userData.email || ''
-            }});
-          } catch (err: any) {
-            authWindow.close();
-            resolve({ success: false, error: err.message });
-          }
-        }
-      }
-    });
-
-    let isResolved = false;
-    const safeResolve = (val: any) => {
-      if (!isResolved) {
-        isResolved = true;
-        resolve(val);
-      }
-    };
-
-    authWindow.on('closed', () => {
-      safeResolve({ success: false, error: 'Authentication window was closed' });
-    });
-    
-    // Override the original resolve to track state
-    const originalResolve = resolve;
-    resolve = (val: any) => {
-      if (!isResolved) {
-        isResolved = true;
-        originalResolve(val);
-      }
-    }
-  });
 });
 
 app.on('will-quit', async () => {
