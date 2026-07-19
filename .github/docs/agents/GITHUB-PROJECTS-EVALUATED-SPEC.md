@@ -2,7 +2,7 @@
 
 ## Status
 
-* **Status:** IN PROGRESS
+* **Status:** IMPLEMENTED
 * **Target Module:** `src/renderer/src/features/home/components/GithubMetrics.tsx`
 * **Dependencies:** `main/services/github.service.ts`,
 

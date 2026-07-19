@@ -2,18 +2,10 @@ import { app } from 'electron';
 import * as path from 'path';
 import * as fs from 'fs/promises';
 
-export interface Profile {
-  firstName: string;
-  lastName: string;
-  email: string;
-  githubToken: string;
-}
-
 export interface AppSettings {
   geminiApiKey: string;
   dataFolderPath: string;
   isSetupComplete: boolean;
-  profile: Profile;
 }
 
 export const getSettingsFilePath = () => {
@@ -24,13 +16,7 @@ export const getDefaultSettings = (): AppSettings => {
   return {
     geminiApiKey: '',
     dataFolderPath: path.join(app.getPath('documents'), 'Currynator'),
-    isSetupComplete: false,
-    profile: {
-      firstName: '',
-      lastName: '',
-      email: '',
-      githubToken: ''
-    }
+    isSetupComplete: false
   };
 };
 

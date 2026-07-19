@@ -1,128 +1,226 @@
 import React, { useState, useEffect } from 'react';
 import { BasicInformation } from './components/BasicInformation';
-import { GithubMetrics } from './components/GithubMetrics';
-import { fetchProfileData } from './services/BasicInformation.service';
-import { fetchGithubMetrics } from './services/GithubMetrics.service';
-import { useNotification } from '../../context/NotificationContext';
-import type { HomeFeatureState } from './types';
+import { WorkExperienceCard } from './components/work/WorkExperienceCard';
+import { WorkExperienceFormModal } from './components/work/WorkExperienceFormModal';
+import { EducationCard } from './components/education/EducationCard';
+import { EducationFormModal } from './components/education/EducationFormModal';
+import { CertificationCard } from './components/certification/CertificationCard';
+import { CertificationFormModal } from './components/certification/CertificationFormModal';
+import type { UserProfile, WorkExperience, Education, Certification } from '../../../../main/services/profile.service';
 
 export const Home: React.FC = () => {
-  const { addNotification } = useNotification();
-  const [profile, setProfile] = useState<HomeFeatureState['profile'] | null>(null);
-  const [metrics, setMetrics] = useState<HomeFeatureState['metrics'] | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [isRefreshingGithub, setIsRefreshingGithub] = useState(false);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [notification, setNotification] = useState<string | null>(null);
 
-  const handleRefreshGithub = async () => {
+  const [isWorkModalOpen, setIsWorkModalOpen] = useState(false);
+  const [editWorkId, setEditWorkId] = useState<string | null>(null);
+
+  const [isEduModalOpen, setIsEduModalOpen] = useState(false);
+  const [editEduId, setEditEduId] = useState<string | null>(null);
+
+  const [isCertModalOpen, setIsCertModalOpen] = useState(false);
+  const [editCertId, setEditCertId] = useState<string | null>(null);
+
+  useEffect(() => {
+    loadProfile();
+  }, []);
+
+  const loadProfile = async () => {
     try {
-      setIsRefreshingGithub(true);
-      const metricsData = await fetchGithubMetrics(true);
-      if (metricsData) {
-        setMetrics(metricsData);
+      const res = await window.electronAPI.getProfile();
+      if (res.success && res.data) {
+        setProfile(res.data);
       }
-    } catch (err: any) {
-      console.error('Failed to refresh GitHub metrics:', err);
-      addNotification(err.message || 'Failed to refresh GitHub metrics.', 'warning');
-    } finally {
-      setIsRefreshingGithub(false);
+    } catch (e) {
+      console.error('Error loading profile', e);
     }
   };
 
-  useEffect(() => {
-    const loadHomeData = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-
-        // Fetch data in parallel
-        const [profileData, metricsData] = await Promise.all([
-          fetchProfileData(),
-          fetchGithubMetrics().catch((err: Error) => {
-            console.error('Failed to load GitHub metrics:', err);
-            addNotification(err.message || 'Failed to load GitHub metrics.', 'warning');
-            return null; // Don't crash the whole page if GitHub fails
-          })
-        ]);
-
-        if (profileData) {
-          setProfile({
-            firstName: profileData.firstName || '',
-            lastName: profileData.lastName || '',
-            email: profileData.email || ''
-          });
-        }
-
-        if (metricsData) {
-          setMetrics(metricsData);
-        }
-
-      } catch (err: any) {
-        setError(err.message || 'An unexpected error occurred while loading Home.');
-      } finally {
-        setIsLoading(false);
+  const saveProfile = async (updatedProfile: UserProfile) => {
+    try {
+      const res = await window.electronAPI.saveProfile(updatedProfile);
+      if (res.success && res.data) {
+        setProfile(res.data);
+        setNotification('Datos guardados correctamente');
+        setTimeout(() => setNotification(null), 3000);
       }
-    };
+    } catch (e) {
+      console.error('Error saving profile', e);
+    }
+  };
 
-    loadHomeData();
-  }, []);
+  if (!profile) return <div className="text-white p-5">Cargando perfil...</div>;
 
-  if (isLoading) {
-    return (
-      <div className="w-full h-full flex items-center justify-center text-on-surface">
-        <div className="animate-pulse">Loading dashboard...</div>
-      </div>
-    );
-  }
+  // Basic Information Handlers
+  const handleSaveBasicInfo = (updatedState: any) => {
+    if (profile) {
+      const updatedProfile = { ...profile, ...updatedState };
+      saveProfile(updatedProfile);
+    }
+  };
 
-  if (error) {
-    return (
-      <div className="w-full p-6 text-red-500 bg-red-500/10 rounded-xl border border-red-500/30">
-        <h3 className="font-bold mb-2">Error Loading Dashboard</h3>
-        <p>{error}</p>
-      </div>
-    );
-  }
+  // Work Experience Handlers
+  const handleSaveWork = (work: WorkExperience) => {
+    if (!profile) return;
+    const isNew = !profile.experience.find(w => w.id === work.id);
+    const updatedExp = isNew
+      ? [...profile.experience, work]
+      : profile.experience.map(w => w.id === work.id ? work : w);
+
+    saveProfile({ ...profile, experience: updatedExp });
+    setIsWorkModalOpen(false);
+  };
+  const handleDeleteWork = (id: string) => {
+    if (!profile) return;
+    saveProfile({ ...profile, experience: profile.experience.filter(w => w.id !== id) });
+  };
+
+  // Education Handlers
+  const handleSaveEdu = (edu: Education) => {
+    if (!profile) return;
+    const isNew = !profile.education.find(e => e.id === edu.id);
+    const updatedEdu = isNew
+      ? [...profile.education, edu]
+      : profile.education.map(e => e.id === edu.id ? edu : e);
+
+    saveProfile({ ...profile, education: updatedEdu });
+    setIsEduModalOpen(false);
+  };
+  const handleDeleteEdu = (id: string) => {
+    if (!profile) return;
+    saveProfile({ ...profile, education: profile.education.filter(e => e.id !== id) });
+  };
+
+  // Certification Handlers
+  const handleSaveCert = (cert: Certification) => {
+    if (!profile) return;
+    const isNew = !profile.certifications.find(c => c.id === cert.id);
+    const updatedCert = isNew
+      ? [...profile.certifications, cert]
+      : profile.certifications.map(c => c.id === cert.id ? cert : c);
+
+    saveProfile({ ...profile, certifications: updatedCert });
+    setIsCertModalOpen(false);
+  };
+  const handleDeleteCert = (id: string) => {
+    if (!profile) return;
+    saveProfile({ ...profile, certifications: profile.certifications.filter(c => c.id !== id) });
+  };
 
   return (
-    <div className="max-w-4xl mx-auto w-full flex flex-col gap-8 pb-12 animate-in fade-in duration-300">
-      <header className="mb-2">
-        <h1 className="text-display-sm font-black text-on-surface">Home Dashboard</h1>
-        <p className="text-body-lg text-on-surface-variant">Your developer profile and analytics overview.</p>
-      </header>
+    <div className="w-full p-5 max-w-5xl mx-auto flex flex-col gap-8">
+      {/* SECTION 1: Basic Information */}
+      <BasicInformation
+        state={profile as any}
+        onSave={handleSaveBasicInfo}
+      />
 
-      {/* Section One: Basic Information */}
-      <section className="w-full p-5 flex flex-col space-y-5 border-none">
-        <h2 className="text-3xl border-b border-border-subtle pb-2 font-bold text-on-surface">Basic Profile</h2>
-        {profile ? (
-          <BasicInformation
-            initialProfile={profile}
-            onProfileUpdated={(updatedProfile) => setProfile(updatedProfile)}
-          />
-        ) : (
-          <div className="text-on-surface-variant">
-            Profile data not found. Please complete the setup wizard.
-          </div>
-        )}
-      </section>
+      {/* SECTION 2: Work Experience */}
+      <div className="w-full">
+        <div className="border-b-2 border-white/20 pb-2 mb-3 flex justify-between items-center">
+          <h2 className="text-xl font-semibold">Experiencia Laboral</h2>
+          <button
+            onClick={() => { setEditWorkId(null); setIsWorkModalOpen(true); }}
+            className="flex items-center gap-1 bg-surface-deep hover:bg-white/10 px-3 py-1 rounded transition-colors"
+          >
+            <span className="text-lg">+</span> Añadir
+          </button>
+        </div>
+        <div>
+          {profile.experience.map(work => (
+            <WorkExperienceCard
+              key={work.id}
+              experience={work}
+              onEdit={(id) => { setEditWorkId(id); setIsWorkModalOpen(true); }}
+              onDelete={handleDeleteWork}
+            />
+          ))}
+          {profile.experience.length === 0 && <p className="text-gray-400 text-sm">No hay experiencias añadidas.</p>}
+        </div>
+      </div>
 
-      {/* Section Two: GitHub Metrics */}
-      <section className="w-full p-5 mt-5 flex flex-col space-y-5 border-none">
-        <h2 className="text-3xl border-b border-border-subtle pb-2 font-bold text-on-surface">GitHub Metrics</h2>
-        {metrics ? (
-          <GithubMetrics
-            metrics={metrics}
-            onRefresh={handleRefreshGithub}
-            isRefreshing={isRefreshingGithub}
-          />
-        ) : (
-          <div className="text-on-surface-variant">
-            Unable to load GitHub metrics. Please ensure your token is valid.
-          </div>
-        )}
-      </section>
+      {/* SECTION 3: Education */}
+      <div className="w-full">
+        <div className="border-b-2 border-white/20 pb-2 mb-3 flex justify-between items-center">
+          <h2 className="text-xl font-semibold">Educación</h2>
+          <button
+            onClick={() => { setEditEduId(null); setIsEduModalOpen(true); }}
+            className="flex items-center gap-1 bg-surface-deep hover:bg-white/10 px-3 py-1 rounded transition-colors"
+          >
+            <span className="text-lg">+</span> Añadir
+          </button>
+        </div>
+        <div>
+          {profile.education.map(edu => (
+            <EducationCard
+              key={edu.id}
+              education={edu}
+              onEdit={(id) => { setEditEduId(id); setIsEduModalOpen(true); }}
+              onDelete={handleDeleteEdu}
+            />
+          ))}
+          {profile.education.length === 0 && <p className="text-gray-400 text-sm">No hay estudios añadidos.</p>}
+        </div>
+      </div>
+
+      {/* SECTION 4: Certifications */}
+      <div className="w-full">
+        <div className="border-b-2 border-white/20 pb-2 mb-3 flex justify-between items-center">
+          <h2 className="text-xl font-semibold">Certificados</h2>
+          <button
+            onClick={() => { setEditCertId(null); setIsCertModalOpen(true); }}
+            className="flex items-center gap-1 bg-surface-deep hover:bg-white/10 px-3 py-1 rounded transition-colors"
+          >
+            <span className="text-lg">+</span> Añadir
+          </button>
+        </div>
+        <div>
+          {profile.certifications.map(cert => (
+            <CertificationCard
+              key={cert.id}
+              certification={cert}
+              onEdit={(id) => { setEditCertId(id); setIsCertModalOpen(true); }}
+              onDelete={handleDeleteCert}
+            />
+          ))}
+          {profile.certifications.length === 0 && <p className="text-gray-400 text-sm">No hay certificados añadidos.</p>}
+        </div>
+      </div>
+
+      {/* Modals */}
+      {isWorkModalOpen && (
+        <WorkExperienceFormModal
+          experience={editWorkId ? profile.experience.find(w => w.id === editWorkId) : undefined}
+          onSave={handleSaveWork}
+          onCancel={() => setIsWorkModalOpen(false)}
+        />
+      )}
+
+      {isEduModalOpen && (
+        <EducationFormModal
+          education={editEduId ? profile.education.find(e => e.id === editEduId) : undefined}
+          onSave={handleSaveEdu}
+          onCancel={() => setIsEduModalOpen(false)}
+        />
+      )}
+
+      {isCertModalOpen && (
+        <CertificationFormModal
+          certification={editCertId ? profile.certifications.find(c => c.id === editCertId) : undefined}
+          onSave={handleSaveCert}
+          onCancel={() => setIsCertModalOpen(false)}
+        />
+      )}
+
+      {/* Floating Notification */}
+      {notification && (
+        <div className="fixed bottom-6 right-6 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg shadow-green-900/20 z-50 animate-bounce-in flex items-center gap-2">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+          <span className="font-medium">{notification}</span>
+        </div>
+      )}
     </div>
   );
 };
-
-export default Home;

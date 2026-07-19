@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Layout } from './layout/Layout';
-import Home from './features/Home';
+import { Home } from './features/Home';
 import InstallerWizard from './features/installer/InstallerWizard';
 
 /**

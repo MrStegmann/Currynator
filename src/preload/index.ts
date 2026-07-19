@@ -4,6 +4,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getSettings: () => ipcRenderer.invoke('get-settings'),
   saveSettings: (settings: any) => ipcRenderer.invoke('save-settings', settings),
 
+  getProfile: () => ipcRenderer.invoke('get-profile'),
+  saveProfile: (profile: any) => ipcRenderer.invoke('save-profile', profile),
+
   selectFolder: () => ipcRenderer.invoke('select-folder'),
 
   googleOAuthFlow: () => ipcRenderer.invoke('google-oauth-flow'),

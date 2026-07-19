@@ -76,13 +76,14 @@ src/
     │   │   ├── Home/      # Home page
     │   │   │   ├── components/     # Home components
     │   │   │   │   ├── BasicInformation.tsx
-    │   │   │   │   └── GithubMetrics.tsx
-    │   │   │   ├── services/     # Home services
-    │   │   │   │   ├── BasicInformation.service.ts
-    │   │   │   │   └── GithubMetrics.service.ts
+    │   │   │   │   ├── work/
+    │   │   │   │   ├── education/
+    │   │   │   │   └── certification/
     │   │   │   ├── types/     # Home types
     │   │   │   │   ├── BasicInformation.types.ts
-    │   │   │   │   └── GithubMetrics.types.ts
+    │   │   │   │   ├── WorkExperience.types.ts
+    │   │   │   │   ├── Education.types.ts
+    │   │   │   │   └── Certification.types.ts
     │   │   │   ├── utils/     # Utilities functions
     │   │   │   └── index.tsx     # Home core
     │   │   ├── Terminal/      # Terminal page

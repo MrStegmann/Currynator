@@ -20,5 +20,22 @@ export async function getSettingsService(): Promise<any> {
  * @returns A promise resolving to the response containing success status or error.
  */
 export async function saveSettingsService(settings: any): Promise<any> {
-  return await (window as any).electronAPI.saveSettings(settings);
+  return await window.electronAPI.saveSettings(settings);
+}
+
+/**
+ * Retrieves the current user profile.
+ * @returns A promise resolving to the current profile object.
+ */
+export async function getProfileService(): Promise<any> {
+  return await window.electronAPI.getProfile();
+}
+
+/**
+ * Saves the user profile via IPC.
+ * @param profile The profile object to save.
+ * @returns A promise resolving to the response containing success status or error.
+ */
+export async function saveProfileService(profile: any): Promise<any> {
+  return await window.electronAPI.saveProfile(profile);
 }

@@ -5,7 +5,7 @@ import type { InstallerWizardState } from './types';
 import { StepOne } from './components/StepOne';
 import { StepTwo } from './components/StepTwo';
 import { StepThree } from './components/StepThree';
-import { getSettingsService, saveSettingsService } from './services/StepThree.service';
+import { getSettingsService, saveSettingsService, getProfileService, saveProfileService } from './services/StepThree.service';
 
 export const InstallerWizard: React.FC<{ onComplete?: () => void }> = ({ onComplete }) => {
   const { addNotification } = useNotification();
@@ -31,20 +31,26 @@ export const InstallerWizard: React.FC<{ onComplete?: () => void }> = ({ onCompl
   const handleCompleteSetup = async () => {
     try {
       const currentSettings = await getSettingsService();
+      const currentProfile = await getProfileService();
+      
       const newSettings = {
-        ...currentSettings,
-        profile: {
-          firstName: state.step1.firstName,
-          lastName: state.step1.lastName,
-          email: state.step1.email,
-          githubToken: githubTokenInput
-        },
+        ...currentSettings.data,
         dataFolderPath: state.step3.outputDirectoryPath,
         isSetupComplete: true
       };
 
-      const saveRes = await saveSettingsService(newSettings);
-      if (saveRes.success) {
+      const newProfile = {
+        ...currentProfile.data,
+        firstName: state.step1.firstName,
+        lastName: state.step1.lastName,
+        email: state.step1.email,
+        githubToken: githubTokenInput
+      };
+
+      const saveSettingsRes = await saveSettingsService(newSettings);
+      const saveProfileRes = await saveProfileService(newProfile);
+      
+      if (saveSettingsRes.success && saveProfileRes.success) {
         addNotification('¡Configuración completada!', 'success');
         if (onComplete) {
           onComplete();
