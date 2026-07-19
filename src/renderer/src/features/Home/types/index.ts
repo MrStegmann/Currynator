@@ -16,11 +16,14 @@ export interface HomeFeatureState {
       color: string;
     }>;
     topProjects: Array<{
-      projectName: string;
-      repoScore: number; // 0 to 100
-      structuralFeedback: string[];
-      missingReadme: boolean;
-      descriptionTip: string | null;
+      repositoryName: string;
+      description: string;
+      readmeShort: string;
+      languages: string[];
+      score: number;
+      strengths: string[];
+      areasForImprovement: string[];
+      justification: string;
     }>;
   };
 }

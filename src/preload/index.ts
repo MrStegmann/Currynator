@@ -29,9 +29,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   analyzeGithub: () => ipcRenderer.invoke('analyze-github'),
 
-  executeTerminalCommand: (commandStr: string) => ipcRenderer.invoke('execute-terminal-command', commandStr),
-  onTerminalLog: (callback: (event: any, log: any) => void) => {
-    ipcRenderer.on('terminal-log', callback);
-    return () => ipcRenderer.removeListener('terminal-log', callback);
-  }
+  sendError: (errorInfo: Record<string, unknown>) => ipcRenderer.send('renderer-error', errorInfo),
 });

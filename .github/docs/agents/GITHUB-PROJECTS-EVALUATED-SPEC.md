@@ -17,13 +17,64 @@ Since you are evaluating code quality, standards, and practices, sending just th
 Here is the step-by-step strategy and implementation to build this filtering agent. 
 
 ### The Architecture
-Fetch & Filter Metadata: Use the GitHub API to get all repositories, filtering out forks or archived projects early.
+**Fetch & Filter Metadata:** Use the GitHub API to get all repositories, filtering out forks or archived projects early.
+ - Skip any projects that are forks or archived.
+ - Skip any projects that are empty.
+ - Skip GitHub Account project used for UI theme.
+ - Skip any projects that haven't a src folder with at least 1 file.
 
-Code Sampling: For each repository, fetch the README.md and a few core source files (e.g., src/index.ts, App.js, or main controllers) to give the AI actual code to evaluate.
+**Code Sampling:** For each repository, fetch the README.md and a few core source files (e.g., src/index.ts, App.js, or main controllers) to give the AI actual code to evaluate. Should get languages used.
 
-Payload Construction: Format this into a clean JSON structure.
+**Payload Construction:** Format this into a clean JSON structure. 
 
-AI Evaluation: Pass the JSON to Gemini using Structured Outputs (JSON Schema) so it returns a predictable array of the top 5 projects with scores and justifications.
+**AI Evaluation:** Pass the JSON to Gemini using Structured Outputs (JSON Schema) so it returns a predictable array of the top 5 projects with scores and justifications. Rating criteria:
+ - Code quality
+ - Documentation quality
+ - Project structure
+ - Code style
+ - Code organization
+ - Code maintainability
+ - Code scalability
+ - Code testability
+ - Code readability
+ - Description (all projects must have one)
+ - Readme.md (E.g. of good Readme.md, but don't copy it)
+ ```markdown
+ # Project Title
+
+A concise, one-sentence description of what this project does and the primary problem it solves. 
+
+<!-- Optional: Place your screenshots/GIFs here -->
+<!-- ![Application Preview](path/to/screenshot.png) -->
+
+## ✨ Features
+
+- **Blazing Fast:** Describe the performance or architectural benefit.
+- **Developer First:** Built with clean configurations and modular design.
+- **Extensible:** Easily plug in custom workflows.
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+List any software, languages, or tools required before installing:
+* Node.js >= 18.0.0
+* npm >= 9.0.0
+
+### Installation
+
+Step-by-step guide to get your local development environment running:
+
+```bash
+# Clone the repository
+git clone [https://github.com/username/project-name.git](https://github.com/username/project-name.git)
+
+# Navigate into the directory
+cd project-name
+
+# Install dependencies
+npm install
+```
 
 ---
 

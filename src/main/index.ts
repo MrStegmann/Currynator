@@ -10,7 +10,7 @@ import { readSettings, saveSettings } from './utils/settings.js';
 import { registerAuthIpcHandlers } from './ipc/auth.ipc.js';
 import { registerSecureIpcHandlers } from './ipc/secure.ipc.js';
 import { registerGithubIpcHandlers } from './ipc/github.ipc.js';
-import { registerTerminalIpcHandlers } from './ipc/terminal.ipc.js';
+import { Log } from './utils/logger.js';
 
 dotenv.config();
 
@@ -30,8 +30,10 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: windowWidth,
     height: windowHeight,
-    frame: false, // Sin barra de acciones del SO
-    transparent: true, // Requerido para el efecto cristal en el borde
+    frame: true, // Sin barra de acciones del SO
+    titleBarStyle: 'default', // Oculta la barra de título native y permite el diseño custom
+    titleBarOverlay: false,
+    transparent: false, // Requerido para el efecto cristal en el borde
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -49,10 +51,10 @@ function createWindow() {
 
 // Inicialización de la aplicación
 app.whenReady().then(() => {
+  new Log('System initialized and ready.');
   registerAuthIpcHandlers();
   registerSecureIpcHandlers();
   registerGithubIpcHandlers();
-  registerTerminalIpcHandlers();
   createWindow();
 
   app.on('activate', () => {
@@ -103,7 +105,7 @@ ipcMain.handle('save-resume-data', async (_event, data, options: any = {}) => {
     let defaultFileName = data.profileLabel ? `${data.profileLabel}.json` : 'cv.json';
     const settings = await readSettings();
     let defaultDirPath = path.join(settings.dataFolderPath, 'data');
-    
+
     if (options.isGenerated) {
       defaultDirPath = path.join(settings.dataFolderPath, 'CV');
       if (options.customFileName) {
@@ -113,7 +115,7 @@ ipcMain.handle('save-resume-data', async (_event, data, options: any = {}) => {
     }
 
     let filePath: string;
-    
+
     if (options.skipDialog && defaultDirPath && defaultFileName) {
       filePath = path.join(defaultDirPath, defaultFileName);
     } else {
@@ -136,12 +138,12 @@ ipcMain.handle('save-resume-data', async (_event, data, options: any = {}) => {
       try {
         const aiDir = path.join(settings.dataFolderPath, 'aiReasoning');
         await fs.mkdir(aiDir, { recursive: true });
-        
+
         let baseName = path.basename(filePath, '.json');
         if (baseName.endsWith('_CV_Optimizated')) {
-           baseName = baseName.replace('_CV_Optimizated', '');
+          baseName = baseName.replace('_CV_Optimizated', '');
         }
-        
+
         const mdPath = path.join(aiDir, `${baseName}-ai_reasoning.md`);
         await fs.writeFile(mdPath, validData.razonamiento_ia, 'utf-8');
       } catch (err) {
@@ -162,7 +164,7 @@ ipcMain.handle('read-ai-reasoning', async (_event, filename) => {
     const aiDir = path.join(settings.dataFolderPath, 'aiReasoning');
     let baseName = filename.replace('.json', '');
     if (baseName.endsWith('_CV_Optimizated')) {
-       baseName = baseName.replace('_CV_Optimizated', '');
+      baseName = baseName.replace('_CV_Optimizated', '');
     }
     const mdPath = path.join(aiDir, `${baseName}-ai_reasoning.md`);
     const content = await fs.readFile(mdPath, 'utf-8');
@@ -218,7 +220,7 @@ ipcMain.handle('list-generated-cvs', async () => {
     await fs.mkdir(dataDir, { recursive: true });
     const files = await fs.readdir(dataDir);
     const jsonFiles = files.filter(f => f.endsWith('.json'));
-    
+
     const filesWithMeta = [];
     for (const f of jsonFiles) {
       try {
@@ -230,7 +232,7 @@ ipcMain.handle('list-generated-cvs', async () => {
         filesWithMeta.push({ filename: f, hasJobDetails: false });
       }
     }
-    
+
     return { success: true, files: filesWithMeta };
   } catch (error: any) {
     console.error("Error listando CVs generados:", error);
@@ -294,7 +296,7 @@ ipcMain.handle('export-study-guide-pdf', async (_event, { html, baseName }) => {
     const settings = await readSettings();
     const studyDir = path.join(settings.dataFolderPath, 'study');
     await fs.mkdir(studyDir, { recursive: true });
-    
+
     let filePath: string;
     if (baseName.endsWith('.pdf')) {
       filePath = path.join(studyDir, baseName);
@@ -305,7 +307,7 @@ ipcMain.handle('export-study-guide-pdf', async (_event, { html, baseName }) => {
       }
       filePath = path.join(studyDir, `${cleanName}_study_guide.pdf`);
     }
-    
+
     await generatePDF(html, filePath);
     return { success: true, filePath };
   } catch (error: any) {

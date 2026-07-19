@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Layout } from './components/Layout';
 import Home from './renderer/src/features/Home';
-import Terminal from './renderer/src/features/terminal';
 import InstallerWizard from './renderer/src/features/installer/InstallerWizard';
 
 function App() {
@@ -36,7 +35,6 @@ function App() {
     <>
       <Layout currentPage={currentPage} onNavigate={handleNavigate}>
         {currentPage === 'home' && <Home />}
-        {currentPage === 'terminal' && <Terminal onClose={() => handleNavigate('home')} />}
         {/* Deprecated {currentPage === 'add-data' && <AddData initialData={selectedProfile} />}
         {currentPage === 'view-data' && <ViewData data={selectedProfile} onBack={() => handleNavigate('home')} />}
         {currentPage === 'generate-cv' && <GenerateCV />}

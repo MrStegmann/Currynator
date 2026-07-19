@@ -1,3 +1,4 @@
+import { ErrorLog, Log } from '../utils/logger.js';
 import { readSecureToken } from './secure.service.js';
 
 interface GithubMetricsPayload {
@@ -12,11 +13,14 @@ interface GithubMetricsPayload {
     color: string;
   }>;
   topProjects: Array<{
-    projectName: string;
-    repoScore: number;
-    structuralFeedback: string[];
-    missingReadme: boolean;
-    descriptionTip: string | null;
+    repositoryName: string;
+    description: string;
+    readmeShort: string;
+    languages: string[];
+    score: number;
+    strengths: string[];
+    areasForImprovement: string[];
+    justification: string;
   }>;
 }
 
@@ -129,7 +133,7 @@ async function calculateLanguageDistribution(repos: any[], token: string) {
         }
       }
     } catch (e) {
-      // Ignore failure for a single repo
+      new ErrorLog(`Error reading languages for ${repo.name} | Error: ${e}`);
     }
   }
 
@@ -142,54 +146,156 @@ async function calculateLanguageDistribution(repos: any[], token: string) {
   return results.sort((a, b) => b.percentage - a.percentage).slice(0, 5); // Return top 5 languages
 }
 
-/**
- * Evaluates a single project and fetches its README to determine quality.
- * @param repo The repository object from GitHub API.
- * @param token The GitHub Personal Access Token.
- * @returns The evaluation object for the project.
- */
-async function evaluateSingleProject(repo: any, token: string) {
-  let missingReadme = true;
-  try {
-    const text = await fetchGithubApi(`/repos/${repo.owner.login}/${repo.name}/readme`, token, true);
-    if (typeof text === 'string' && !text.includes('"message":"Not Found"')) {
-      missingReadme = false;
-    }
-  } catch (err) { /* ignore */ }
-
-  let repoScore = 50; // base score
-  const structuralFeedback: string[] = [];
-
-  if (!missingReadme) repoScore += 20; else structuralFeedback.push('Add a README.md to describe setup and usage.');
-  if (repo.description) repoScore += 15; else structuralFeedback.push('Add a short repository description.');
-  if (repo.has_issues) repoScore += 5;
-  if (repo.size > 100) repoScore += 10; else structuralFeedback.push('Repository seems quite small; consider expanding functionality.');
-
-  return {
-    projectName: repo.name,
-    repoScore,
-    structuralFeedback,
-    missingReadme,
-    descriptionTip: repo.description ? null : 'A project description greatly improves discoverability.'
-  };
-}
+import { GoogleGenAI, Type } from '@google/genai';
 
 /**
- * Analyzes the top 5 projects and generates heuristic valuation scores.
- * @param repos The user's public repositories sorted by relevance.
+ * Analyzes the top projects and generates valuation scores using Gemini.
+ * @param repos The user's public repositories.
  * @param token The GitHub Personal Access Token.
  * @returns An array of top project evaluations.
  */
 async function evaluateTopProjects(repos: any[], token: string) {
-  const topRepos = repos.slice(0, 5);
-  const evaluations = [];
+  const topRepos = repos.slice(0, 15); // Check up to 15 to find 5 valid
+  const processedRepos = [];
 
   for (const repo of topRepos) {
-    const evaluation = await evaluateSingleProject(repo, token);
-    evaluations.push(evaluation);
+    if (repo.fork || repo.size === 0) continue;
+
+    try {
+      let readme = '';
+      try {
+        const readmeData = await fetchGithubApi(`/repos/${repo.owner.login}/${repo.name}/readme`, token, true);
+        if (typeof readmeData === 'string' && !readmeData.includes('"message":"Not Found"')) {
+          readme = readmeData;
+        }
+      } catch (e) {
+        new ErrorLog(`Error reading README for ${repo.name} | Error: ${e}`);
+      }
+
+      let treeData: any = null;
+      try {
+        treeData = await fetchGithubApi(`/repos/${repo.owner.login}/${repo.name}/git/trees/${repo.default_branch}?recursive=1`, token);
+      } catch (e) {
+        new ErrorLog(`Error reading tree for ${repo.name} | Error: ${e}`);
+      }
+
+      const codeSamples = [];
+      if (treeData && treeData.tree) {
+        const coreFiles = treeData.tree
+          .filter((f: any) => f.type === 'blob' && /\.(ts|js|jsx|tsx|java|py|go|css|html)$/.test(f.path || ''))
+          .filter((f: any) => !f.path?.includes('node_modules') && !f.path?.includes('dist') && !f.path?.includes('build'))
+          .slice(0, 3);
+
+        for (const file of coreFiles) {
+          if (!file.path) continue;
+          try {
+            // For file contents, we need the raw media type
+            const fileUrl = `${GITHUB_API_BASE}/repos/${repo.owner.login}/${repo.name}/contents/${file.path}`;
+            const fileResponse = await fetch(fileUrl, {
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/vnd.github.v3.raw',
+                'X-GitHub-Api-Version': '2022-11-28'
+              }
+            });
+            if (fileResponse.ok) {
+              const fileContent = await fileResponse.text();
+              codeSamples.push({
+                file_path: file.path,
+                content: fileContent.substring(0, 2000)
+              });
+            }
+          } catch (e) { console.error(`Error reading file content: ${file.path} | Error: ${e}`); }
+        }
+      }
+
+      let languages: string[] = [];
+      try {
+        const langs = await fetchGithubApi(repo.languages_url, token);
+        if (langs && typeof langs === 'object' && !langs.message) {
+          languages = Object.keys(langs);
+        }
+      } catch (e) {
+        new ErrorLog(`Error reading languages for ${repo.name} | Error: ${e}`);
+      }
+
+      processedRepos.push({
+        name: repo.name,
+        description: repo.description || '',
+        languages,
+        readme_content: readme.substring(0, 1500),
+        code_samples: codeSamples,
+      });
+
+      if (processedRepos.length >= 5) break;
+    } catch (error) {
+      new ErrorLog(`Skipping ${repo.name} due to error: ${error}`);
+    }
   }
 
-  return evaluations;
+  if (processedRepos.length === 0) return [];
+
+  try {
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-pro',
+      contents: `Analyze these repositories and select the top 5 best ones based on code quality, architecture, and standards:\n\n${JSON.stringify(processedRepos, null, 2)}`,
+      config: {
+        systemInstruction: 'You are an expert technical architect. Evaluate the projects based on architecture, design patterns, clean code principles, and documentation. Select the top 5 best repositories. If there are fewer than 5 valid engineering projects, return all available. Ignore empty repositories or default templates.',
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            top_projects: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  repository_name: { type: Type.STRING },
+                  score: { type: Type.INTEGER },
+                  strengths: { type: Type.ARRAY, items: { type: Type.STRING } },
+                  areas_for_improvement: { type: Type.ARRAY, items: { type: Type.STRING } },
+                  justification: { type: Type.STRING },
+                },
+                required: ['repository_name', 'score', 'justification', 'strengths', 'areas_for_improvement'],
+              },
+            },
+          },
+          required: ['top_projects'],
+        },
+      },
+    });
+
+    const parsed = JSON.parse(response.text || '{}');
+
+    return (parsed.top_projects || [])
+      .filter((aiProj: any) => aiProj && aiProj.repository_name)
+      .map((aiProj: any) => {
+        const originalRepo = processedRepos.find(r => r.name === aiProj.repository_name);
+        return {
+          repositoryName: aiProj.repository_name,
+          score: aiProj.score || 0,
+          strengths: aiProj.strengths || [],
+          areasForImprovement: aiProj.areas_for_improvement || [],
+          justification: aiProj.justification || '',
+          description: originalRepo?.description || '',
+          readmeShort: originalRepo?.readme_content ? originalRepo.readme_content.substring(0, 120) + '...' : '',
+          languages: originalRepo?.languages || []
+        };
+      });
+  } catch (err) {
+    new ErrorLog(`Gemini API Error: ${err}`);
+    return processedRepos.map(repo => ({
+      repositoryName: repo.name,
+      score: 50,
+      strengths: [],
+      areasForImprovement: [],
+      justification: 'Failed to evaluate using AI.',
+      description: repo.description,
+      readmeShort: repo.readme_content ? repo.readme_content.substring(0, 120) + '...' : '',
+      languages: repo.languages
+    }));
+  }
 }
 
 /**
@@ -204,13 +310,16 @@ export async function analyzeGithubProfile(): Promise<GithubMetricsPayload> {
 
   const username = await getGithubUsername(token);
   const profileReadme = await evaluateProfileReadme(username, token);
+  new Log(`GitHub profile readme evaluated: ${JSON.stringify(profileReadme).slice(0, 200)}...`);
 
   // Fetch repos (public only, sorted by recently pushed)
   let repos = await fetchGithubApi('/user/repos?visibility=public&sort=pushed&per_page=30', token);
   if (repos.message) repos = []; // Handle errors cleanly
-
+  new Log(`GitHub repos evaluated: ${JSON.stringify(repos).slice(0, 200)}...`);
   const languages = await calculateLanguageDistribution(repos, token);
+  new Log(`GitHub languages evaluated: ${JSON.stringify(languages).slice(0, 200)}...`);
   const topProjects = await evaluateTopProjects(repos, token);
+  new Log(`GitHub top projects evaluated: ${JSON.stringify(topProjects).slice(0, 200)}...`);
 
   return {
     profileReadme,

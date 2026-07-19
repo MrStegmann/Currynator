@@ -1,4 +1,6 @@
 import React from 'react';
+import { RefreshCw } from 'lucide-react';
+import { ProjectGithubCard } from './ProjectGithubCard';
 
 interface GithubMetricsProps {
   metrics: {
@@ -13,16 +15,21 @@ interface GithubMetricsProps {
       color: string;
     }>;
     topProjects: Array<{
-      projectName: string;
-      repoScore: number;
-      structuralFeedback: string[];
-      missingReadme: boolean;
-      descriptionTip: string | null;
+      repositoryName: string;
+      description: string;
+      readmeShort: string;
+      languages: string[];
+      score: number;
+      strengths: string[];
+      areasForImprovement: string[];
+      justification: string;
     }>;
   };
+  onRefresh?: () => void;
+  isRefreshing?: boolean;
 }
 
-export const GithubMetrics: React.FC<GithubMetricsProps> = ({ metrics }) => {
+export const GithubMetrics: React.FC<GithubMetricsProps> = ({ metrics, onRefresh, isRefreshing }) => {
   return (
     <div className="flex flex-col gap-6">
       
@@ -92,39 +99,45 @@ export const GithubMetrics: React.FC<GithubMetricsProps> = ({ metrics }) => {
 
       {/* Top Projects Quality Valuation */}
       <div className="flex flex-col gap-2">
-        <h3 className="text-lg font-bold text-on-surface border-b border-border-subtle mb-2.5 pb-2">Top Projects Quality</h3>
+        <div className="flex items-center justify-between border-b border-border-subtle mb-2.5 pb-2">
+          <h3 className="text-lg font-bold text-on-surface">Top Projects Quality</h3>
+          {onRefresh && (
+            <button
+              onClick={onRefresh}
+              disabled={isRefreshing}
+              className="flex items-center gap-2 px-3 py-1 text-sm font-medium rounded-md bg-surface-deep text-on-surface border border-border-subtle hover:bg-surface-hover transition-colors disabled:opacity-50 cursor-pointer"
+              title="Refresh GitHub Metrics"
+            >
+              <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              Refresh
+            </button>
+          )}
+        </div>
         
-        {metrics.topProjects.length > 0 ? (
-          <div className="flex flex-col gap-4">
-            {metrics.topProjects.map(proj => (
-              <div key={proj.projectName} className="p-4 border border-border-subtle rounded-lg bg-surface-deep">
-                <div className="flex justify-between items-center mb-2">
-                  <h4 className="font-bold text-on-surface">{proj.projectName}</h4>
-                  <span className={`text-sm font-bold px-2 py-1 rounded-full ${
-                    proj.repoScore >= 80 ? 'bg-green-500/20 text-green-400' :
-                    proj.repoScore >= 50 ? 'bg-yellow-500/20 text-yellow-400' :
-                    'bg-red-500/20 text-red-400'
-                  }`}>
-                    {proj.repoScore}/100
-                  </span>
-                </div>
-                
-                {proj.structuralFeedback.length > 0 || proj.descriptionTip ? (
-                  <ul className="list-disc pl-5 text-sm text-on-surface-variant mt-2 space-y-1">
-                    {proj.descriptionTip && <li>{proj.descriptionTip}</li>}
-                    {proj.structuralFeedback.map((fb, idx) => <li key={idx}>{fb}</li>)}
-                  </ul>
-                ) : (
-                  <p className="text-sm text-green-400 mt-2">✓ Repository is well-structured.</p>
-                )}
-              </div>
+        {metrics.topProjects && metrics.topProjects.length > 0 ? (
+          <div className="flex flex-col">
+            {metrics.topProjects.map((proj, idx) => (
+              <ProjectGithubCard key={idx} project={proj} />
             ))}
           </div>
         ) : (
-          <p className="text-sm text-on-surface-variant">No public projects found to analyze.</p>
+          <div className="bg-surface-deep p-5 rounded-xl border border-border-subtle">
+            <h4 className="font-bold text-on-surface mb-2">No projects founded</h4>
+            <p className="text-sm text-on-surface-variant mb-3">
+              We couldn't find enough valid projects to analyze. The following types of repositories are skipped:
+            </p>
+            <ul className="list-disc pl-5 text-sm text-on-surface-variant space-y-1">
+              <li>Forks of other projects</li>
+              <li>Archived repositories</li>
+              <li>Empty repositories (0 bytes)</li>
+              <li>Profile README repository (same as username)</li>
+              <li>Repositories without recognizable source code</li>
+            </ul>
+          </div>
         )}
       </div>
 
     </div>
   );
 };
+

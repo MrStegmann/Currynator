@@ -3,13 +3,31 @@ import { BasicInformation } from './components/BasicInformation';
 import { GithubMetrics } from './components/GithubMetrics';
 import { fetchProfileData } from './services/BasicInformation.service';
 import { fetchGithubMetrics } from './services/GithubMetrics.service';
+import { useNotification } from '../../../../contexts/NotificationContext';
 import type { HomeFeatureState } from './types';
 
 export const Home: React.FC = () => {
+  const { addNotification } = useNotification();
   const [profile, setProfile] = useState<HomeFeatureState['profile'] | null>(null);
   const [metrics, setMetrics] = useState<HomeFeatureState['metrics'] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isRefreshingGithub, setIsRefreshingGithub] = useState(false);
+
+  const handleRefreshGithub = async () => {
+    try {
+      setIsRefreshingGithub(true);
+      const metricsData = await fetchGithubMetrics(true);
+      if (metricsData) {
+        setMetrics(metricsData);
+      }
+    } catch (err: any) {
+      console.error('Failed to refresh GitHub metrics:', err);
+      addNotification(err.message || 'Failed to refresh GitHub metrics.', 'warning');
+    } finally {
+      setIsRefreshingGithub(false);
+    }
+  };
 
   useEffect(() => {
     const loadHomeData = async () => {
@@ -22,6 +40,7 @@ export const Home: React.FC = () => {
           fetchProfileData(),
           fetchGithubMetrics().catch((err: Error) => {
             console.error('Failed to load GitHub metrics:', err);
+            addNotification(err.message || 'Failed to load GitHub metrics.', 'warning');
             return null; // Don't crash the whole page if GitHub fails
           })
         ]);
@@ -91,7 +110,11 @@ export const Home: React.FC = () => {
       <section className="w-full p-5 mt-5 flex flex-col space-y-5 border-none">
         <h2 className="text-3xl border-b border-border-subtle pb-2 font-bold text-on-surface">GitHub Metrics</h2>
         {metrics ? (
-          <GithubMetrics metrics={metrics} />
+          <GithubMetrics 
+            metrics={metrics} 
+            onRefresh={handleRefreshGithub}
+            isRefreshing={isRefreshingGithub}
+          />
         ) : (
           <div className="text-on-surface-variant">
             Unable to load GitHub metrics. Please ensure your token is valid.

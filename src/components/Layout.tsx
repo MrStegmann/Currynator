@@ -87,13 +87,6 @@ export const Layout = ({ children, currentPage, onNavigate }: LayoutProps) => {
             {/* Spacer para empujar el botón al fondo */}
             <div className="flex-1"></div>
 
-            <div
-              onClick={() => onNavigate('terminal')}
-              className={`px-3 py-2 rounded-md cursor-pointer transition-colors mt-auto ${currentPage === 'terminal' ? 'bg-[#102034] text-blue-400' : 'hover:bg-[#0b1c30]'}`}
-            >
-              Terminal
-            </div>
-
             {/* Settings Button */}
             <div
               onClick={() => onNavigate('settings')}
