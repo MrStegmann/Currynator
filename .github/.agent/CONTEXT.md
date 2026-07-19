@@ -43,12 +43,14 @@ src/
 │   │   ├── auth.ipc.ts
 │   │   ├── terminal.ipc.ts
 │   │   ├── github.ipc.ts
+│   │   ├── settings.ipc.ts
 │   │   └── secure.ipc.ts
 │   ├── services/               # Heavy backend business logic controllers
 │   │   ├── auth.service.ts     # Handles Google OAuth redirect loops
 │   │   ├── terminal.service.ts # Handles terminal commands
 │   │   ├── github.service.ts   # Secure API calls to GitHub
-│   │   └── secure.service.ts   # Encrypted key storage operations
+│   │   ├── secure.service.ts   # Encrypted key storage operations
+│   │   └── settings.service.ts # Handles settings operations
 │   └── index.ts                # App initialization ONLY
 ├── preload/                    # Secure IPC bridge scripts
 │   └── index.ts
