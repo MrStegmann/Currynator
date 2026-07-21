@@ -36,6 +36,7 @@ You must strictly implement the following engineering paradigms across the entir
 
 * **TypeScript Completeness:** `any` is strictly prohibited. You must use explicit interfaces, structural custom types, and strict type guards.
 * **Encapsulation:** Keep class state private or protected. Expose data only via explicit, typed public methods or getters/setters.
+* **Imports:** Importing type should use keyword type (e.g. import type {typeName } from 'filePath', import { type typeName, ... } from 'filePath')
 
 ---
 

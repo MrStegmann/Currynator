@@ -87,6 +87,20 @@ src/
     │   │   │   │   └── Certification.types.ts
     │   │   │   ├── utils/     # Utilities functions
     │   │   │   └── index.tsx     # Home core
+    │   │   ├── Github/      # Github page
+    │   │   │   ├── components/     # Github components
+    │   │   │   │   ├── ProfileHeader.tsx
+    │   │   │   │   ├── Card/
+    │   │   │   │   │   ├── ProjectCard.tsx
+    │   │   │   │   │   ├── ProjectDetailScreen.tsx
+    │   │   │   │   │   ├── ProjectDescription.tsx
+    │   │   │   │   │   ├── ProjectReadme.tsx
+    │   │   │   │   │   ├── ProjectStructure.tsx
+    │   │   │   │   │   └── ProjectLanguages.tsx
+    │   │   │   ├── types/     # Github types
+    │   │   │   │   └── index.ts
+    │   │   │   ├── utils/     # Utilities functions
+    │   │   │   └── index.tsx     # Github core
     │   │   ├── Terminal/      # Terminal page
     │   │   │   ├── components/     # Terminal components
     │   │   │   ├── services/     # Terminal services

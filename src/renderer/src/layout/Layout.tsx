@@ -23,6 +23,13 @@ export const Layout = ({ children, currentPage, onNavigate }: LayoutProps) => {
             Home
           </div>
 
+          <div
+            onClick={() => onNavigate('github')}
+            className={`px-3 py-2 rounded-md cursor-pointer transition-colors ${currentPage === 'github' ? 'bg-[#102034] text-blue-400' : 'hover:bg-[#0b1c30]'}`}
+          >
+            GitHub
+          </div>
+
 
           {/* Spacer para empujar el botón al fondo */}
           <div className="flex-1"></div>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Layout } from './layout/Layout';
 import { Home } from './features/Home';
+import { Github } from './features/Github';
 import InstallerWizard from './features/installer/InstallerWizard';
 
 /**
@@ -63,6 +64,7 @@ function App() {
 
     <Layout currentPage={currentPage} onNavigate={handleNavigate}>
       {currentPage === 'home' && <Home />}
+      {currentPage === 'github' && <Github />}
     </Layout>
   );
 }

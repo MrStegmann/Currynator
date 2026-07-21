@@ -1,35 +1,10 @@
 import { readSecureToken } from './secure.service.js';
-
-interface GithubMetricsPayload {
-  profileReadme: {
-    score: number;
-    exists: boolean;
-    improvementTips: string[];
-  };
-  languages: Array<{
-    name: string;
-    percentage: number;
-    color: string;
-  }>;
-  topProjects: Array<{
-    repositoryName: string;
-    description: string;
-    readmeShort: string;
-    languages: string[];
-    score: number;
-    strengths: string[];
-    areasForImprovement: string[];
-    justification: string;
-  }>;
-}
+import type { UserGitHubProfile, ProjectItem, SectionAnalysis, FeedbackItem, ProjectScoreOverview } from '../../renderer/src/features/Github/types';
 
 const GITHUB_API_BASE = 'https://api.github.com';
 
 /**
  * Standard fetch helper for GitHub API to include auth headers.
- * @param endpoint The API endpoint (e.g., '/user')
- * @param token The GitHub Personal Access Token
- * @returns The JSON response or throws an error.
  */
 async function fetchGithubApi(endpoint: string, token: string, isText = false): Promise<any> {
   const url = endpoint.startsWith('http') ? endpoint : `${GITHUB_API_BASE}${endpoint}`;
@@ -46,56 +21,6 @@ async function fetchGithubApi(endpoint: string, token: string, isText = false): 
   return isText ? response.text() : response.json();
 }
 
-/**
- * Fetches the authenticated user's username.
- * @param token The GitHub Personal Access Token.
- * @returns The username string.
- */
-async function getGithubUsername(token: string): Promise<string> {
-  const data = await fetchGithubApi('/user', token);
-  return data.login;
-}
-
-/**
- * Evaluates the user's special profile README repository.
- * @param username The GitHub username.
- * @param token The GitHub Personal Access Token.
- * @returns The profile README metrics object.
- */
-async function evaluateProfileReadme(username: string, token: string) {
-  let text = '';
-  try {
-    text = await fetchGithubApi(`/repos/${username}/${username}/readme`, token, true);
-  } catch (err) {
-    // 404 or other error
-  }
-
-  // if text is an object (error JSON), it means 404 since it didn't parse as text correctly
-  if (!text || typeof text === 'object' || text.includes('"message":"Not Found"')) {
-    return {
-      score: 0,
-      exists: false,
-      improvementTips: ['Create a repository with your exact username to establish a profile README.']
-    };
-  }
-
-  let score = 20; // Base score for existing
-  const tips: string[] = [];
-
-  if (text.length > 500) score += 30; else tips.push('Expand your README to be more comprehensive (>500 chars).');
-  if (text.includes('![') || text.includes('<img')) score += 25; else tips.push('Add badges or images to make the profile visually engaging.');
-  if (text.includes('http')) score += 25; else tips.push('Include links to your portfolio, LinkedIn, or personal website.');
-
-  return {
-    score,
-    exists: true,
-    improvementTips: tips
-  };
-}
-
-/**
- * Map of popular languages to their standard hex colors.
- */
 const LANGUAGE_COLORS: Record<string, string> = {
   TypeScript: '#3178c6',
   JavaScript: '#f1e05a',
@@ -109,19 +34,11 @@ const LANGUAGE_COLORS: Record<string, string> = {
   Go: '#00ADD8'
 };
 
-/**
- * Calculates language distribution percentage across all repositories.
- * @param repos The list of public repositories.
- * @param token The GitHub Personal Access Token.
- * @returns The languages array with percentages and colors.
- */
 async function calculateLanguageDistribution(repos: any[], token: string) {
   const languageTotals: Record<string, number> = {};
   let totalBytes = 0;
 
-  // Process only top 10 repos to avoid rate limits / slow execution
   const topRepos = repos.slice(0, 10);
-
   for (const repo of topRepos) {
     try {
       const langs = await fetchGithubApi(repo.languages_url, token);
@@ -142,29 +59,128 @@ async function calculateLanguageDistribution(repos: any[], token: string) {
     color: LANGUAGE_COLORS[name] || '#8b949e'
   }));
 
-  return results.sort((a, b) => b.percentage - a.percentage).slice(0, 5); // Return top 5 languages
+  return results.sort((a, b) => b.percentage - a.percentage).slice(0, 5);
 }
 
-import { GoogleGenAI, Type } from '@google/genai';
+/**
+ * Fetches the authenticated user profile.
+ */
+async function getGithubUser(token: string): Promise<any> {
+  return await fetchGithubApi('/user', token);
+}
 
 /**
- * Analyzes the top projects and generates valuation scores using Gemini.
- * @param repos The user's public repositories.
- * @param token The GitHub Personal Access Token.
- * @returns An array of top project evaluations.
+ * Evaluates the user's special profile README repository.
  */
-async function evaluateTopProjects(repos: any[], token: string) {
-  const topRepos = repos.slice(0, 30); // Allow more repos in case many are filtered out
-  const processedRepos = [];
+async function evaluateProfileReadme(username: string, token: string) {
+  let text = '';
+  try {
+    text = await fetchGithubApi(`/repos/${username}/${username}/readme`, token, true);
+  } catch (err) {
+    // 404 or other error
+  }
+
+  if (!text || typeof text === 'object' || text.includes('"message":"Not Found"')) {
+    return {
+      exists: false
+    };
+  }
+
+  return {
+    exists: true,
+    contentRaw: text
+  };
+}
+
+/**
+ * Mock evaluate a single project
+ */
+function mockEvaluateProject(repo: any, readme: string, treeData: any, languages: string[]): ProjectItem {
+  const hasDesc = !!repo.description && repo.description.length > 10;
+  const descScore = hasDesc ? 85 : 0;
+  
+  const hasReadme = !!readme && readme.length > 50;
+  const readmeScore = hasReadme ? 75 : 0;
+
+  const structScore = 80;
+  const langScore = 90;
+
+  // S_global = (0.15 * S_desc) + (0.35 * S_readme) + (0.30 * S_struct) + (0.20 * S_lang)
+  const globalScore = Math.round(
+    (0.15 * descScore) + 
+    (0.35 * readmeScore) + 
+    (0.30 * structScore) + 
+    (0.20 * langScore)
+  );
+
+  return {
+    id: String(repo.id),
+    name: repo.name,
+    description: repo.description || null,
+    stars: repo.stargazers_count || 0,
+    primaryLanguage: repo.language || 'Unknown',
+    repoUrl: repo.html_url,
+    scores: {
+      globalScore,
+      descriptionScore: descScore,
+      readmeScore: readmeScore,
+      structureScore: structScore,
+      languagesScore: langScore
+    },
+    sections: {
+      description: {
+        sectionId: 'description',
+        title: 'Project Description',
+        score: descScore,
+        hasContent: hasDesc,
+        contentData: { text: repo.description },
+        worseParts: hasDesc ? [] : [{ id: 'd1', type: 'worse_part', title: 'Missing Description', message: 'No description provided.', actionableSuggestion: 'Add a concise summary explaining what problem this project solves.' }],
+        warnings: [],
+        tips: []
+      },
+      readme: {
+        sectionId: 'readme',
+        title: 'README Quality',
+        score: readmeScore,
+        hasContent: hasReadme,
+        contentData: { raw: readme },
+        worseParts: hasReadme ? [] : [{ id: 'r1', type: 'worse_part', title: 'Missing README', message: 'No README found.', actionableSuggestion: 'Create a README.md file.' }],
+        warnings: hasReadme ? [{ id: 'r2', type: 'warning', title: 'Basic README', message: 'The README is quite short.', actionableSuggestion: 'Add usage examples.' }] : [],
+        tips: []
+      },
+      structure: {
+        sectionId: 'structure',
+        title: 'Project Structure',
+        score: structScore,
+        hasContent: !!treeData,
+        contentData: { tree: treeData?.tree?.slice(0, 15) || [] },
+        worseParts: [],
+        warnings: [],
+        tips: [{ id: 's1', type: 'tip', title: 'Group by feature', message: 'Consider grouping files by feature module.', actionableSuggestion: 'Move loose files into domain folders.' }]
+      },
+      languages: {
+        sectionId: 'languages',
+        title: 'Languages & Best Practices',
+        score: langScore,
+        hasContent: languages.length > 0,
+        contentData: { languages },
+        worseParts: [],
+        warnings: [],
+        tips: []
+      }
+    }
+  };
+}
+
+/**
+ * Analyzes top projects with a mock approach.
+ */
+async function evaluateTopProjects(repos: any[], token: string): Promise<ProjectItem[]> {
+  const topRepos = repos.slice(0, 30);
+  const processedRepos: ProjectItem[] = [];
 
   for (const repo of topRepos) {
-    // 1. Skip projects that are forks or archived
-    if (repo.fork || repo.archived) continue;
-    
-    // 2. Skip projects that are empty
-    if (repo.size === 0) continue;
-    
-    // 3. Skip GitHub Account project used for UI theme (username repo)
+    if (repo.fork || repo.archived || repo.size === 0) continue;
     if (repo.name.toLowerCase() === repo.owner.login.toLowerCase()) continue;
 
     try {
@@ -175,7 +191,6 @@ async function evaluateTopProjects(repos: any[], token: string) {
         console.error(e);
       }
 
-      // 4. Skip any projects that haven't a src folder with at least 1 file
       let hasSrcFolder = false;
       if (treeData && treeData.tree) {
         hasSrcFolder = treeData.tree.some((f: any) => f.type === 'blob' && /(^|\/)src\//.test(f.path));
@@ -193,36 +208,6 @@ async function evaluateTopProjects(repos: any[], token: string) {
         console.error(e);
       }
 
-      const codeSamples = [];
-      if (treeData && treeData.tree) {
-        const coreFiles = treeData.tree
-          .filter((f: any) => f.type === 'blob' && /\.(ts|js|jsx|tsx|java|py|go|css|html)$/.test(f.path || ''))
-          .filter((f: any) => !f.path?.includes('node_modules') && !f.path?.includes('dist') && !f.path?.includes('build'))
-          .slice(0, 3);
-
-        for (const file of coreFiles) {
-          if (!file.path) continue;
-          try {
-            // For file contents, we need the raw media type
-            const fileUrl = `${GITHUB_API_BASE}/repos/${repo.owner.login}/${repo.name}/contents/${file.path}`;
-            const fileResponse = await fetch(fileUrl, {
-              headers: {
-                'Authorization': `Bearer ${token}`,
-                'Accept': 'application/vnd.github.v3.raw',
-                'X-GitHub-Api-Version': '2022-11-28'
-              }
-            });
-            if (fileResponse.ok) {
-              const fileContent = await fileResponse.text();
-              codeSamples.push({
-                file_path: file.path,
-                content: fileContent.substring(0, 2000)
-              });
-            }
-          } catch (e) { console.error(e) }
-        }
-      }
-
       let languages: string[] = [];
       try {
         const langs = await fetchGithubApi(repo.languages_url, token);
@@ -233,13 +218,8 @@ async function evaluateTopProjects(repos: any[], token: string) {
         console.error(e)
       }
 
-      processedRepos.push({
-        name: repo.name,
-        description: repo.description || '',
-        languages,
-        readme_content: readme.substring(0, 1500),
-        code_samples: codeSamples,
-      });
+      const projectItem = mockEvaluateProject(repo, readme, treeData, languages);
+      processedRepos.push(projectItem);
 
       if (processedRepos.length >= 5) break;
     } catch (error) {
@@ -247,93 +227,33 @@ async function evaluateTopProjects(repos: any[], token: string) {
     }
   }
 
-  if (processedRepos.length === 0) return [];
-
-  try {
-    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-pro',
-      contents: `Analyze these repositories and select the top 5 best ones based on code quality, architecture, and standards:\n\n${JSON.stringify(processedRepos, null, 2)}`,
-      config: {
-        systemInstruction: 'You are an expert technical architect. Evaluate the projects based on architecture, design patterns, clean code principles, and documentation. Select the top 5 best repositories. If there are fewer than 5 valid engineering projects, return all available. Ignore empty repositories or default templates.',
-        responseMimeType: 'application/json',
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            top_projects: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  repository_name: { type: Type.STRING },
-                  score: { type: Type.INTEGER },
-                  strengths: { type: Type.ARRAY, items: { type: Type.STRING } },
-                  areas_for_improvement: { type: Type.ARRAY, items: { type: Type.STRING } },
-                  justification: { type: Type.STRING },
-                },
-                required: ['repository_name', 'score', 'justification', 'strengths', 'areas_for_improvement'],
-              },
-            },
-          },
-          required: ['top_projects'],
-        },
-      },
-    });
-
-    const parsed = JSON.parse(response.text || '{}');
-
-    return (parsed.top_projects || [])
-      .filter((aiProj: any) => aiProj && aiProj.repository_name)
-      .map((aiProj: any) => {
-        const originalRepo = processedRepos.find(r => r.name === aiProj.repository_name);
-        return {
-          repositoryName: aiProj.repository_name,
-          score: aiProj.score || 0,
-          strengths: aiProj.strengths || [],
-          areasForImprovement: aiProj.areas_for_improvement || [],
-          justification: aiProj.justification || '',
-          description: originalRepo?.description || '',
-          readmeShort: originalRepo?.readme_content ? originalRepo.readme_content.substring(0, 120) + '...' : '',
-          languages: originalRepo?.languages || []
-        };
-      });
-  } catch (err) {
-    console.error(err)
-    return processedRepos.map(repo => ({
-      repositoryName: repo.name,
-      score: 50,
-      strengths: [],
-      areasForImprovement: [],
-      justification: 'Failed to evaluate using AI.',
-      description: repo.description,
-      readmeShort: repo.readme_content ? repo.readme_content.substring(0, 120) + '...' : '',
-      languages: repo.languages
-    }));
-  }
+  return processedRepos;
 }
 
 /**
- * Main entry point: aggregates all GitHub metrics into the expected schema.
- * @returns A promise resolving to the full metrics payload.
+ * Main entry point: aggregates all GitHub metrics.
  */
-export async function analyzeGithubProfile(): Promise<GithubMetricsPayload> {
+export async function analyzeGithubProfile(): Promise<UserGitHubProfile> {
   const token = await readSecureToken('github');
   if (!token) {
     throw new Error('No GitHub token found in secure storage.');
   }
 
-  const username = await getGithubUsername(token);
-  const profileReadme = await evaluateProfileReadme(username, token);
+  const user = await getGithubUser(token);
+  const profileReadme = await evaluateProfileReadme(user.login, token);
 
-  // Fetch repos (public only, sorted by recently pushed)
   let repos = await fetchGithubApi('/user/repos?visibility=public&sort=pushed&per_page=30', token);
-  if (repos.message) repos = []; // Handle errors cleanly
-  const languages = await calculateLanguageDistribution(repos, token);
-  const topProjects = await evaluateTopProjects(repos, token);
+  if (repos.message) repos = [];
+
+  const globalLanguages = await calculateLanguageDistribution(repos, token);
+  const projects = await evaluateTopProjects(repos, token);
 
   return {
+    username: user.login,
+    displayName: user.name || user.login,
+    avatarUrl: user.avatar_url,
     profileReadme,
-    languages,
-    topProjects
+    globalLanguages,
+    projects
   };
 }
