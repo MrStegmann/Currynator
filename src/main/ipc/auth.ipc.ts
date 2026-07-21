@@ -1,5 +1,5 @@
 import { ipcMain } from 'electron';
-import { startGoogleOAuthFlow, startGithubOAuthFlow } from '../services/auth.service.js';
+import { startGoogleOAuthFlow, startGithubOAuthFlow, startLinkedinOAuthFlow } from '../services/auth.service.js';
 
 export function registerAuthIpcHandlers() {
   ipcMain.handle('google-oauth-flow', async () => {
@@ -18,6 +18,15 @@ export function registerAuthIpcHandlers() {
       return { success: true, profile };
     } catch (error: any) {
       console.error('github-oauth-flow IPC error:', error);
+      return { success: false, error: error.message };
+    }
+  });
+  ipcMain.handle('linkedin-oauth-flow', async () => {
+    try {
+      const profile = await startLinkedinOAuthFlow();
+      return { success: true, profile };
+    } catch (error: any) {
+      console.error('linkedin-oauth-flow IPC error:', error);
       return { success: false, error: error.message };
     }
   });

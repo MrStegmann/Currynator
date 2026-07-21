@@ -15,6 +15,7 @@
 The application manages two primary entry flows for profile data generation:
 
 * **Google OAuth Single Sign-On:** Used to securely retrieve the user's `firstname`, `lastname`, and `email`.
+* **LinkedIn OAuth Single Sign-On:** Used to securely retrieve the user's `firstname`, `lastname`, and `email` using their professional profile.
 * **Manual Form Input:** A fallback form letting users manually enter or edit their personal details text fields.
 * **GitHub Integration:** Fetches an `Access Token` to communicate with the GitHub API, importing the user's public/private repositories, contribution metrics, and code history metadata.
 

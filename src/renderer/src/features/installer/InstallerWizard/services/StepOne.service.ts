@@ -13,3 +13,11 @@ export async function googleAuthService(): Promise<any> {
 export async function githubAuthService(): Promise<any> {
   return await (window as any).electronAPI.githubOAuthFlow();
 }
+
+/**
+ * Initiates the LinkedIn OAuth flow via the Electron IPC channel.
+ * @returns A promise resolving to the OAuth flow response containing the user profile and token or error.
+ */
+export async function linkedinAuthService(): Promise<any> {
+  return await (window as any).electronAPI.linkedinOAuthFlow();
+}

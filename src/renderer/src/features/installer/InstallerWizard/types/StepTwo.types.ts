@@ -7,6 +7,6 @@ export interface StepTwoProps {
   onChangeTokenInput: (token: string) => void;
   onNext: () => void;
   onSkip: () => void;
-  authProviderUsed: 'manual' | 'google' | 'github';
+  authProviderUsed: 'manual' | 'google' | 'github' | 'linkedin';
   onStateChange: (state: StepTwoState) => void;
 }

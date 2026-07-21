@@ -108,7 +108,7 @@ export const Home: React.FC = () => {
   };
 
   return (
-    <div className="w-full p-5 max-w-5xl mx-auto flex flex-col gap-8">
+    <div className="w-full max-w-5xl mx-auto flex flex-col gap-4 text-[#e9eaec]">
       {/* SECTION 1: Basic Information */}
       <BasicInformation
         state={profile as any}
@@ -116,17 +116,18 @@ export const Home: React.FC = () => {
       />
 
       {/* SECTION 2: Work Experience */}
-      <div className="w-full">
-        <div className="border-b-2 border-white/20 pb-2 mb-3 flex justify-between items-center">
+      <div className="w-full bg-[#1d2226] rounded-lg border border-[#38434f] p-6 shadow-sm">
+        <div className="pb-4 mb-4 flex justify-between items-center border-b border-[#38434f]">
           <h2 className="text-xl font-semibold">Experiencia Laboral</h2>
           <button
             onClick={() => { setEditWorkId(null); setIsWorkModalOpen(true); }}
-            className="flex items-center gap-1 bg-surface-deep hover:bg-white/10 px-3 py-1 rounded transition-colors"
+            className="flex items-center justify-center w-8 h-8 hover:bg-white/10 rounded-full transition-colors text-xl"
+            title="Añadir"
           >
-            <span className="text-lg">+</span> Añadir
+            +
           </button>
         </div>
-        <div>
+        <div className="flex flex-col gap-4">
           {profile.experience.map(work => (
             <WorkExperienceCard
               key={work.id}
@@ -140,17 +141,18 @@ export const Home: React.FC = () => {
       </div>
 
       {/* SECTION 3: Education */}
-      <div className="w-full">
-        <div className="border-b-2 border-white/20 pb-2 mb-3 flex justify-between items-center">
+      <div className="w-full bg-[#1d2226] rounded-lg border border-[#38434f] p-6 shadow-sm">
+        <div className="pb-4 mb-4 flex justify-between items-center border-b border-[#38434f]">
           <h2 className="text-xl font-semibold">Educación</h2>
           <button
             onClick={() => { setEditEduId(null); setIsEduModalOpen(true); }}
-            className="flex items-center gap-1 bg-surface-deep hover:bg-white/10 px-3 py-1 rounded transition-colors"
+            className="flex items-center justify-center w-8 h-8 hover:bg-white/10 rounded-full transition-colors text-xl"
+            title="Añadir"
           >
-            <span className="text-lg">+</span> Añadir
+            +
           </button>
         </div>
-        <div>
+        <div className="flex flex-col gap-4">
           {profile.education.map(edu => (
             <EducationCard
               key={edu.id}
@@ -164,17 +166,18 @@ export const Home: React.FC = () => {
       </div>
 
       {/* SECTION 4: Certifications */}
-      <div className="w-full">
-        <div className="border-b-2 border-white/20 pb-2 mb-3 flex justify-between items-center">
+      <div className="w-full bg-[#1d2226] rounded-lg border border-[#38434f] p-6 shadow-sm mb-8">
+        <div className="pb-4 mb-4 flex justify-between items-center border-b border-[#38434f]">
           <h2 className="text-xl font-semibold">Certificados</h2>
           <button
             onClick={() => { setEditCertId(null); setIsCertModalOpen(true); }}
-            className="flex items-center gap-1 bg-surface-deep hover:bg-white/10 px-3 py-1 rounded transition-colors"
+            className="flex items-center justify-center w-8 h-8 hover:bg-white/10 rounded-full transition-colors text-xl"
+            title="Añadir"
           >
-            <span className="text-lg">+</span> Añadir
+            +
           </button>
         </div>
-        <div>
+        <div className="flex flex-col gap-4">
           {profile.certifications.map(cert => (
             <CertificationCard
               key={cert.id}

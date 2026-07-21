@@ -6,7 +6,7 @@ export interface OAuthProfile {
   firstName: string;
   lastName: string;
   email: string;
-  provider: 'google' | 'github';
+  provider: 'google' | 'github' | 'linkedin';
   token?: string; // Optional field if we manage to extract github PAT during OAuth flow
 }
 
@@ -201,6 +201,111 @@ export async function startGithubOAuthFlow(): Promise<OAuthResponse> {
           }
         } else {
           safeReject(new Error('No auth code in Github callback'));
+        }
+      }
+    });
+
+    authWindow.on('closed', () => {
+      if (!isResolved) {
+        reject(new Error('Authentication window closed by user'));
+      }
+    });
+  });
+}
+
+/**
+ * Handles Linkedin OAuth redirect loops and fetches basic profile info.
+ * @returns A promise that resolves to the user's profile metadata on success.
+ */
+export async function startLinkedinOAuthFlow(): Promise<OAuthResponse> {
+  return new Promise((resolve, reject) => {
+    const clientId = process.env.LINKEDIN_CLIENT_ID;
+    const clientSecret = process.env.LINKEDIN_CLIENT_SECRET;
+    const redirectUri = 'http://127.0.0.1:4200/auth/callback';
+
+    if (!clientId || !clientSecret) {
+      reject(new Error('Missing Linkedin OAuth credentials in .env'));
+      return;
+    }
+
+    const authUrl = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=openid%20profile%20email`;
+
+    const authWindow = new BrowserWindow({
+      width: 500,
+      height: 600,
+      show: true,
+      webPreferences: {
+        nodeIntegration: false,
+        contextIsolation: true
+      }
+    });
+
+    let isResolved = false;
+    const safeResolve = (profile: OAuthProfile) => {
+      if (!isResolved) {
+        isResolved = true;
+        authWindow.close();
+        resolve(profile);
+      }
+    };
+
+    const safeReject = (err: Error) => {
+      if (!isResolved) {
+        isResolved = true;
+        authWindow.close();
+        reject(err);
+      }
+    };
+
+    authWindow.loadURL(authUrl);
+
+    authWindow.webContents.on('will-redirect', async (_event, url) => {
+      if (url.startsWith(redirectUri)) {
+        const urlObj = new URL(url);
+        const code = urlObj.searchParams.get('code');
+        
+        if (code) {
+          try {
+            const tokenParams = new URLSearchParams({
+              grant_type: 'authorization_code',
+              code: code,
+              client_id: clientId,
+              client_secret: clientSecret,
+              redirect_uri: redirectUri
+            });
+
+            const tokenRes = await fetch('https://www.linkedin.com/oauth/v2/accessToken', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+              },
+              body: tokenParams.toString()
+            });
+            const tokenData = await tokenRes.json();
+            
+            if (tokenData.access_token) {
+              const userRes = await fetch('https://api.linkedin.com/v2/userinfo', {
+                headers: { 
+                  'Authorization': `Bearer ${tokenData.access_token}`
+                }
+              });
+              const userData = await userRes.json();
+
+              safeResolve({
+                firstName: userData.given_name || '',
+                lastName: userData.family_name || '',
+                email: userData.email || '',
+                provider: 'linkedin',
+                token: tokenData.access_token
+              });
+            } else {
+              safeReject(new Error('Failed to obtain Linkedin access token.'));
+            }
+          } catch (e: any) {
+            safeReject(e);
+          }
+        } else {
+          safeReject(new Error('No auth code in Linkedin callback'));
         }
       }
     });

@@ -3,23 +3,23 @@ import type { WorkExperienceCardProps } from '../../types/WorkExperience.types';
 
 export const WorkExperienceCard: React.FC<WorkExperienceCardProps> = ({ experience, onEdit, onDelete }) => {
   return (
-    <div className="bg-surface-card border border-border-subtle rounded-lg p-4 mb-3">
+    <div className="border-b border-[#38434f] py-4 mb-2 last:border-b-0 last:pb-0">
       {/* First Row */}
       <div className="flex flex-row justify-between items-start mb-1">
-        <h2 className="text-lg font-bold text-white">{experience.jobTitle}</h2>
-        <div className="text-sm text-gray-400">
+        <h2 className="text-lg font-bold text-[#e9eaec]">{experience.jobTitle}</h2>
+        <div className="text-sm text-[#e9eaec]/60">
           {experience.startMonth}/{experience.startYear} - {experience.isCurrentRole ? 'Actualmente' : `${experience.endMonth}/${experience.endYear}`}
         </div>
       </div>
       {/* Second Row */}
-      <h3 className="text-md font-medium text-blue-400 mb-3">{experience.companyName}</h3>
+      <h3 className="text-md font-medium text-[#e9eaec]/90 mb-3">{experience.companyName}</h3>
 
       {/* Body */}
-      <div className="text-sm text-gray-300 mb-3 whitespace-pre-wrap">
+      <div className="text-sm text-[#e9eaec]/80 mb-3 whitespace-pre-wrap">
         {experience.context}
       </div>
       {experience.highlights && experience.highlights.length > 0 && (
-        <ul className="list-disc list-inside text-sm text-gray-300 mb-4">
+        <ul className="list-disc list-inside text-sm text-[#e9eaec]/80 mb-4">
           {experience.highlights.map((item, idx) => (
             <li key={idx}>{item}</li>
           ))}
@@ -30,7 +30,7 @@ export const WorkExperienceCard: React.FC<WorkExperienceCardProps> = ({ experien
       <div className="flex justify-end gap-2">
         <button 
           onClick={() => onEdit(experience.id)}
-          className="px-3 py-1 bg-surface-deep hover:bg-white/10 text-white text-sm rounded transition-colors"
+          className="px-4 py-1.5 hover:bg-[#38434f] text-[#e9eaec] font-semibold text-sm rounded-full transition-colors"
         >
           Editar
         </button>
@@ -40,7 +40,7 @@ export const WorkExperienceCard: React.FC<WorkExperienceCardProps> = ({ experien
               onDelete(experience.id);
             }
           }}
-          className="px-3 py-1 bg-red-500/20 hover:bg-red-500/40 text-red-400 text-sm rounded transition-colors"
+          className="px-4 py-1.5 hover:bg-red-500/10 text-red-400 font-semibold text-sm rounded-full transition-colors"
         >
           Eliminar
         </button>

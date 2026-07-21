@@ -11,6 +11,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   googleOAuthFlow: () => ipcRenderer.invoke('google-oauth-flow'),
   githubOAuthFlow: () => ipcRenderer.invoke('github-oauth-flow'),
+  linkedinOAuthFlow: () => ipcRenderer.invoke('linkedin-oauth-flow'),
   saveSecureToken: (tokenType: string, value: string) => ipcRenderer.invoke('save-secure-token', tokenType, value),
 
   analyzeGithub: () => ipcRenderer.invoke('analyze-github'),
