@@ -12,7 +12,7 @@ export const InstallerWizard: React.FC<{ onComplete?: () => void }> = ({ onCompl
   const [currentStep, setCurrentStep] = useState(1);
 
   const [state, setState] = useState<InstallerWizardState>({
-    step1: { firstName: '', lastName: '', email: '', authProviderUsed: 'manual' },
+    step1: { fullName: '', email: '', authProviderUsed: 'manual' },
     step2: { tokenProvided: false },
     step3: { outputDirectoryPath: '' }
   });
@@ -45,8 +45,8 @@ export const InstallerWizard: React.FC<{ onComplete?: () => void }> = ({ onCompl
 
       const newProfile = {
         ...currentProfile.data,
-        firstName: state.step1.firstName,
-        lastName: state.step1.lastName,
+        fullName: state.step1.fullName,
+        avatarUrl: state.step1.avatarUrl,
         email: state.step1.email
       };
 

@@ -6,6 +6,7 @@ export interface OAuthProfile {
   firstName: string;
   lastName: string;
   email: string;
+  avatarUrl?: string;
   provider: 'google' | 'github' | 'linkedin';
   token?: string; // Optional field if we manage to extract github PAT during OAuth flow
 }
@@ -74,6 +75,7 @@ export async function startGoogleOAuthFlow(): Promise<OAuthResponse> {
               firstName: data.given_name || '',
               lastName: data.family_name || '',
               email: data.email || '',
+              avatarUrl: data.picture || '',
               provider: 'google'
             });
           } catch (e: any) {
@@ -190,6 +192,7 @@ export async function startGithubOAuthFlow(): Promise<OAuthResponse> {
                 firstName,
                 lastName,
                 email: primaryEmail,
+                avatarUrl: userData.avatar_url || '',
                 provider: 'github',
                 token: tokenData.access_token
               });
@@ -295,6 +298,7 @@ export async function startLinkedinOAuthFlow(): Promise<OAuthResponse> {
                 firstName: userData.given_name || '',
                 lastName: userData.family_name || '',
                 email: userData.email || '',
+                avatarUrl: userData.picture || '',
                 provider: 'linkedin',
                 token: tokenData.access_token
               });

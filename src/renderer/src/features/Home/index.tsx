@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BasicInformation } from './components/BasicInformation';
+import { SummarySection } from './components/SummarySection';
 import { WorkExperienceCard } from './components/work/WorkExperienceCard';
 import { WorkExperienceFormModal } from './components/work/WorkExperienceFormModal';
 import { EducationCard } from './components/education/EducationCard';
@@ -111,6 +112,12 @@ export const Home: React.FC = () => {
     <div className="w-full max-w-5xl mx-auto flex flex-col gap-4 text-[#e9eaec]">
       {/* SECTION 1: Basic Information */}
       <BasicInformation
+        state={profile as any}
+        onSave={handleSaveBasicInfo}
+      />
+
+      {/* SECTION 1.5: Summary */}
+      <SummarySection
         state={profile as any}
         onSave={handleSaveBasicInfo}
       />

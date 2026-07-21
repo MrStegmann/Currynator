@@ -1,6 +1,6 @@
 export interface StepOneState {
-  firstName: string;
-  lastName: string;
+  fullName: string;
+  avatarUrl?: string;
   email: string;
   authProviderUsed: 'manual' | 'google' | 'github' | 'linkedin';
 }

@@ -22,8 +22,8 @@ export const StepOne: React.FC<StepOneProps> = ({ state, onChange, onNext, onSki
       const res = await googleAuthService();
       if (res.success && res.profile) {
         onChange({
-          firstName: res.profile.firstName,
-          lastName: res.profile.lastName,
+          fullName: `${res.profile.firstName} ${res.profile.lastName}`.trim(),
+          avatarUrl: res.profile.avatarUrl,
           email: res.profile.email,
           authProviderUsed: 'google'
         });
@@ -45,8 +45,8 @@ export const StepOne: React.FC<StepOneProps> = ({ state, onChange, onNext, onSki
       const res = await linkedinAuthService();
       if (res.success && res.profile) {
         onChange({
-          firstName: res.profile.firstName,
-          lastName: res.profile.lastName,
+          fullName: `${res.profile.firstName} ${res.profile.lastName}`.trim(),
+          avatarUrl: res.profile.avatarUrl,
           email: res.profile.email,
           authProviderUsed: 'linkedin'
         });
@@ -68,8 +68,8 @@ export const StepOne: React.FC<StepOneProps> = ({ state, onChange, onNext, onSki
       const res = await githubAuthService();
       if (res.success && res.profile) {
         onChange({
-          firstName: res.profile.firstName,
-          lastName: res.profile.lastName,
+          fullName: `${res.profile.firstName} ${res.profile.lastName}`.trim(),
+          avatarUrl: res.profile.avatarUrl,
           email: res.profile.email,
           authProviderUsed: 'github'
         });
@@ -132,17 +132,10 @@ export const StepOne: React.FC<StepOneProps> = ({ state, onChange, onNext, onSki
       <div className="flex flex-col w-full max-w-md gap-3">
         <input
           type="text"
-          placeholder="First Name"
+          placeholder="Full Name"
           className="w-full p-3 bg-surface-deep border border-border-subtle rounded-md text-on-surface focus:outline-none focus:border-primary transition-colors"
-          value={state.firstName}
-          onChange={e => onChange({ ...state, firstName: e.target.value })}
-        />
-        <input
-          type="text"
-          placeholder="Last Name"
-          className="w-full p-3 bg-surface-deep border border-border-subtle rounded-md text-on-surface focus:outline-none focus:border-primary transition-colors"
-          value={state.lastName}
-          onChange={e => onChange({ ...state, lastName: e.target.value })}
+          value={state.fullName || ''}
+          onChange={e => onChange({ ...state, fullName: e.target.value })}
         />
         <input
           type="email"

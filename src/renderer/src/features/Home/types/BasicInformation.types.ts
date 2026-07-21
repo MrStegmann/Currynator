@@ -1,6 +1,6 @@
 export interface BasicInformationState {
-  firstName: string;
-  lastName: string;
+  fullName: string;
+  avatarUrl?: string;
   email: string;
   professionalTitle: string;
   linkedinUrl: string;

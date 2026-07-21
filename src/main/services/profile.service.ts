@@ -32,8 +32,8 @@ export interface Certification {
 }
 
 export interface UserProfile {
-  firstName: string;
-  lastName: string;
+  fullName: string;
+  avatarUrl?: string;
   email: string;
   professionalTitle: string;
   linkedinUrl: string;
@@ -54,8 +54,7 @@ export const getProfileFilePath = () => {
 
 export const getDefaultProfile = (): UserProfile => {
   return {
-    firstName: '',
-    lastName: '',
+    fullName: '',
     email: '',
     professionalTitle: '',
     linkedinUrl: '',
@@ -76,6 +75,16 @@ export const readProfile = async (): Promise<UserProfile> => {
   try {
     const data = await fs.readFile(filePath, 'utf-8');
     const parsed = JSON.parse(data);
+    
+    // Migration: Convert firstName/lastName to fullName
+    if (parsed.firstName !== undefined || parsed.lastName !== undefined) {
+      if (!parsed.fullName) {
+        parsed.fullName = `${parsed.firstName || ''} ${parsed.lastName || ''}`.trim();
+      }
+      delete parsed.firstName;
+      delete parsed.lastName;
+    }
+    
     return { ...getDefaultProfile(), ...parsed };
   } catch (error) {
     return getDefaultProfile();
