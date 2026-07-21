@@ -55,6 +55,10 @@ export interface UserGitHubProfile {
     exists: boolean;
     contentRaw?: string;
     contentHtml?: string;
+    score?: number;
+    worseParts?: FeedbackItem[];
+    warnings?: FeedbackItem[];
+    tips?: FeedbackItem[];
   };
   globalLanguages: GlobalLanguage[];
   projects: ProjectItem[];

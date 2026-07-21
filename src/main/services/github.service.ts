@@ -172,21 +172,40 @@ function mockEvaluateProject(repo: any, readme: string, treeData: any, languages
   };
 }
 
+let cachedRepos: any[] = [];
+let lastProcessedIndex = 0;
+let currentToken = '';
+
 /**
- * Analyzes top projects with a mock approach.
+ * Initializes the repos cache and resets pagination index.
  */
-async function evaluateTopProjects(repos: any[], token: string): Promise<ProjectItem[]> {
-  const topRepos = repos.slice(0, 30);
+function initReposCache(repos: any[], token: string) {
+  cachedRepos = repos;
+  lastProcessedIndex = 0;
+  currentToken = token;
+}
+
+/**
+ * Fetches the next batch of valid projects based on internal state.
+ */
+export async function fetchNextProjectsBatch(batchSize = 6): Promise<ProjectItem[]> {
   const processedRepos: ProjectItem[] = [];
 
-  for (const repo of topRepos) {
+  if (!currentToken || lastProcessedIndex >= cachedRepos.length) {
+    return processedRepos;
+  }
+
+  for (let i = lastProcessedIndex; i < cachedRepos.length; i++) {
+    const repo = cachedRepos[i];
+    lastProcessedIndex = i + 1; // Mark as evaluated/skipped
+
     if (repo.fork || repo.archived || repo.size === 0) continue;
     if (repo.name.toLowerCase() === repo.owner.login.toLowerCase()) continue;
 
     try {
       let treeData: any = null;
       try {
-        treeData = await fetchGithubApi(`/repos/${repo.owner.login}/${repo.name}/git/trees/${repo.default_branch}?recursive=1`, token);
+        treeData = await fetchGithubApi(`/repos/${repo.owner.login}/${repo.name}/git/trees/${repo.default_branch}?recursive=1`, currentToken);
       } catch (e) {
         console.error(e);
       }
@@ -200,7 +219,7 @@ async function evaluateTopProjects(repos: any[], token: string): Promise<Project
 
       let readme = '';
       try {
-        const readmeData = await fetchGithubApi(`/repos/${repo.owner.login}/${repo.name}/readme`, token, true);
+        const readmeData = await fetchGithubApi(`/repos/${repo.owner.login}/${repo.name}/readme`, currentToken, true);
         if (typeof readmeData === 'string' && !readmeData.includes('"message":"Not Found"')) {
           readme = readmeData;
         }
@@ -210,7 +229,7 @@ async function evaluateTopProjects(repos: any[], token: string): Promise<Project
 
       let languages: string[] = [];
       try {
-        const langs = await fetchGithubApi(repo.languages_url, token);
+        const langs = await fetchGithubApi(repo.languages_url, currentToken);
         if (langs && typeof langs === 'object' && !langs.message) {
           languages = Object.keys(langs);
         }
@@ -221,7 +240,7 @@ async function evaluateTopProjects(repos: any[], token: string): Promise<Project
       const projectItem = mockEvaluateProject(repo, readme, treeData, languages);
       processedRepos.push(projectItem);
 
-      if (processedRepos.length >= 5) break;
+      if (processedRepos.length >= batchSize) break;
     } catch (error) {
       console.error(error)
     }
@@ -242,11 +261,14 @@ export async function analyzeGithubProfile(): Promise<UserGitHubProfile> {
   const user = await getGithubUser(token);
   const profileReadme = await evaluateProfileReadme(user.login, token);
 
-  let repos = await fetchGithubApi('/user/repos?visibility=public&sort=pushed&per_page=30', token);
+  let repos = await fetchGithubApi('/user/repos?visibility=public&sort=pushed&per_page=100', token);
   if (repos.message) repos = [];
 
   const globalLanguages = await calculateLanguageDistribution(repos, token);
-  const projects = await evaluateTopProjects(repos, token);
+  
+  // Initialize caching and fetch first batch
+  initReposCache(repos, token);
+  const projects = await fetchNextProjectsBatch(6);
 
   return {
     username: user.login,

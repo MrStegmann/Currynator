@@ -15,5 +15,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   saveSecureToken: (tokenType: string, value: string) => ipcRenderer.invoke('save-secure-token', tokenType, value),
 
   analyzeGithub: () => ipcRenderer.invoke('analyze-github'),
+  analyzeGithubProjects: () => ipcRenderer.invoke('analyze-github-projects'),
 
 });
