@@ -1,6 +1,6 @@
 import React from 'react';
 import type { ProjectItem } from '../../types';
-import { Star } from 'lucide-react';
+import { Star, Loader2 } from 'lucide-react';
 
 interface ProjectCardProps {
   project: ProjectItem;
@@ -8,10 +8,35 @@ interface ProjectCardProps {
 }
 
 export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick }) => {
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return 'bg-green-500/20 text-green-400 border-green-500/50';
-    if (score >= 50) return 'bg-amber-500/20 text-amber-400 border-amber-500/50';
-    return 'bg-red-500/20 text-red-400 border-red-500/50';
+  const getScoreBadge = () => {
+    const status = project.statusScore || (project.scores?.globalScore > 0 ? 'score' : 'unscored');
+
+    if (status === 'wip') {
+      return (
+        <div className="px-2.5 py-1 rounded-full border text-xs font-semibold bg-amber-500/20 text-amber-400 border-amber-500/50 flex items-center gap-1.5 animate-pulse">
+          <Loader2 className="w-3 h-3 animate-spin" /> Scoring...
+        </div>
+      );
+    }
+
+    if (status === 'score') {
+      const score = project.scores.globalScore;
+      let colorClass = 'bg-red-500/20 text-red-400 border-red-500/50';
+      if (score >= 80) colorClass = 'bg-green-500/20 text-green-400 border-green-500/50';
+      else if (score >= 50) colorClass = 'bg-amber-500/20 text-amber-400 border-amber-500/50';
+
+      return (
+        <div className={`px-2.5 py-1 rounded-full border text-xs font-bold ${colorClass}`}>
+          {score}/100
+        </div>
+      );
+    }
+
+    return (
+      <div className="px-2.5 py-1 rounded-full border text-xs font-medium bg-[#2a323d] text-slate-300 border-[#38434f]">
+        Not scored yet
+      </div>
+    );
   };
 
   return (
@@ -24,9 +49,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick }) =>
           <h3 className="text-[#e9eaec] font-semibold text-lg truncate flex-1 pr-2">
             {project.name}
           </h3>
-          <div className={`px-2 py-1 rounded-full border text-xs font-bold ${getScoreColor(project.scores.globalScore)}`}>
-            {project.scores.globalScore}/100
-          </div>
+          {getScoreBadge()}
         </div>
         
         <p className="text-[#8c909f] text-sm line-clamp-2 mb-4">

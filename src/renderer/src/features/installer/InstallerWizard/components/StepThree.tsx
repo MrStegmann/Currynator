@@ -4,7 +4,7 @@ import { selectDirectoryService } from '../services/StepThree.service';
 import type { StepThreeProps } from '../types/StepThree.types';
 import { useNotification } from '../../../../context/NotificationContext';
 
-export const StepThree: React.FC<StepThreeProps> = ({ state, onChange, onComplete }) => {
+export const StepThree: React.FC<StepThreeProps> = ({ state, onChange, onComplete: _onComplete }) => {
   const { addNotification } = useNotification();
 
   const handleBrowseDirectory = async () => {

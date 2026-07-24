@@ -16,5 +16,17 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   analyzeGithub: () => ipcRenderer.invoke('analyze-github'),
   analyzeGithubProjects: () => ipcRenderer.invoke('analyze-github-projects'),
+  evaluateGithubProject: (projectId: string) => ipcRenderer.invoke('evaluate-github-project', projectId),
 
+  refetchProfileReadme: () => ipcRenderer.invoke('refetch-profile-readme'),
+  refetchGithubProjects: () => ipcRenderer.invoke('refetch-github-projects'),
+  refetchSingleProject: (projectId: string) => ipcRenderer.invoke('refetch-single-project', projectId),
+
+  onGithubAnalysisProgress: (callback: (data: { stageText: string; progressPercent: number }) => void) => {
+    const subscription = (_event: any, value: { stageText: string; progressPercent: number }) => callback(value);
+    ipcRenderer.on('github-analysis-progress', subscription);
+    return () => {
+      ipcRenderer.removeListener('github-analysis-progress', subscription);
+    };
+  }
 });

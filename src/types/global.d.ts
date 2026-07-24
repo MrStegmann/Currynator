@@ -22,8 +22,15 @@ declare global {
       githubOAuthFlow: () => Promise<{ success: boolean; error?: string }>;
       saveSecureToken: (tokenType: string, value: string) => Promise<{ success: boolean; error?: string }>;
       analyzeGithub: () => Promise<{ success: boolean; data?: any; error?: string }>;
+      analyzeGithubProjects: () => Promise<{ success: boolean; data?: any; error?: string }>;
+      evaluateGithubProject: (projectId: string) => Promise<{ success: boolean; data?: any; error?: string }>;
 
+      // Refetch section-specific actions
+      refetchProfileReadme: () => Promise<{ success: boolean; data?: any; error?: string }>;
+      refetchGithubProjects: () => Promise<{ success: boolean; data?: any; error?: string }>;
+      refetchSingleProject: (projectId: string) => Promise<{ success: boolean; data?: any; error?: string }>;
+
+      onGithubAnalysisProgress: (callback: (data: { stageText: string; progressPercent: number }) => void) => () => void;
     };
   }
 }
-

@@ -38,6 +38,7 @@ export interface ProjectItem {
   stars: number;
   primaryLanguage: string;
   repoUrl: string;
+  statusScore: 'unscored' | 'wip' | 'score';
   scores: ProjectScoreOverview;
   sections: {
     description: SectionAnalysis;
