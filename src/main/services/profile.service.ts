@@ -43,6 +43,7 @@ export interface UserProfile {
   phoneNumber: string;
   city: string;
   country: string;
+  context?: string;
   experience: WorkExperience[];
   education: Education[];
   certifications: Certification[];
@@ -64,6 +65,7 @@ export const getDefaultProfile = (): UserProfile => {
     phoneNumber: '',
     city: '',
     country: '',
+    context: '',
     experience: [],
     education: [],
     certifications: []

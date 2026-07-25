@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Layout } from './layout/Layout';
 import { Home } from './features/Home';
 import { Github } from './features/Github';
+import Studio from './features/studio';
 import InstallerWizard from './features/installer/InstallerWizard';
 
 /**
@@ -59,9 +60,15 @@ function App() {
     );
   }
 
+  // ── Studio Workspace Page (Replaces standard layout with 3-column Studio workspace) ─
+  if (currentPage === 'studio') {
+    return (
+      <Studio onBackToHome={() => handleNavigate('home')} />
+    );
+  }
+
   // ── Main authenticated layout ───────────────────────────────────────────────
   return (
-
     <Layout currentPage={currentPage} onNavigate={handleNavigate}>
       {currentPage === 'home' && <Home />}
       {currentPage === 'github' && <Github />}

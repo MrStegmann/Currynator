@@ -440,9 +440,32 @@ export async function evaluateSingleProjectById(
     throw new Error('No GitHub token found in secure storage.');
   }
 
-  const targetRepo = cachedRepos.find(r => String(r.id) === projectId);
+  let targetRepo = cachedRepos.find(r => String(r.id) === projectId);
   if (!targetRepo) {
-    throw new Error(`Repository with ID ${projectId} not found in cache.`);
+    onProgress?.(`Fetching repository metadata for ID ${projectId} from GitHub...`);
+    try {
+      targetRepo = await fetchGithubApi(`/repositories/${projectId}`, token);
+      if (targetRepo && targetRepo.id) {
+        if (!cachedRepos.some(r => String(r.id) === String(targetRepo.id))) {
+          cachedRepos.push(targetRepo);
+        }
+      }
+    } catch (e) {
+      console.error(`Failed to fetch /repositories/${projectId}:`, e);
+      try {
+        const userRepos = await fetchGithubApi('/user/repos?visibility=public&sort=pushed&per_page=100', token);
+        if (Array.isArray(userRepos)) {
+          initReposCache(userRepos, token);
+          targetRepo = cachedRepos.find(r => String(r.id) === projectId);
+        }
+      } catch (err) {
+        console.error('Failed to fallback fetch user repos:', err);
+      }
+    }
+  }
+
+  if (!targetRepo) {
+    throw new Error(`Repository with ID ${projectId} not found on GitHub.`);
   }
 
   onProgress?.(`Fetching structure & source files for ${targetRepo.name}...`);

@@ -3,8 +3,9 @@ import type { UserGitHubProfile, ProjectItem } from './types';
 import { ProfileHeader } from './components/ProfileHeader';
 import { ProjectCard } from './components/Card/ProjectCard';
 import { ProjectDetailScreen } from './components/Card/ProjectDetailScreen';
+import { AnalyzeRepositoriesModal } from './components/AnalyzeRepositoriesModal';
 import { useNotification } from '../../context/NotificationContext';
-import { RefreshCw, Loader2 } from 'lucide-react';
+import { RefreshCw, Loader2, Sparkles } from 'lucide-react';
 
 const ITEMS_PER_PAGE = 6;
 
@@ -14,6 +15,11 @@ export const Github: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedProject, setSelectedProject] = useState<ProjectItem | null>(null);
   const [lastFetch, setLastFetch] = useState<number | null>(null);
+
+  // Modal & Batch Analysis State
+  const [isAnalyzeModalOpen, setIsAnalyzeModalOpen] = useState(false);
+  const [isAnalyzingBatch, setIsAnalyzingBatch] = useState(false);
+  const [analysisProgress, setAnalysisProgress] = useState<{ current: number; total: number; stageText: string } | null>(null);
 
   // Loading Progress & Stage Feedback State
   const [progress, setProgress] = useState(5);
@@ -119,34 +125,28 @@ export const Github: React.FC = () => {
           try {
             const parsed = JSON.parse(cached);
             setProfile(parsed.profile);
-            setLastFetch(parsed.lastFetch);
-
-            if (parsed.profile.projects.length % ITEMS_PER_PAGE !== 0 || parsed.profile.projects.length === 0) {
-              setHasMore(false);
-            } else {
-              setHasMore(true);
-            }
-
+            setLastFetch(parsed.lastFetch || Date.now());
             setLoading(false);
             return;
           } catch (e) {
-            // invalid cache, ignore and fetch
+            console.error('Cache parse error', e);
           }
         }
         startProgressSimulation();
       }
 
       const res = await (window as any).electronAPI?.analyzeGithub();
+
       if (res?.success && res.data) {
         stopProgressSimulation(true);
-        setProfile(res.data);
+        const initialHasMore = res.data.projects.length >= ITEMS_PER_PAGE;
+        setHasMore(initialHasMore);
         const now = Date.now();
         setLastFetch(now);
-        const initialHasMore = res.data.projects.length === ITEMS_PER_PAGE;
-        setHasMore(initialHasMore);
         localStorage.setItem('githubProfileData', JSON.stringify({ profile: res.data, lastFetch: now }));
 
         setTimeout(() => {
+          setProfile(res.data);
           setLoading(false);
           if (initialHasMore) {
             startBackgroundSync(res.data);
@@ -221,6 +221,82 @@ export const Github: React.FC = () => {
       addNotification(err.message || 'Error re-fetching repositories.', 'error');
     } finally {
       setIsRefreshingProjects(false);
+    }
+  };
+
+  /**
+   * Sequentially evaluates selected repositories with Groq AI.
+   */
+  const handleAnalyzeSelectedProjects = async (selectedIds: string[]) => {
+    if (!profile || selectedIds.length === 0) return;
+    setIsAnalyzingBatch(true);
+    setAnalysisProgress({ current: 0, total: selectedIds.length, stageText: 'Starting AI repository analysis...' });
+
+    let activeProjects = [...profile.projects];
+
+    for (let i = 0; i < selectedIds.length; i++) {
+      const id = selectedIds[i];
+      const target = activeProjects.find((p) => p.id === id);
+      const repoName = target?.name || `ID ${id}`;
+
+      setAnalysisProgress({
+        current: i + 1,
+        total: selectedIds.length,
+        stageText: `[${i + 1}/${selectedIds.length}] Evaluating ${repoName}...`
+      });
+
+      try {
+        const res = await (window as any).electronAPI?.evaluateGithubProject(id);
+        if (res?.success && res.data) {
+          const evaluated = res.data;
+          activeProjects = activeProjects.map((p) => (p.id === id ? evaluated : p));
+          const updatedProfile = { ...profile, projects: activeProjects };
+          setProfile(updatedProfile);
+          localStorage.setItem(
+            'githubProfileData',
+            JSON.stringify({ profile: updatedProfile, lastFetch: Date.now() })
+          );
+        } else {
+          console.error(`Evaluation failed for project ${id}:`, res?.error);
+        }
+      } catch (err) {
+        console.error(`Error analyzing project ${id}:`, err);
+      }
+    }
+
+    setIsAnalyzingBatch(false);
+    setAnalysisProgress(null);
+    setIsAnalyzeModalOpen(false);
+    addNotification(`AI Analysis complete for ${selectedIds.length} repositories!`, 'success');
+  };
+
+  /**
+   * Refetches all repository data from GitHub and triggers AI analysis on all unscored projects.
+   */
+  const handleFetchAllAndAnalyze = async () => {
+    try {
+      setIsAnalyzingBatch(true);
+      addNotification('Fetching all repositories & launching AI analysis...', 'info');
+
+      await fetchProfile(true);
+
+      const cached = localStorage.getItem('githubProfileData');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        const allProjects: ProjectItem[] = parsed?.profile?.projects || [];
+        const targetIds = allProjects
+          .filter((p) => p.statusScore !== 'score')
+          .map((p) => p.id);
+
+        const idsToAnalyze = targetIds.length > 0 ? targetIds : allProjects.map((p) => p.id);
+        if (idsToAnalyze.length > 0) {
+          await handleAnalyzeSelectedProjects(idsToAnalyze);
+        }
+      }
+    } catch (err: any) {
+      addNotification(err?.message || 'Error executing Fetch All & Analyze', 'error');
+    } finally {
+      setIsAnalyzingBatch(false);
     }
   };
 
@@ -317,7 +393,7 @@ export const Github: React.FC = () => {
 
   return (
     <div className="flex flex-col gap-8 w-full max-w-6xl mx-auto pb-12 animate-in fade-in duration-300 relative">
-      {/* Global Refresh Button Container */}
+      {/* Global Action Buttons Container */}
       <div className="flex justify-end w-full">
         <div className="flex items-center gap-3">
           {lastFetch && (
@@ -327,11 +403,31 @@ export const Github: React.FC = () => {
           )}
           <button
             onClick={() => fetchProfile(true)}
-            disabled={loading}
+            disabled={loading || isAnalyzingBatch}
             className="px-3 py-1.5 bg-[#2d3741] hover:bg-[#38434f] text-[#e9eaec] rounded-md transition-colors disabled:opacity-50 flex items-center gap-2 text-sm border border-[#38434f]"
             title="Refresh All GitHub Profile & Repos Data"
           >
             Refresh All
+          </button>
+
+          {/* Fetch All & Analyze Button */}
+          <button
+            onClick={handleFetchAllAndAnalyze}
+            disabled={loading || isAnalyzingBatch}
+            className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-md transition-all disabled:opacity-50 flex items-center gap-2 text-sm font-semibold border border-blue-500 shadow-md shadow-blue-900/30 active:scale-95"
+            title="Fetch all profile & repository data from GitHub and run AI analysis on projects"
+          >
+            {isAnalyzingBatch ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin text-white" />
+                <span>Analyzing All...</span>
+              </>
+            ) : (
+              <>
+                <Sparkles className="w-4 h-4 text-blue-200" />
+                <span>Fetch All & Analyze</span>
+              </>
+            )}
           </button>
         </div>
       </div>
@@ -352,25 +448,39 @@ export const Github: React.FC = () => {
             )}
           </h3>
 
-          {/* Section-Specific Refetch Button for Repositories */}
-          <button
-            onClick={handleRefetchGithubProjects}
-            disabled={isRefreshingProjects || loading}
-            className="px-3 py-1.5 bg-[#2d3741] hover:bg-[#38434f] text-[#e9eaec] rounded-md transition-colors text-xs font-medium border border-[#38434f] flex items-center gap-1.5 disabled:opacity-50"
-            title="Re-fetch all repositories list from GitHub"
-          >
-            {isRefreshingProjects ? (
-              <>
-                <Loader2 className="w-3.5 h-3.5 animate-spin text-blue-400" />
-                <span>Re-fetching Repos...</span>
-              </>
-            ) : (
-              <>
-                <RefreshCw className="w-3.5 h-3.5 text-blue-400" />
-                <span>Refresh Repositories</span>
-              </>
-            )}
-          </button>
+          {/* Action Buttons for Repositories */}
+          <div className="flex items-center gap-2">
+            {/* Refresh Repositories Button */}
+            <button
+              onClick={handleRefetchGithubProjects}
+              disabled={isRefreshingProjects || loading || isAnalyzingBatch}
+              className="px-3 py-1.5 bg-[#2d3741] hover:bg-[#38434f] text-[#e9eaec] rounded-md transition-colors text-xs font-medium border border-[#38434f] flex items-center gap-1.5 disabled:opacity-50"
+              title="Re-fetch all repositories list from GitHub"
+            >
+              {isRefreshingProjects ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-blue-400" />
+                  <span>Re-fetching Repos...</span>
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="w-3.5 h-3.5 text-blue-400" />
+                  <span>Refresh Repositories</span>
+                </>
+              )}
+            </button>
+
+            {/* Analyze Repositories Modal Trigger Button */}
+            <button
+              onClick={() => setIsAnalyzeModalOpen(true)}
+              disabled={loading || isRefreshingProjects || isAnalyzingBatch}
+              className="px-3 py-1.5 bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/40 rounded-md transition-all text-xs font-semibold flex items-center gap-1.5 disabled:opacity-50 active:scale-95"
+              title="Open selection modal to select specific repositories for AI analysis"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-blue-400" />
+              <span>Analyze Repositories</span>
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 relative">
@@ -413,6 +523,16 @@ export const Github: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* Repositories Selection & Analysis Modal */}
+      <AnalyzeRepositoriesModal
+        isOpen={isAnalyzeModalOpen}
+        projects={profile.projects}
+        onClose={() => setIsAnalyzeModalOpen(false)}
+        onStartAnalysis={handleAnalyzeSelectedProjects}
+        isAnalyzing={isAnalyzingBatch}
+        analysisProgress={analysisProgress}
+      />
     </div>
   );
 };

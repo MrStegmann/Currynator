@@ -90,6 +90,7 @@ src/
     │   │   ├── Github/      # Github page
     │   │   │   ├── components/     # Github components
     │   │   │   │   ├── ProfileHeader.tsx
+    │   │   │   │   ├── AnalyzeRepositoriesModal.tsx
     │   │   │   │   ├── Card/
     │   │   │   │   │   ├── ProjectCard.tsx
     │   │   │   │   │   ├── ProjectDetailScreen.tsx
@@ -109,6 +110,41 @@ src/
     │   │   │   │   ├── Terminal.types.ts
     │   │   │   ├── utils/     # Utilities functions
     │   │   │   └── index.tsx     # Terminal core
+    │   │   ├── studio/        # Studio workspace page
+    │   │   │   ├── components/
+    │   │   │   │   ├── canvas/
+    │   │   │   │   │   ├── CanvasHeaderBar.tsx
+    │   │   │   │   │   ├── CanvasTabSelector.tsx
+    │   │   │   │   │   ├── OptimizationDiffView.tsx
+    │   │   │   │   │   ├── ProjectSelector.tsx
+    │   │   │   │   │   ├── ResumeATSPreview.tsx
+    │   │   │   │   │   ├── ResumeContentContainer.tsx
+    │   │   │   │   │   ├── ResumeFormEditor.tsx
+    │   │   │   │   │   ├── StudioCanvas.tsx
+    │   │   │   │   │   └── StudyGuideViewer.tsx
+    │   │   │   │   ├── left-sidebar/
+    │   │   │   │   │   ├── CreateResumeButton.tsx
+    │   │   │   │   │   ├── ResumeCard.tsx
+    │   │   │   │   │   ├── ResumeList.tsx
+    │   │   │   │   │   ├── StudioLeftSidebar.tsx
+    │   │   │   │   │   └── StudioNavigationHeader.tsx
+    │   │   │   │   ├── modals/
+    │   │   │   │   │   ├── DeleteResumeModal.tsx
+    │   │   │   │   │   ├── JobOptimizationModal.tsx
+    │   │   │   │   │   └── UnsavedChangesModal.tsx
+    │   │   │   │   └── right-sidebar/
+    │   │   │   │       ├── AiActionButtons.tsx
+    │   │   │   │       ├── AiChatPanel.tsx
+    │   │   │   │       └── StudioRightSidebar.tsx
+    │   │   │   ├── types/
+    │   │   │   │   ├── resume.types.ts
+    │   │   │   │   └── studio.types.ts
+    │   │   │   ├── utils/
+    │   │   │   │   ├── aiGenerator.ts
+    │   │   │   │   ├── pdfExporter.ts
+    │   │   │   │   ├── resumeDefaults.ts
+    │   │   │   │   └── studioStorage.ts
+    │   │   │   └── index.tsx     # Studio core workspace page
     │   ├── hooks/              # Shared global custom React hooks
     │   └── App.tsx
     └── index.html

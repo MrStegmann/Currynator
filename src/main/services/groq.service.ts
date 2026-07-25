@@ -60,20 +60,43 @@ function getGroqClient(): Groq {
 
 /**
  * Helper to safely extract and parse JSON from Groq completion responses.
+ * Handles markdown block wrappers, trailing commentary outside JSON boundaries, and syntax errors.
  * @param rawContent - String content returned by Groq LLM.
  * @returns Parsed JavaScript object.
  */
 function parseGroqJsonResponse<T>(rawContent: string): T {
   let cleaned = rawContent.trim();
-  if (cleaned.startsWith('```')) {
-    cleaned = cleaned.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '').trim();
+
+  // Strip markdown code fences if present
+  cleaned = cleaned.replace(/^```[a-z]*\n?/i, '').replace(/\n?```$/i, '').trim();
+
+  // Isolate outermost JSON structure ({ ... } or [ ... ]) to strip trailing/leading text
+  const firstBrace = cleaned.search(/[\{\[]/);
+  const lastBrace = Math.max(cleaned.lastIndexOf('}'), cleaned.lastIndexOf(']'));
+
+  if (firstBrace !== -1 && lastBrace > firstBrace) {
+    cleaned = cleaned.substring(firstBrace, lastBrace + 1);
   }
+
   try {
     return JSON.parse(cleaned) as T;
-  } catch (error) {
-    console.warn('Standard JSON.parse failed on Groq response, running jsonrepair fallback...', error);
-    const repaired = jsonrepair(cleaned);
-    return JSON.parse(repaired) as T;
+  } catch (initialError) {
+    try {
+      const repaired = jsonrepair(cleaned);
+      return JSON.parse(repaired) as T;
+    } catch (repairError) {
+      console.warn('jsonrepair failed on isolated JSON string, trying regex match fallback...', repairError);
+      const objectMatch = rawContent.match(/\{[\s\S]*\}/);
+      if (objectMatch) {
+        try {
+          const repairedMatch = jsonrepair(objectMatch[0]);
+          return JSON.parse(repairedMatch) as T;
+        } catch (matchError) {
+          console.error('Failed to parse regex matched JSON object:', matchError);
+        }
+      }
+      throw initialError;
+    }
   }
 }
 
@@ -181,7 +204,8 @@ CRITICAL: Return ONLY raw valid JSON matching this exact JSON schema without mar
         ],
         model: targetModel,
         temperature: 0.2,
-        max_completion_tokens: 1500
+        max_completion_tokens: 1500,
+        response_format: { type: 'json_object' }
       });
 
       const content = chatCompletion.choices[0]?.message?.content || '';
@@ -288,7 +312,8 @@ CRITICAL: Return ONLY valid JSON matching this schema without markdown codeblock
         ],
         model: targetModel,
         temperature: 0.2,
-        max_completion_tokens: 2048
+        max_completion_tokens: 2048,
+        response_format: { type: 'json_object' }
       });
 
       const content = chatCompletion.choices[0]?.message?.content || '';
