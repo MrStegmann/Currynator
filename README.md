@@ -1,58 +1,130 @@
 # Currynator 🚀
 
-**Versión:** 0.0.1 (Estado: MVP Arquitectónico y Funcional Base)
-
-Currynator es una plataforma de ingeniería documental avanzada diseñada para la creación, optimización estratégica y gestión de currículums de alto impacto. Concebida como una aplicación nativa de escritorio, esta herramienta aborda el desafío crítico de la empleabilidad moderna: transformar historiales laborales estáticos en documentos persuasivos, cuantificables y altamente optimizados para sistemas ATS (Applicant Tracking Systems).
+**Currynator** es una plataforma de ingeniería documental, optimización de empleabilidad y preparación de entrevistas de alto impacto impulsada por Inteligencia Artificial. Concebida como una aplicación nativa de escritorio construida sobre **Electron**, **React 19**, **TypeScript** y **Tailwind CSS**, esta herramienta transforma historiales laborales estáticos en documentos persuasivos, cuantificables y altamente optimizados para sistemas ATS (*Applicant Tracking Systems*).
 
 ---
 
-## 🎯 Utilidad y Enfoque
+## 🎯 Enfoque y Propósito
 
-En un mercado laboral altamente competitivo y mediado por algoritmos de filtrado (ATS), un currículum estándar no es suficiente. Currynator se rige por principios avanzados de consultoría de carrera y aplica metodologías comprobadas, como el **Método STAR** (Situación, Tarea, Acción, Resultado), para garantizar que la trayectoria del candidato demuestre un impacto cuantificable.
+En un mercado laboral tecnológico altamente competitivo y mediado por algoritmos de filtrado, un currículum estándar no es suficiente. Currynator combina metodologías avanzadas de consultoría de carrera (como el **Método STAR**: Situación, Tarea, Acción, Resultado) con el poder de modelos de Inteligencia Artificial de última generación para:
 
-A diferencia de los editores visuales convencionales, Currynator abstrae el diseño y se enfoca en la calidad de la información, inyectando la inteligencia artificial de **Gemini 2.5** para redactar narrativas profesionales que incrementen drásticamente la tasa de respuesta y entrevistas.
+1. **Superar los filtros ATS**: Reescribir y estructurar la experiencia profesional utilizando palabras clave relevantes e impacto cuantificable.
+2. **Personalizar candidaturas**: Adaptar el CV a ofertas de trabajo específicas (empresa, puesto, funciones y requisitos) o generar versiones optimizadas generales.
+3. **Preparar la entrevista técnica**: Generar guiones de estudio estratégicos para anticipar preguntas de reclutadores y defender el stack tecnológico.
+4. **Auditar la marca en GitHub**: Analizar el perfil público de GitHub y los repositorios del desarrollador mediante IA para optimizar READMEs y detectar áreas de mejora.
 
 ---
 
-## ⚙️ Funcionamiento y Características Principales
+## ⚙️ Características Principales
 
-1. **Análisis y Optimización por IA (Gemini 2.5 API)**
-   - Utiliza salidas estructuradas (Structured Outputs) mediante JSON Schema avanzado para un determinismo absoluto en la generación.
-   - Es capaz de adaptar el CV general a un formato *híbrido*, *funcional* o *cronológico*, enfocado estrictamente en las descripciones de las ofertas de trabajo objetivo.
-   
-2. **Motor de Renderizado Headless (Puppeteer)**
-   - Currynator incluye un motor de generación de PDF de alta fidelidad, asegurando compatibilidad total con formatos de impresión, inyección de fuentes base64 y control absoluto de márgenes para prevenir los errores comunes de renderizado.
+### 1. 🎨 Studio de Edición y Optimización en Vivo (Workspace de 3 Columnas)
+- **Panel Izquierdo (Gestor de Perfil y Ofertas)**: Carga y administración de perfiles JSON, definición de ofertas laborales objetivo (empresa, puesto, funciones, requisitos) e instrucciones personalizadas para la IA.
+- **Canvas Central (Lienzo Interactivo)**: Renderizado en tiempo real del CV con diseño profesional compatible con ATS, vista previa de impresión y exportación directa a PDF.
+- **Panel Derecho (Asistente IA y Guiones)**: Generación con **Google Gemini 2.5 Flash**, visualización del razonamiento estratégico de la IA (`razonamiento_ia`) y gestión del historial de CVs generados.
 
-3. **Arquitectura y UI Modernas**
-   - Interfaz de usuario construida con **React** y estilisada mediante la filosofía "utility-first" de **Tailwind CSS**, logrando cargas rápidas y una experiencia de usuario estelar.
-   - Tipado estricto extremo con **TypeScript** en todo el stack.
-   - Aislamiento robusto de hilos nativos mediante **Electron** (separando estrictamente los procesos `Main` y `Renderer` para evitar bloqueos del hilo de UI).
+### 2. 🎓 Generador de Guiones de Estudio (Interview Preparation)
+- Creación de guías de preparación personalizadas basadas en el CV del candidato y la descripción del puesto objetivo.
+- Preguntas y respuestas técnicas sugeridas formuladas con metodología STAR.
+- Desglose y explicación profunda de tecnologías y frameworks para defender en entrevistas técnicas.
+- Indicadores Clave de Rendimiento (KPIs) y métricas recomendadas a mencionar.
+- Exportación nativa del guion de estudio a formato PDF.
 
-4. **Sistema de Depuración Dinámico (Modo Dev)**
-   - En su estado actual, incorpora una arquitectura global de telemetría capaz de registrar errores no controlados mediante un **Debug Terminal** integrado en la UI sin interferir con la experiencia del usuario.
+### 3. 🐙 Auditoría de GitHub con Groq AI
+- Conexión nativa con la API de GitHub mediante Token de Acceso Personal (PAT).
+- Evaluación automática del **README de perfil** del usuario mediante modelos avanzados de **Groq** (`llama-3.3-70b-versatile`, `mixtral-8x7b-32768`, `gemma2-9b-it`).
+- Auditoría profunda de repositorios: puntuación de descripción, estructura de archivos, README de proyecto y distribución de lenguajes de programación.
+- Feedback accionable con consejos, advertencias y detección de malas prácticas.
+
+### 4. 📄 Motor de Exportación PDF de Alta Fidelidad
+- Motor de renderizado Headless mediante **Puppeteer** (Chromium) y `react-to-print`.
+- Control estricto de tipografías base64 y márgenes de página para prevenir desbordamientos y desviaciones visuales.
+
+### 5. 🔒 Seguridad y Persistencia de Datos
+- Almacenamiento cifrado de llaves API (Gemini, Groq, GitHub PAT) en el almacén seguro del sistema operativo mediante la API `safeStorage` de Electron.
+- Datos 100% locales almacenados en esquemas JSON estructurados y validados con **Zod** y **jsonrepair**.
+
+### 6. 🧙‍♂️ Asistente de Configuración Inicial (Installer Wizard)
+- Wizard paso a paso en la primera ejecución de la aplicación para configurar carpetas de trabajo, claves de API y el perfil base del candidato.
 
 ---
 
 ## 🛠️ Pila Tecnológica (Tech Stack)
 
-Este proyecto representa una integración profunda de tecnologías de vanguardia:
-
-- **Entorno de Ejecución:** Electron & Node.js
-- **Frontend:** React + TypeScript + Vite
-- **Estilos:** Tailwind CSS
-- **IA y Orquestación:** Google Gemini 2.5 API (con soporte de subagentes paralelos)
-- **Document Engine:** Puppeteer (Chromium)
+| Capa | Tecnologías |
+| :--- | :--- |
+| **Entorno Desktop** | [Electron](https://www.electronjs.org/) (v43), Node.js, IPC asíncrono seguro |
+| **Frontend & UI** | [React](https://react.dev/) (v19), [TypeScript](https://www.typescriptlang.org/), [Vite](https://vitejs.dev/) (v8), [Framer Motion](https://www.framer.com/motion/) |
+| **Estilos & UI** | [Tailwind CSS](https://tailwindcss.com/) (v4), Lucide React |
+| **Modelos de IA** | **Google Gemini 2.5 Flash** (`@google/genai`), **Groq SDK** (`groq-sdk`: Llama 3.3 70B, Llama 3.1 70B, Mixtral, Gemma 2) |
+| **Validación & JSON** | [Zod](https://zod.dev/), `jsonrepair` |
+| **Document PDF Engine** | [Puppeteer](https://pptr.dev/), `react-to-print` |
+| **Calidad de Código** | [Oxlint](https://oxc.dev/) |
 
 ---
 
-## 📊 Estado del Proyecto (v0.0.1)
+## 📁 Estructura del Almacenamiento Local
 
-Actualmente, el proyecto se encuentra en la versión **0.0.1**. Los hitos alcanzados en esta etapa inicial incluyen:
+Currynator gestiona los documentos localmente dentro del directorio de trabajo configurado por el usuario:
 
-- ✅ Arquitectura base de Electron configurada con IPC asíncrono y seguridad activa.
-- ✅ Interfaz y sistema de enrutado interno del *Dashboard* y *Panel de Configuración*.
-- ✅ Integración del sistema de telemetría y Debug Terminal ("Ghost in the Machine").
-- ✅ Conexión estructurada con el modelo Gemini lista para ingestar datos JSON de candidatos.
-- ✅ Sistema de compilación y empaquetado optimizado mediante Vite y Rolldown.
+- `data/`: Almacena las versiones base de perfiles en formato JSON.
+- `CV/`: Guarda los currículums generados y optimizados por la IA en formato JSON.
+- `aiReasoning/`: Archivos Markdown (`.md`) con la justificación estratégica del modelo de IA para cada CV optimizado.
+- `study/`: Documentos PDF generados con los guiones de estudio para entrevistas.
 
-> *Este repositorio encapsula los esfuerzos de desarrollo para constituir un proyecto de ingeniería de software robusto, con miras a revolucionar la empleabilidad tecnológica automatizada.*
+---
+
+## 🚀 Instalación y Desarrollo
+
+### Requisitos Previos
+- **Node.js** v20 o superior
+- **npm** v10 o superior
+- Clave de API de **Google Gemini** ([Google AI Studio](https://aistudio.google.com/))
+- Clave de API de **Groq** ([Groq Cloud](https://console.groq.com/)) *(Requerida para la auditoría de GitHub)*
+- **GitHub Personal Access Token (PAT)** *(Requerido para análisis de repositorios)*
+
+### Pasos de Instalación
+
+1. **Clonar el repositorio:**
+   ```bash
+   git clone https://github.com/MrStegmann/Currynator.git
+   cd Currynator
+   ```
+
+2. **Instalar dependencias:**
+   ```bash
+   npm install
+   ```
+
+3. **Configurar variables de entorno (opcional en desarrollo):**
+   Crea un archivo `.env` en la raíz del proyecto:
+   ```env
+   GEMINI_API_KEY=tu_gemini_api_key
+   GROQ_API_KEY=tu_groq_api_key
+   ```
+
+4. **Iniciar en modo desarrollo:**
+   ```bash
+   npm run dev
+   ```
+
+5. **Validar código con Oxlint:**
+   ```bash
+   npm run lint
+   ```
+
+6. **Compilar y empaquetar la aplicación:**
+   ```bash
+   npm run build
+   ```
+
+---
+
+## 📊 Estado Actual del Proyecto
+
+El proyecto cuenta con las siguientes funcionalidades operativas:
+- ✅ **Studio Workspace (3 columnas)** para edición de perfiles, optimización por IA y previsualización interactiva.
+- ✅ **Optimización con Google Gemini 2.5 Flash** utilizando salida JSON estructurada y resiliencia con Zod / jsonrepair.
+- ✅ **Generación y exportación a PDF de Guiones de Estudio** para la preparación de entrevistas técnicas.
+- ✅ **Módulo de Auditoría de GitHub** respaldado por modelos de Groq (Llama 3.3, Mixtral, etc.).
+- ✅ **Almacenamiento Seguro** de tokens mediante `safeStorage` del sistema operativo.
+- ✅ **Installer Wizard** para configuración guiada en la primera ejecución.

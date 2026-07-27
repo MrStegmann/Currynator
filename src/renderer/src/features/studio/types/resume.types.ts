@@ -1,75 +1,115 @@
+import { z } from 'zod';
+
 /**
- * Data contracts and type definitions for resumes in the Studio feature.
+ * Zod schema for validating individual work experience entries.
  */
+export const workExperienceItemSchema = z.object({
+  id: z.string(),
+  jobTitle: z.string(),
+  companyName: z.string(),
+  startMonth: z.string(),
+  startYear: z.string(),
+  endMonth: z.string().optional(),
+  endYear: z.string().optional(),
+  isCurrentRole: z.boolean(),
+  context: z.string(),
+  highlights: z.array(z.string()),
+});
 
-export interface WorkExperienceItem {
-  id: string;
-  jobTitle: string;
-  companyName: string;
-  startMonth: string;
-  startYear: string;
-  endMonth?: string;
-  endYear?: string;
-  isCurrentRole: boolean;
-  context: string;
-  highlights: string[];
-}
+/**
+ * Zod schema for validating individual education entries.
+ */
+export const educationItemSchema = z.object({
+  id: z.string(),
+  degreeName: z.string(),
+  institutionName: z.string(),
+  graduationYear: z.string(),
+  currentStudy: z.boolean().optional(),
+});
 
-export interface EducationItem {
-  id: string;
-  degreeName: string;
-  institutionName: string;
-  graduationYear: string;
-  currentStudy?: boolean;
-}
+/**
+ * Zod schema for validating individual certification entries.
+ */
+export const certificationItemSchema = z.object({
+  id: z.string(),
+  certificationName: z.string(),
+  issuingOrganization: z.string(),
+  grantedYear: z.string(),
+  currentStudy: z.boolean().optional(),
+});
 
-export interface CertificationItem {
-  id: string;
-  certificationName: string;
-  issuingOrganization: string;
-  grantedYear: string;
-  currentStudy?: boolean;
-}
+/**
+ * Zod schema for validating technical project entries.
+ */
+export const projectItemSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  description: z.string(),
+  technologies: z.array(z.string()),
+  githubUrl: z.string().optional(),
+  liveUrl: z.string().optional(),
+  score: z.number().optional(),
+});
 
-export interface ProjectItem {
-  id: string;
-  name: string;
-  description: string;
-  technologies: string[];
-  githubUrl?: string;
-  liveUrl?: string;
-  score?: number;
-}
+/**
+ * Zod schema for skill categories containing grouped skill strings.
+ */
+export const skillCategorySchema = z.object({
+  category: z.string(),
+  skills: z.array(z.string()),
+});
 
-export interface SkillCategory {
-  category: string;
-  skills: string[];
-}
+/**
+ * Zod schema for candidate personal contact details and social links.
+ */
+export const personalDetailsSchema = z.object({
+  fullName: z.string(),
+  professionalTitle: z.string(),
+  email: z.string(),
+  phoneNumber: z.string().optional(),
+  location: z.string().optional(),
+  linkedinUrl: z.string().optional(),
+  githubUrl: z.string().optional(),
+  websiteUrl: z.string().optional(),
+  avatarUrl: z.string().optional(),
+});
 
-export interface PersonalDetails {
-  fullName: string;
-  professionalTitle: string;
-  email: string;
-  phoneNumber?: string;
-  location?: string;
-  linkedinUrl?: string;
-  githubUrl?: string;
-  websiteUrl?: string;
-  avatarUrl?: string;
-}
+/**
+ * Zod schema for the full ResumeData structure.
+ */
+export const resumeDataSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  description: z.string().optional(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+  personalDetails: personalDetailsSchema,
+  summary: z.string(),
+  skills: z.array(skillCategorySchema),
+  languages: z.array(z.string()),
+  experience: z.array(workExperienceItemSchema),
+  education: z.array(educationItemSchema),
+  projects: z.array(projectItemSchema),
+  certifications: z.array(certificationItemSchema),
+});
 
-export interface ResumeData {
-  id: string;
-  title: string;
-  description?: string;
-  createdAt: string;
-  updatedAt: string;
-  personalDetails: PersonalDetails;
-  summary: string;
-  skills: SkillCategory[];
-  languages: string[];
-  experience: WorkExperienceItem[];
-  education: EducationItem[];
-  projects: ProjectItem[];
-  certifications: CertificationItem[];
-}
+/** Inferred TypeScript type for WorkExperienceItem */
+export type WorkExperienceItem = z.infer<typeof workExperienceItemSchema>;
+
+/** Inferred TypeScript type for EducationItem */
+export type EducationItem = z.infer<typeof educationItemSchema>;
+
+/** Inferred TypeScript type for CertificationItem */
+export type CertificationItem = z.infer<typeof certificationItemSchema>;
+
+/** Inferred TypeScript type for ProjectItem */
+export type ProjectItem = z.infer<typeof projectItemSchema>;
+
+/** Inferred TypeScript type for SkillCategory */
+export type SkillCategory = z.infer<typeof skillCategorySchema>;
+
+/** Inferred TypeScript type for PersonalDetails */
+export type PersonalDetails = z.infer<typeof personalDetailsSchema>;
+
+/** Inferred TypeScript type for ResumeData */
+export type ResumeData = z.infer<typeof resumeDataSchema>;

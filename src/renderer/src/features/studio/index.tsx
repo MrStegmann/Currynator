@@ -11,7 +11,6 @@ import {
 import { createDefaultResume } from './utils/resumeDefaults';
 import {
   generateStudyGuideFromResume,
-  generateGeneralAiOptimization,
   generateSpecificAiOptimization
 } from './utils/aiGenerator';
 import { exportElementToPdf } from './utils/pdfExporter';
@@ -23,6 +22,7 @@ import { StudioRightSidebar } from './components/right-sidebar/StudioRightSideba
 import { DeleteResumeModal } from './components/modals/DeleteResumeModal';
 import { UnsavedChangesModal } from './components/modals/UnsavedChangesModal';
 import { JobOptimizationModal } from './components/modals/JobOptimizationModal';
+import { AiOptimizationWizardModal } from './components/modals/ai-wizard';
 
 interface StudioProps {
   onBackToHome: () => void;
@@ -43,6 +43,7 @@ export const Studio: React.FC<StudioProps> = ({ onBackToHome }) => {
   // Modals state
   const [resumeToDelete, setResumeToDelete] = useState<ResumeData | null>(null);
   const [isJobModalOpen, setIsJobModalOpen] = useState<boolean>(false);
+  const [isWizardModalOpen, setIsWizardModalOpen] = useState<boolean>(false);
 
   // Unsaved changes guard pending action
   const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
@@ -68,6 +69,7 @@ export const Studio: React.FC<StudioProps> = ({ onBackToHome }) => {
     const found = currentList.find((r) => r.id === id) || null;
     setActiveResumeId(id);
     setActiveResume(found ? JSON.parse(JSON.stringify(found)) : null);
+    console.log(found)
     setIsDirty(false);
     setViewMode('edit');
     setDiffData(null);
@@ -187,16 +189,17 @@ export const Studio: React.FC<StudioProps> = ({ onBackToHome }) => {
     }, 600);
   };
 
-  // AI: General Optimization
+  // AI: General Optimization (Opens Step-by-Step Wizard Modal)
   const handleGeneralOptimization = () => {
     if (!activeResume) return;
-    setIsAiProcessing(true);
-    setTimeout(() => {
-      const proposed = generateGeneralAiOptimization(activeResume);
-      setDiffData({ original: activeResume, proposed });
-      setViewMode('optimization-diff');
-      setIsAiProcessing(false);
-    }, 600);
+    setIsWizardModalOpen(true);
+  };
+
+  const handleSaveFromWizard = (updatedResume: ResumeData) => {
+    saveStoredResume(updatedResume);
+    setActiveResume(updatedResume);
+    setIsDirty(false);
+    setResumes(getStoredResumes());
   };
 
   // AI: Specific Optimization Submit
@@ -324,6 +327,15 @@ export const Studio: React.FC<StudioProps> = ({ onBackToHome }) => {
         onSubmit={handleSpecificOptimizationSubmit}
         onCancel={() => setIsJobModalOpen(false)}
       />
+
+      {activeResume && (
+        <AiOptimizationWizardModal
+          isOpen={isWizardModalOpen}
+          activeResume={activeResume}
+          onClose={() => setIsWizardModalOpen(false)}
+          onSave={handleSaveFromWizard}
+        />
+      )}
     </div>
   );
 };

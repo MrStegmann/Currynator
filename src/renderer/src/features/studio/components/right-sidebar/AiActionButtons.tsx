@@ -57,7 +57,7 @@ export const AiActionButtons: React.FC<AiActionButtonsProps> = ({
         className="w-full flex items-center justify-between p-3 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-slate-700 disabled:opacity-50 text-left transition-all group"
       >
         <div>
-          <h4 className="text-xs font-bold text-slate-200 group-hover:text-white">AI Specific Optimization</h4>
+          <h4 className="text-xs font-bold text-slate-200 group-hover:text-white">AI Driven</h4>
           <p className="text-[10px] text-slate-400">Tailor for company & target position</p>
         </div>
         <span className="text-emerald-400 text-xs">🎯</span>

@@ -31,6 +31,13 @@ declare global {
       refetchSingleProject: (projectId: string) => Promise<{ success: boolean; data?: any; error?: string }>;
 
       onGithubAnalysisProgress: (callback: (data: { stageText: string; progressPercent: number }) => void) => () => void;
+
+      optimizeResumeStep:
+      (payload: {
+        step: number;
+        currentResume: ResumeData;
+        userFeedback?: string;
+      }) => Promise<{ success: boolean; proposal?: ResumeData; reasoning?: string; error?: string }>;
     };
   }
 }

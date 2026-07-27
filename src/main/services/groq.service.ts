@@ -1,5 +1,6 @@
 import { Groq } from 'groq-sdk';
 import { jsonrepair } from 'jsonrepair';
+import { z } from 'zod';
 import type { FeedbackItem } from '../../renderer/src/features/Github/types';
 
 export const GROQ_AVAILABLE_MODELS = [
@@ -366,3 +367,193 @@ CRITICAL: Return ONLY valid JSON matching this schema without markdown codeblock
     };
   }
 }
+
+export interface StepOptimizationPayload {
+  step: 1 | 2 | 3 | 4 | 5 | 6;
+  currentResume: unknown;
+  userFeedback?: string;
+}
+
+export interface StepOptimizationResult {
+  step: number;
+  proposal: unknown;
+  reasoning: string;
+}
+
+export const OPTIMIZER_SYSTEM_PROMPT = `Role: Technical Resume Strategist & ATS Specialist.
+Goal: Rewrite existing software engineering resumes for ATS compliance and recruiter impact to land interviews.
+
+STRICT CONSTRAINTS (ZERO-HALLUCINATION):
+1. Only use facts, skills, tech, and history present in the original input. NEVER add unmentioned tools, metrics, or roles.
+2. If metrics are missing, use placeholders like [X%] or ask the user directly.
+
+TASKS:
+- ATS Optimization: Standardize section headers (Experience, Skills, Projects, Education). Rephrase descriptions to match technical terms accurately without altering facts.
+- High Impact Rewriting: Use Google's XYZ formula (Accomplished [X], measured by [Y], by doing [Z]). Start bullets with strong technical verbs (Engineered, Architected, Refactored, Optimized).
+- Formatting: Ensure output is clean, scannable plain text/Markdown. Remove tables, non-standard symbols, or complex layouts.
+
+OUTPUT REQUIREMENTS:
+- Provide rewritten bullet points line-by-line.
+- Highlight changes made and briefly state why.`;
+
+const step1Schema = z.object({
+  proposedTitle: z.string(),
+  reasoning: z.string().optional().default('')
+});
+
+const step2Schema = z.object({
+  proposedSummary: z.string(),
+  reasoning: z.string().optional().default('')
+});
+
+const step3Schema = z.object({
+  proposedExperience: z.array(z.object({
+    id: z.string(),
+    jobTitle: z.string(),
+    companyName: z.string(),
+    startMonth: z.string(),
+    startYear: z.string(),
+    endMonth: z.string().optional(),
+    endYear: z.string().optional(),
+    isCurrentRole: z.boolean(),
+    context: z.string(),
+    highlights: z.array(z.string())
+  })),
+  reasoning: z.string().optional().default('')
+});
+
+const step4Schema = z.object({
+  proposedEducation: z.array(z.object({
+    id: z.string(),
+    degreeName: z.string(),
+    institutionName: z.string(),
+    graduationYear: z.string(),
+    currentStudy: z.boolean().optional()
+  })),
+  proposedCertifications: z.array(z.object({
+    id: z.string(),
+    certificationName: z.string(),
+    issuingOrganization: z.string(),
+    grantedYear: z.string(),
+    currentStudy: z.boolean().optional()
+  })),
+  reasoning: z.string().optional().default('')
+});
+
+const step5Schema = z.object({
+  proposedSkills: z.array(z.object({
+    category: z.string(),
+    skills: z.array(z.string())
+  })),
+  reasoning: z.string().optional().default('')
+});
+
+const step6Schema = z.object({
+  proposedProjects: z.array(z.object({
+    id: z.string(),
+    name: z.string(),
+    description: z.string(),
+    technologies: z.array(z.string()),
+    githubUrl: z.string().optional(),
+    liveUrl: z.string().optional(),
+    score: z.number().optional()
+  })).min(1),
+  reasoning: z.string().optional().default('')
+});
+
+/**
+ * Builds step-specific prompt instruction for Groq completion.
+ *
+ * @param step - Current optimization step (1 to 6).
+ * @param feedback - Optional user feedback instruction.
+ * @returns Formatted prompt string.
+ */
+function buildStepPrompt(step: number, feedback?: string): string {
+  const feedbackClause = feedback ? `\nUser Feedback / Re-proposal Instruction: "${feedback}"` : '';
+
+  switch (step) {
+    case 1:
+      return `Step 1: Optimize Professional Title for ATS compliance and recruiter impact.${feedbackClause}\nReturn valid JSON object: { "proposedTitle": string, "reasoning": string }`;
+    case 2:
+      return `Step 2: Rewrite Professional Summary applying ATS standards and Google's XYZ formula where applicable.${feedbackClause}\nReturn valid JSON object: { "proposedSummary": string, "reasoning": string }`;
+    case 3:
+      return `Step 3: Filter & rewrite Work Experience. Rephrase highlight bullets using Google's XYZ formula (Accomplished [X], measured by [Y], by doing [Z]) with strong technical verbs.${feedbackClause}\nReturn valid JSON object: { "proposedExperience": [...WorkExperienceItem], "reasoning": string }`;
+    case 4:
+      return `Step 4: Select supporting Education & Certifications aligned with the professional title/summary.${feedbackClause}\nReturn valid JSON object: { "proposedEducation": [...EducationItem], "proposedCertifications": [...CertificationItem], "reasoning": string }`;
+    case 5:
+      return `Step 5: Categorize and optimize Hard Skills and Soft Skills into clean categories.${feedbackClause}\nReturn valid JSON object: { "proposedSkills": [...SkillCategory], "reasoning": string }`;
+    case 6:
+      return `Step 6: Select at least 3 relevant Technical Projects matching the professional title/summary.${feedbackClause}\nReturn valid JSON object: { "proposedProjects": [...ProjectItem], "reasoning": string }`;
+    default:
+      throw new Error(`Invalid optimization step: ${step}`);
+  }
+}
+
+/**
+ * Executes a step-by-step AI optimization request using Groq SDK.
+ *
+ * @param payload - Step payload containing step index, active resume context, and optional user feedback.
+ * @returns Promise resolving to step optimization result.
+ */
+export async function optimizeResumeStepWithGroq(
+  payload: StepOptimizationPayload
+): Promise<StepOptimizationResult> {
+  const groq = getGroqClient();
+  const stepPrompt = buildStepPrompt(payload.step, payload.userFeedback);
+
+  const messages = [
+    { role: 'system' as const, content: OPTIMIZER_SYSTEM_PROMPT },
+    { role: 'user' as const, content: `Active Resume Data:\n${JSON.stringify(payload.currentResume)}\n\n${stepPrompt}` }
+  ];
+
+  const chatCompletion = await groq.chat.completions.create({
+    messages,
+    model: 'llama-3.3-70b-versatile',
+    temperature: 0.2,
+    max_completion_tokens: 2048,
+    response_format: { type: 'json_object' }
+  });
+
+  const content = chatCompletion.choices[0]?.message?.content || '';
+  if (!content) {
+    throw new Error(`Groq returned empty response for optimization step ${payload.step}`);
+  }
+
+  const rawParsed = parseGroqJsonResponse<Record<string, unknown>>(content);
+
+  let validatedProposal: unknown = rawParsed;
+  let reasoningText = (rawParsed.reasoning as string) || 'AI optimization completed according to ATS guidelines.';
+
+  if (payload.step === 1) {
+    const val = step1Schema.parse(rawParsed);
+    validatedProposal = { proposedTitle: val.proposedTitle };
+    reasoningText = val.reasoning || reasoningText;
+  } else if (payload.step === 2) {
+    const val = step2Schema.parse(rawParsed);
+    validatedProposal = { proposedSummary: val.proposedSummary };
+    reasoningText = val.reasoning || reasoningText;
+  } else if (payload.step === 3) {
+    const val = step3Schema.parse(rawParsed);
+    validatedProposal = { proposedExperience: val.proposedExperience };
+    reasoningText = val.reasoning || reasoningText;
+  } else if (payload.step === 4) {
+    const val = step4Schema.parse(rawParsed);
+    validatedProposal = { proposedEducation: val.proposedEducation, proposedCertifications: val.proposedCertifications };
+    reasoningText = val.reasoning || reasoningText;
+  } else if (payload.step === 5) {
+    const val = step5Schema.parse(rawParsed);
+    validatedProposal = { proposedSkills: val.proposedSkills };
+    reasoningText = val.reasoning || reasoningText;
+  } else if (payload.step === 6) {
+    const val = step6Schema.parse(rawParsed);
+    validatedProposal = { proposedProjects: val.proposedProjects };
+    reasoningText = val.reasoning || reasoningText;
+  }
+
+  return {
+    step: payload.step,
+    proposal: validatedProposal,
+    reasoning: reasoningText
+  };
+}
+

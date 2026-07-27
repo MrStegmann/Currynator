@@ -28,8 +28,8 @@ export async function createDefaultResume(): Promise<ResumeData> {
       if (rawProjects.length > 0) {
         // Filter scored projects
         const scored = rawProjects
-          .filter((p) => typeof p.score === 'number')
-          .sort((a, b) => (b.score || 0) - (a.score || 0));
+          .filter((p) => typeof p.statusScore === 'string' && p.statusScore === "score")
+          .sort((a, b) => (b.scores.globalScore || 0) - (a.scores.globalScore || 0));
 
         let top3 = scored.slice(0, 3);
 
@@ -91,50 +91,50 @@ export async function createDefaultResume(): Promise<ResumeData> {
     languages: ['English (Professional)', 'Spanish (Native)'],
     experience: Array.isArray(userProfile?.experience) && userProfile.experience.length > 0
       ? userProfile.experience.map((exp: any) => ({
-          id: exp.id || String(Math.random()),
-          jobTitle: exp.jobTitle || 'Role Title',
-          companyName: exp.companyName || 'Company Name',
-          startMonth: exp.startMonth || 'Jan',
-          startYear: exp.startYear || '2022',
-          endMonth: exp.endMonth,
-          endYear: exp.endYear,
-          isCurrentRole: !!exp.isCurrentRole,
-          context: exp.context || '',
-          highlights: Array.isArray(exp.highlights) && exp.highlights.length > 0
-            ? exp.highlights
-            : ['Led development of high-impact features and system optimizations.']
-        }))
+        id: exp.id || String(Math.random()),
+        jobTitle: exp.jobTitle || 'Role Title',
+        companyName: exp.companyName || 'Company Name',
+        startMonth: exp.startMonth || 'Jan',
+        startYear: exp.startYear || '2022',
+        endMonth: exp.endMonth,
+        endYear: exp.endYear,
+        isCurrentRole: !!exp.isCurrentRole,
+        context: exp.context || '',
+        highlights: Array.isArray(exp.highlights) && exp.highlights.length > 0
+          ? exp.highlights
+          : ['Led development of high-impact features and system optimizations.']
+      }))
       : [
-          {
-            id: 'exp_1',
-            jobTitle: 'Senior Full Stack Engineer',
-            companyName: 'Tech Innovations Inc.',
-            startMonth: 'Jan',
-            startYear: '2023',
-            isCurrentRole: true,
-            context: 'Leading core web and desktop application development.',
-            highlights: [
-              'Architected modular React/Electron interfaces serving real-time user workflows.',
-              'Improved performance metrics by 35% through query optimization and lazy loading.'
-            ]
-          }
-        ],
+        {
+          id: 'exp_1',
+          jobTitle: 'Senior Full Stack Engineer',
+          companyName: 'Tech Innovations Inc.',
+          startMonth: 'Jan',
+          startYear: '2023',
+          isCurrentRole: true,
+          context: 'Leading core web and desktop application development.',
+          highlights: [
+            'Architected modular React/Electron interfaces serving real-time user workflows.',
+            'Improved performance metrics by 35% through query optimization and lazy loading.'
+          ]
+        }
+      ],
     education: Array.isArray(userProfile?.education) && userProfile.education.length > 0
       ? userProfile.education.map((edu: any) => ({
-          id: edu.id || String(Math.random()),
-          degreeName: edu.degreeName || 'B.S. in Computer Science',
-          institutionName: edu.institutionName || 'University',
-          graduationYear: edu.graduationYear || '2022',
-          currentStudy: !!edu.currentStudy
-        }))
+        id: edu.id || String(Math.random()),
+        degreeName: edu.degreeName || 'B.S. in Computer Science',
+        institutionName: edu.institutionName || 'University',
+        graduationYear: edu.graduationYear || '2022',
+        currentStudy: !!edu.currentStudy
+      }))
       : [
-          {
-            id: 'edu_1',
-            degreeName: 'Bachelor of Science in Computer Science',
-            institutionName: 'State University',
-            graduationYear: '2022'
-          }
-        ],
+        {
+          id: 'edu_1',
+          degreeName: 'Bachelor of Science in Computer Science',
+          institutionName: 'State University',
+          graduationYear: '2022'
+        }
+      ],
     projects: selectedProjects.length > 0 ? selectedProjects : [
       {
         id: 'proj_1',
@@ -145,19 +145,19 @@ export async function createDefaultResume(): Promise<ResumeData> {
     ],
     certifications: Array.isArray(userProfile?.certifications) && userProfile.certifications.length > 0
       ? userProfile.certifications.map((c: any) => ({
-          id: c.id || String(Math.random()),
-          certificationName: c.certificationName || 'Certification',
-          issuingOrganization: c.issuingOrganization || 'Provider',
-          grantedYear: c.grantedYear || '2023',
-          currentStudy: !!c.currentStudy
-        }))
+        id: c.id || String(Math.random()),
+        certificationName: c.certificationName || 'Certification',
+        issuingOrganization: c.issuingOrganization || 'Provider',
+        grantedYear: c.grantedYear || '2023',
+        currentStudy: !!c.currentStudy
+      }))
       : [
-          {
-            id: 'cert_1',
-            certificationName: 'AWS Certified Solutions Architect',
-            issuingOrganization: 'Amazon Web Services',
-            grantedYear: '2023'
-          }
-        ]
+        {
+          id: 'cert_1',
+          certificationName: 'AWS Certified Solutions Architect',
+          issuingOrganization: 'Amazon Web Services',
+          grantedYear: '2023'
+        }
+      ]
   };
 }

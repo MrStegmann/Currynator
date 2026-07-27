@@ -11,6 +11,7 @@ import { registerAuthIpcHandlers } from './ipc/auth.ipc.js';
 import { registerSecureIpcHandlers } from './ipc/secure.ipc.js';
 import { registerGithubIpcHandlers } from './ipc/github.ipc.js';
 import { registerProfileIpcHandlers } from './ipc/profile.ipc.js';
+import { optimizeResumeStepWithGroq } from './services/groq.service.js';
 
 dotenv.config();
 
@@ -64,6 +65,16 @@ app.whenReady().then(() => {
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
+});
+
+ipcMain.handle('studio:optimize-step', async (_event, payload) => {
+  try {
+    const result = await optimizeResumeStepWithGroq(payload);
+    return { success: true, proposal: result.proposal, reasoning: result.reasoning };
+  } catch (error: unknown) {
+    const errMsg = error instanceof Error ? error.message : 'Unknown error during AI step optimization';
+    return { success: false, error: errMsg };
+  }
 });
 
 ipcMain.handle('get-settings', async () => {
