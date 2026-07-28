@@ -22,8 +22,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
   refetchGithubProjects: () => ipcRenderer.invoke('refetch-github-projects'),
   refetchSingleProject: (projectId: string) => ipcRenderer.invoke('refetch-single-project', projectId),
 
-  optimizeResumeStep: (payload: { step: number; currentResume: unknown; userFeedback?: string }) =>
+  optimizeResumeStep: (payload: { step: number; targetLanguage: string; currentResume: unknown; userFeedback?: string }) =>
     ipcRenderer.invoke('studio:optimize-step', payload),
+
+  exportResumePdfAuto: (payload: { html: string; resumeTitle: string }) =>
+    ipcRenderer.invoke('export-resume-pdf-auto', payload),
 
   onGithubAnalysisProgress: (callback: (data: { stageText: string; progressPercent: number }) => void) => {
     const subscription = (_event: any, value: { stageText: string; progressPercent: number }) => callback(value);

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNotification } from '../../context/NotificationContext';
 import type { ResumeData } from './types/resume.types';
 import type { StudyGuideData, TargetCompanyInfo, ChatMessage } from './types/studio.types';
 import {
@@ -13,7 +14,7 @@ import {
   generateStudyGuideFromResume,
   generateSpecificAiOptimization
 } from './utils/aiGenerator';
-import { exportElementToPdf } from './utils/pdfExporter';
+import { exportElementToPdf, exportResumePdfAutomated } from './utils/pdfExporter';
 
 import { StudioLeftSidebar } from './components/left-sidebar/StudioLeftSidebar';
 import { StudioCanvas } from './components/canvas/StudioCanvas';
@@ -29,6 +30,8 @@ interface StudioProps {
 }
 
 export const Studio: React.FC<StudioProps> = ({ onBackToHome }) => {
+  const { addNotification } = useNotification();
+
   const [resumes, setResumes] = useState<ResumeData[]>([]);
   const [activeResumeId, setActiveResumeId] = useState<string | null>(null);
   const [activeResume, setActiveResume] = useState<ResumeData | null>(null);
@@ -39,6 +42,7 @@ export const Studio: React.FC<StudioProps> = ({ onBackToHome }) => {
   const [isDirty, setIsDirty] = useState<boolean>(false);
   const [diffData, setDiffData] = useState<{ original: ResumeData | null; proposed: ResumeData | null } | null>(null);
   const [isAiProcessing, setIsAiProcessing] = useState<boolean>(false);
+  const [isPdfExporting, setIsPdfExporting] = useState<boolean>(false);
 
   // Modals state
   const [resumeToDelete, setResumeToDelete] = useState<ResumeData | null>(null);
@@ -263,6 +267,24 @@ export const Studio: React.FC<StudioProps> = ({ onBackToHome }) => {
     }, 500);
   };
 
+  const handleExportResumePdf = async () => {
+    if (!activeResume || isPdfExporting) return;
+    setIsPdfExporting(true);
+    try {
+      const res = await exportResumePdfAutomated('ats-resume-preview-document', activeResume.title);
+      if (res.success && res.filePath) {
+        addNotification(`Resumen exportado exitosamente a:\n${res.filePath}`, 'success');
+      } else if (res.error) {
+        addNotification(`Error al exportar PDF: ${res.error}`, 'error');
+      }
+    } catch (err: unknown) {
+      console.error('Error exporting resume PDF automatically:', err);
+      addNotification('Excepción al exportar el documento PDF.', 'error');
+    } finally {
+      setIsPdfExporting(false);
+    }
+  };
+
   return (
     <div className="h-screen w-full flex bg-[#020617] text-[#d3e4fe] font-sans overflow-hidden">
       {/* 1. Left Sidebar */}
@@ -282,12 +304,13 @@ export const Studio: React.FC<StudioProps> = ({ onBackToHome }) => {
         activeTab={activeTab}
         viewMode={viewMode}
         isDirty={isDirty}
+        isExporting={isPdfExporting}
         diffData={diffData}
         onTabChange={(tab) => setActiveTab(tab)}
         onViewModeChange={(mode) => setViewMode(mode)}
         onResumeChange={handleResumeChange}
         onSaveResume={handleSaveResume}
-        onExportResumePdf={() => activeResume && exportElementToPdf('ats-resume-preview-document', activeResume.title)}
+        onExportResumePdf={handleExportResumePdf}
         onExportStudyGuidePdf={() => exportElementToPdf('study-guide-printable-document', 'Study_Guide')}
         onAcceptDiff={handleAcceptDiff}
         onRejectDiff={handleRejectDiff}

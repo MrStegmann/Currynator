@@ -11,7 +11,8 @@ import { registerAuthIpcHandlers } from './ipc/auth.ipc.js';
 import { registerSecureIpcHandlers } from './ipc/secure.ipc.js';
 import { registerGithubIpcHandlers } from './ipc/github.ipc.js';
 import { registerProfileIpcHandlers } from './ipc/profile.ipc.js';
-import { optimizeResumeStepWithGroq } from './services/groq.service.js';
+import { registerAiOptimizationIpcHandlers } from './ipc/aiOptimizationHandlers.js';
+import { registerPdfIpcHandlers } from './ipc/pdf.ipc.js';
 
 dotenv.config();
 
@@ -56,6 +57,8 @@ app.whenReady().then(() => {
   registerSecureIpcHandlers();
   registerGithubIpcHandlers();
   registerProfileIpcHandlers();
+  registerAiOptimizationIpcHandlers();
+  registerPdfIpcHandlers();
   createWindow();
 
   app.on('activate', () => {
@@ -65,16 +68,6 @@ app.whenReady().then(() => {
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
-});
-
-ipcMain.handle('studio:optimize-step', async (_event, payload) => {
-  try {
-    const result = await optimizeResumeStepWithGroq(payload);
-    return { success: true, proposal: result.proposal, reasoning: result.reasoning };
-  } catch (error: unknown) {
-    const errMsg = error instanceof Error ? error.message : 'Unknown error during AI step optimization';
-    return { success: false, error: errMsg };
-  }
 });
 
 ipcMain.handle('get-settings', async () => {
@@ -118,7 +111,7 @@ ipcMain.handle('save-resume-data', async (_event, data, options: any = {}) => {
     let defaultDirPath = path.join(settings.dataFolderPath, 'data');
 
     if (options.isGenerated) {
-      defaultDirPath = path.join(settings.dataFolderPath, 'CV');
+      defaultDirPath = path.join(settings.dataFolderPath, 'Resume');
       if (options.customFileName) {
         defaultFileName = options.customFileName;
       }
@@ -227,15 +220,30 @@ ipcMain.handle('delete-resume-data', async (_event, filename) => {
 ipcMain.handle('list-generated-cvs', async () => {
   try {
     const settings = await readSettings();
-    const dataDir = path.join(settings.dataFolderPath, 'CV');
-    await fs.mkdir(dataDir, { recursive: true });
-    const files = await fs.readdir(dataDir);
+    const resumeDir = path.join(settings.dataFolderPath, 'Resume');
+    await fs.mkdir(resumeDir, { recursive: true });
+    
+    let files = await fs.readdir(resumeDir);
+    // Also check legacy CV folder if exists
+    try {
+      const cvDir = path.join(settings.dataFolderPath, 'CV');
+      const legacyFiles = await fs.readdir(cvDir);
+      files = Array.from(new Set([...files, ...legacyFiles]));
+    } catch (_e) {
+      // Legacy folder doesn't exist, ignore
+    }
+
     const jsonFiles = files.filter(f => f.endsWith('.json'));
 
     const filesWithMeta = [];
     for (const f of jsonFiles) {
       try {
-        const content = await fs.readFile(path.join(dataDir, f), 'utf-8');
+        let content = '';
+        try {
+          content = await fs.readFile(path.join(resumeDir, f), 'utf-8');
+        } catch (_e) {
+          content = await fs.readFile(path.join(settings.dataFolderPath, 'CV', f), 'utf-8');
+        }
         const parsed = JSON.parse(content);
         const hasJobDetails = !!(parsed.jobDetails && (parsed.jobDetails.companyName || parsed.jobDetails.jobTitle));
         filesWithMeta.push({ filename: f, hasJobDetails });
@@ -254,8 +262,12 @@ ipcMain.handle('list-generated-cvs', async () => {
 ipcMain.handle('read-generated-cv', async (_event, filename) => {
   try {
     const settings = await readSettings();
-    const dataDir = path.join(settings.dataFolderPath, 'CV');
-    const filePath = path.join(dataDir, filename);
+    let filePath = path.join(settings.dataFolderPath, 'Resume', filename);
+    try {
+      await fs.access(filePath);
+    } catch (_e) {
+      filePath = path.join(settings.dataFolderPath, 'CV', filename);
+    }
     const content = await fs.readFile(filePath, 'utf-8');
     return { success: true, data: JSON.parse(content) };
   } catch (error: any) {
@@ -267,9 +279,13 @@ ipcMain.handle('read-generated-cv', async (_event, filename) => {
 ipcMain.handle('delete-generated-cv', async (_event, filename) => {
   try {
     const settings = await readSettings();
-    const dataDir = path.join(settings.dataFolderPath, 'CV');
-    const filePath = path.join(dataDir, filename);
-    await fs.unlink(filePath);
+    let filePath = path.join(settings.dataFolderPath, 'Resume', filename);
+    try {
+      await fs.unlink(filePath);
+    } catch (_e) {
+      filePath = path.join(settings.dataFolderPath, 'CV', filename);
+      await fs.unlink(filePath);
+    }
     return { success: true };
   } catch (error: any) {
     console.error(`Error borrando CV generado ${filename}:`, error);

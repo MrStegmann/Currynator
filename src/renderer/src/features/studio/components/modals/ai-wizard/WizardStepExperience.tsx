@@ -7,7 +7,7 @@ export interface WizardStepExperienceProps {
 }
 
 /**
- * Step 3 View: Work Experience & Highlights Optimization.
+ * Step 4 View: Work Experience & Highlights Optimization.
  *
  * @param props - Component props containing proposed work experience array and AI reasoning.
  * @returns React element.
@@ -19,9 +19,9 @@ export const WizardStepExperience: React.FC<WizardStepExperienceProps> = ({
   return (
     <div className="space-y-4 text-slate-200">
       <div>
-        <h4 className="text-sm font-semibold text-blue-400">Step 3: Work Experience & High-Impact Bullets</h4>
+        <h4 className="text-sm font-semibold text-blue-400">Step 4: Work Experience & High-Impact Bullets</h4>
         <p className="text-xs text-slate-400">
-          Filters relevant roles and rephrases bullet points using Google&apos;s XYZ formula with strong technical verbs.
+          Filters relevant roles and rephrases bullet points using Google&apos;s XYZ formula with strong technical verbs in your selected language.
         </p>
       </div>
 

@@ -1,35 +1,50 @@
 import puppeteer, { Browser } from 'puppeteer';
 
-let browserInstance: Browser | null = null;
-
-async function getBrowser(): Promise<Browser> {
-  if (!browserInstance) {
-    browserInstance = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
-    });
-  }
-  return browserInstance;
+/**
+ * Creates and launches a dedicated off-screen Puppeteer Browser instance.
+ * Enforces headless shell mode and off-screen flags to prevent UI window leaks.
+ * @returns Promise resolving to an initialized Puppeteer Browser.
+ * @throws Error if browser launch fails.
+ */
+export async function createOffscreenBrowser(): Promise<Browser> {
+  return await puppeteer.launch({
+    headless: 'shell',
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--headless=new',
+      '--disable-gpu',
+      '--hide-scrollbars',
+      '--mute-audio'
+    ]
+  });
 }
 
+/**
+ * Generates an A4 PDF document from an HTML string and writes it to disk.
+ * Guarantees off-screen rendering and cleanup of page and browser handles in a finally block.
+ * @param htmlContent - Raw styled HTML markup to render.
+ * @param outputPath - Absolute output destination path for the generated PDF.
+ * @throws Error if page load, PDF compilation, or file saving fails.
+ */
 export async function generatePDF(htmlContent: string, outputPath: string): Promise<void> {
-  const browser = await getBrowser();
-  const page = await browser.newPage();
-  
+  const browser = await createOffscreenBrowser();
+  let page = null;
+
   try {
-    // Establecer el contenido HTML y esperar a que no haya peticiones de red pendientes
+    page = await browser.newPage();
+
     await page.setContent(htmlContent, {
       waitUntil: 'load',
       timeout: 30000
     });
-    // Esperar a network idle por si hay recursos externos que se cargan después del evento load
+
     await page.waitForNetworkIdle({ timeout: 30000 }).catch(() => {});
-    
-    // Generar el PDF
+
     await page.pdf({
       path: outputPath,
       format: 'A4',
-      printBackground: true, // Mantiene colores de fondo de elementos explícitos
+      printBackground: true,
       margin: {
         top: '0px',
         right: '0px',
@@ -38,14 +53,16 @@ export async function generatePDF(htmlContent: string, outputPath: string): Prom
       }
     });
   } finally {
-    // Asegurar que la pestaña se cierra para evitar memory leaks
-    await page.close();
+    if (page) {
+      await page.close().catch(() => {});
+    }
+    await browser.close().catch(() => {});
   }
 }
 
+/**
+ * Utility function to close any remaining shared browser instances if active.
+ */
 export async function closePDFEngine(): Promise<void> {
-  if (browserInstance) {
-    await browserInstance.close();
-    browserInstance = null;
-  }
+  // Utility cleanup handler for application shutdown
 }

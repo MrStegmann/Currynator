@@ -3,3 +3,5 @@
  */
 export * from './resume.types';
 export * from './studio.types';
+export * from './pagination.types';
+

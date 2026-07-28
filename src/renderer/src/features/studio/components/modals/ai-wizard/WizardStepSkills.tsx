@@ -7,7 +7,7 @@ export interface WizardStepSkillsProps {
 }
 
 /**
- * Step 5 View: Skills Categorization & Optimization.
+ * Step 6 View: Skills Categorization & Optimization.
  *
  * @param props - Component props containing proposed skill categories and AI reasoning.
  * @returns React element.
@@ -19,7 +19,7 @@ export const WizardStepSkills: React.FC<WizardStepSkillsProps> = ({
   return (
     <div className="space-y-4 text-slate-200">
       <div>
-        <h4 className="text-sm font-semibold text-blue-400">Step 5: Hard & Soft Skills Selection</h4>
+        <h4 className="text-sm font-semibold text-blue-400">Step 6: Hard & Soft Skills Selection</h4>
         <p className="text-xs text-slate-400">
           Categorizes technical proficiencies and soft skills for recruiter scanning and ATS keyword matching.
         </p>

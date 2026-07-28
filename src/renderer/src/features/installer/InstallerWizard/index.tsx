@@ -21,15 +21,14 @@ export const InstallerWizard: React.FC<{ onComplete?: () => void }> = ({ onCompl
 
   // Default directory for Step 3
   useEffect(() => {
-    // OS specific path for ~Documents/Currynator can be approximated
-    const defaultPath = window.navigator.userAgent.includes('Windows') 
-      ? 'C:\\Users\\Default\\Documents\\Currynator'
-      : '~/Documents/Currynator';
-      
-    setState(s => ({
-      ...s,
-      step3: { outputDirectoryPath: defaultPath }
-    }));
+    getSettingsService().then((res) => {
+      if (res && res.success && res.data && res.data.dataFolderPath) {
+        setState((s) => ({
+          ...s,
+          step3: { outputDirectoryPath: res.data.dataFolderPath }
+        }));
+      }
+    }).catch(() => {});
   }, []);
 
   const handleCompleteSetup = async () => {

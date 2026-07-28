@@ -7,7 +7,7 @@ export interface WizardStepSummaryProps {
 }
 
 /**
- * Step 2 View: Professional Summary Review.
+ * Step 3 View: Professional Summary Review.
  *
  * @param props - Component props containing current and proposed professional summary with AI reasoning.
  * @returns React element.
@@ -20,9 +20,9 @@ export const WizardStepSummary: React.FC<WizardStepSummaryProps> = ({
   return (
     <div className="space-y-4 text-slate-200">
       <div>
-        <h4 className="text-sm font-semibold text-blue-400">Step 2: Professional Summary Optimization</h4>
+        <h4 className="text-sm font-semibold text-blue-400">Step 3: Professional Summary Optimization</h4>
         <p className="text-xs text-slate-400">
-          Rewrites your summary for ATS compliance and recruiter impact using Google&apos;s XYZ formula.
+          Rewrites your summary for ATS compliance and recruiter impact using Google&apos;s XYZ formula in your selected language.
         </p>
       </div>
 

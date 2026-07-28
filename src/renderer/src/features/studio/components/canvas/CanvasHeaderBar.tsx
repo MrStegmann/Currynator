@@ -1,4 +1,5 @@
 import React from 'react';
+import { Loader2 } from 'lucide-react';
 import { CanvasTabSelector } from './CanvasTabSelector';
 
 interface CanvasHeaderBarProps {
@@ -6,6 +7,7 @@ interface CanvasHeaderBarProps {
   hasStudyGuide: boolean;
   viewMode: 'edit' | 'preview' | 'optimization-diff';
   isDirty: boolean;
+  isExporting?: boolean;
   onTabChange: (tab: 'resume' | 'study-guide') => void;
   onViewModeChange: (mode: 'edit' | 'preview') => void;
   onSaveResume: () => void;
@@ -21,6 +23,7 @@ export const CanvasHeaderBar: React.FC<CanvasHeaderBarProps> = ({
   hasStudyGuide,
   viewMode,
   isDirty,
+  isExporting = false,
   onTabChange,
   onViewModeChange,
   onSaveResume,
@@ -64,16 +67,32 @@ export const CanvasHeaderBar: React.FC<CanvasHeaderBarProps> = ({
               </button>
             </div>
 
-            {/* Export PDF */}
-            <button
-              onClick={onExportResumePdf}
-              className="px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium border border-slate-700 flex items-center gap-1.5 transition-colors"
-            >
-              <svg className="w-3.5 h-3.5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              Export PDF
-            </button>
+            {/* Export PDF Button: Rendered ONLY in Resume View Mode (viewMode === 'preview') */}
+            {viewMode === 'preview' && (
+              <button
+                onClick={onExportResumePdf}
+                disabled={isExporting}
+                className={`px-3.5 py-1.5 rounded-lg text-xs font-medium border flex items-center gap-1.5 transition-colors ${
+                  isExporting
+                    ? 'bg-slate-900 border-slate-800 text-slate-500 cursor-not-allowed'
+                    : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'
+                }`}
+              >
+                {isExporting ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 text-blue-400 animate-spin" />
+                    <span>Exporting PDF...</span>
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-3.5 h-3.5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span>Export PDF</span>
+                  </>
+                )}
+              </button>
+            )}
 
             {/* Save Resume Button: Conditionally rendered; HIDDEN when isDirty === false */}
             {isDirty && (

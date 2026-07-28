@@ -8,7 +8,7 @@ export interface WizardStepEducationCertProps {
 }
 
 /**
- * Step 4 View: Education & Certifications Selection.
+ * Step 5 View: Education & Certifications Selection.
  *
  * @param props - Component props containing proposed education and certification items with AI reasoning.
  * @returns React element.
@@ -21,7 +21,7 @@ export const WizardStepEducationCert: React.FC<WizardStepEducationCertProps> = (
   return (
     <div className="space-y-4 text-slate-200">
       <div>
-        <h4 className="text-sm font-semibold text-blue-400">Step 4: Education & Certifications Selection</h4>
+        <h4 className="text-sm font-semibold text-blue-400">Step 5: Education & Certifications Selection</h4>
         <p className="text-xs text-slate-400">
           Selects supporting academic degrees and certifications that align with your professional title.
         </p>

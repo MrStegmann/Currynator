@@ -1,7 +1,7 @@
 import React from 'react';
 import type { ResumeData } from '../../types/resume.types';
 import { ResumeFormEditor } from './ResumeFormEditor';
-import { ResumeATSPreview } from './ResumeATSPreview';
+import { ResumePaginatedView } from './ResumePaginatedView';
 import { OptimizationDiffView } from './OptimizationDiffView';
 
 interface ResumeContentContainerProps {
@@ -17,7 +17,7 @@ interface ResumeContentContainerProps {
 }
 
 /**
- * Switcher component rendering active resume view state (Form Editor, ATS Preview, or Diff View).
+ * Switcher component rendering active resume view state (Form Editor, Paginated ATS Preview, or Diff View).
  */
 export const ResumeContentContainer: React.FC<ResumeContentContainerProps> = ({
   resume,
@@ -39,7 +39,7 @@ export const ResumeContentContainer: React.FC<ResumeContentContainerProps> = ({
   }
 
   if (viewMode === 'preview') {
-    return <ResumeATSPreview resume={resume} />;
+    return <ResumePaginatedView resume={resume} />;
   }
 
   return <ResumeFormEditor resume={resume} onChange={onChange} />;

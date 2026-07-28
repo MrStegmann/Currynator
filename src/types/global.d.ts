@@ -35,9 +35,12 @@ declare global {
       optimizeResumeStep:
       (payload: {
         step: number;
+        targetLanguage: string;
         currentResume: ResumeData;
         userFeedback?: string;
       }) => Promise<{ success: boolean; proposal?: ResumeData; reasoning?: string; error?: string }>;
+
+      exportResumePdfAuto: (payload: { html: string; resumeTitle: string }) => Promise<{ success: boolean; filePath?: string; error?: string }>;
     };
   }
 }

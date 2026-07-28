@@ -11,6 +11,7 @@ interface StudioCanvasProps {
   activeTab: 'resume' | 'study-guide';
   viewMode: 'edit' | 'preview' | 'optimization-diff';
   isDirty: boolean;
+  isExporting?: boolean;
   diffData: {
     original: ResumeData | null;
     proposed: ResumeData | null;
@@ -35,6 +36,7 @@ export const StudioCanvas: React.FC<StudioCanvasProps> = ({
   activeTab,
   viewMode,
   isDirty,
+  isExporting = false,
   diffData,
   onTabChange,
   onViewModeChange,
@@ -72,6 +74,7 @@ export const StudioCanvas: React.FC<StudioCanvasProps> = ({
         hasStudyGuide={!!activeStudyGuide}
         viewMode={viewMode}
         isDirty={isDirty}
+        isExporting={isExporting}
         onTabChange={onTabChange}
         onViewModeChange={onViewModeChange}
         onSaveResume={onSaveResume}

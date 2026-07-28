@@ -2,6 +2,7 @@
  * Barrel export for AI Optimization Wizard modal components.
  */
 export * from './AiOptimizationWizardModal';
+export * from './WizardStepLanguage';
 export * from './WizardStepTitle';
 export * from './WizardStepSummary';
 export * from './WizardStepExperience';

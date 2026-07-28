@@ -7,7 +7,7 @@ export interface WizardStepTitleProps {
 }
 
 /**
- * Step 1 View: Professional Title Review.
+ * Step 2 View: Professional Title Review.
  *
  * @param props - Step title properties containing current and proposed title with AI reasoning.
  * @returns React element.
@@ -20,9 +20,9 @@ export const WizardStepTitle: React.FC<WizardStepTitleProps> = ({
   return (
     <div className="space-y-4 text-slate-200">
       <div>
-        <h4 className="text-sm font-semibold text-blue-400">Step 1: Professional Title Optimization</h4>
+        <h4 className="text-sm font-semibold text-blue-400">Step 2: Professional Title Optimization</h4>
         <p className="text-xs text-slate-400">
-          Standardizes your professional title for ATS parsing and immediate recruiter impact.
+          Standardizes your professional title for ATS parsing and immediate recruiter impact in your selected language.
         </p>
       </div>
 

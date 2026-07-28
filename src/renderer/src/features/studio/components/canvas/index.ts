@@ -6,6 +6,7 @@ export * from './CanvasTabSelector';
 export * from './OptimizationDiffView';
 export * from './ProjectSelector';
 export * from './ResumeATSPreview';
+export * from './ResumePaginatedView';
 export * from './ResumeContentContainer';
 export * from './ResumeFormEditor';
 export * from './StudioCanvas';
