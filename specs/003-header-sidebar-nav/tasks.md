@@ -20,8 +20,8 @@ description: "Task list for feature implementation"
 
 **Purpose**: Project initialization and basic structure
 
-- [ ] T001 Verify/install required UI and form dependencies (lucide-react, react-hook-form, @hookform/resolvers, zod, zustand) in `package.json`
-- [ ] T002 [P] Create folder structure in `src/renderer/src/features/home` and `src/renderer/src/shared/components`
+- [x] T001 Verify/install required UI and form dependencies (lucide-react, react-hook-form, @hookform/resolvers, zod, zustand) in `package.json`
+- [x] T002 [P] Create folder structure in `src/renderer/src/features/home` and `src/renderer/src/shared/components`
 
 ---
 
@@ -31,9 +31,9 @@ description: "Task list for feature implementation"
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T003 Implement Zod schemas in `src/renderer/src/store/resumeSchema.ts` based on data-model.md
-- [ ] T004 Setup Zustand store `useResumeStore` with initial data structure in `src/renderer/src/store/useResumeStore.ts`
-- [ ] T005 [P] Setup main process IPC handlers for Local Storage load/save in `src/main/controllers/ResumeController.ts`
+- [x] T003 Implement Zod schemas in `src/renderer/src/store/resumeSchema.ts` based on data-model.md
+- [x] T004 Setup Zustand store `useResumeStore` with initial data structure in `src/renderer/src/store/useResumeStore.ts`
+- [x] T005 [P] Setup main process IPC handlers for Local Storage load/save in `src/main/controllers/ResumeController.ts`
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -47,9 +47,9 @@ description: "Task list for feature implementation"
 
 ### Implementation for User Story 1
 
-- [ ] T006 [P] [US1] Create Header component with hamburger icon in `src/renderer/src/shared/components/Header/Header.tsx`
-- [ ] T007 [P] [US1] Create RightNavBar component with slide toggle support in `src/renderer/src/shared/components/RightNavBar/RightNavBar.tsx`
-- [ ] T008 [US1] Create Home view layout integrating Header and RightNavBar in `src/renderer/src/features/home/Home.tsx`
+- [x] T006 [P] [US1] Create Header component with hamburger icon in `src/renderer/src/shared/components/Header/Header.tsx`
+- [x] T007 [P] [US1] Create RightNavBar component with slide toggle support in `src/renderer/src/shared/components/RightNavBar/RightNavBar.tsx`
+- [x] T008 [US1] Create Home view layout integrating Header and RightNavBar in `src/renderer/src/features/home/Home.tsx`
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
 
@@ -63,8 +63,8 @@ description: "Task list for feature implementation"
 
 ### Implementation for User Story 2
 
-- [ ] T009 [P] [US2] Update Header to display "Home" title based on current view in `src/renderer/src/shared/components/Header/Header.tsx`
-- [ ] T010 [P] [US2] Update RightNavBar to highlight "Home" active link in `src/renderer/src/shared/components/RightNavBar/RightNavBar.tsx`
+- [x] T009 [P] [US2] Update Header to display "Home" title based on current view in `src/renderer/src/shared/components/Header/Header.tsx`
+- [x] T010 [P] [US2] Update RightNavBar to highlight "Home" active link in `src/renderer/src/shared/components/RightNavBar/RightNavBar.tsx`
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
 
@@ -78,14 +78,14 @@ description: "Task list for feature implementation"
 
 ### Implementation for User Story 3
 
-- [ ] T011 [P] [US3] Create BasicsArticle component (read-only view) in `src/renderer/src/features/home/BasicsArticle/BasicsArticle.tsx`
-- [ ] T012 [P] [US3] Create WorkArticle component (read-only view) in `src/renderer/src/features/home/WorkArticle/WorkArticle.tsx`
-- [ ] T013 [P] [US3] Create EducationArticle component (read-only view) in `src/renderer/src/features/home/EducationArticle/EducationArticle.tsx`
-- [ ] T014 [P] [US3] Create CertificatesArticle component (read-only view) in `src/renderer/src/features/home/CertificatesArticle/CertificatesArticle.tsx`
-- [ ] T015 [P] [US3] Create SkillsArticle component (read-only view) in `src/renderer/src/features/home/SkillsArticle/SkillsArticle.tsx`
-- [ ] T016 [P] [US3] Create LanguagesArticle component (read-only view) in `src/renderer/src/features/home/LanguagesArticle/LanguagesArticle.tsx`
-- [ ] T017 [P] [US3] Create ReferencesArticle component (read-only view) in `src/renderer/src/features/home/ReferencesArticle/ReferencesArticle.tsx`
-- [ ] T018 [US3] Render all 7 articles within the main layout in `src/renderer/src/features/home/Home.tsx`
+- [x] T011 [P] [US3] Create BasicsArticle component (read-only view) in `src/renderer/src/features/home/BasicsArticle/BasicsArticle.tsx`
+- [x] T012 [P] [US3] Create WorkArticle component (read-only view) in `src/renderer/src/features/home/WorkArticle/WorkArticle.tsx`
+- [x] T013 [P] [US3] Create EducationArticle component (read-only view) in `src/renderer/src/features/home/EducationArticle/EducationArticle.tsx`
+- [x] T014 [P] [US3] Create CertificatesArticle component (read-only view) in `src/renderer/src/features/home/CertificatesArticle/CertificatesArticle.tsx`
+- [x] T015 [P] [US3] Create SkillsArticle component (read-only view) in `src/renderer/src/features/home/SkillsArticle/SkillsArticle.tsx`
+- [x] T016 [P] [US3] Create LanguagesArticle component (read-only view) in `src/renderer/src/features/home/LanguagesArticle/LanguagesArticle.tsx`
+- [x] T017 [P] [US3] Create ReferencesArticle component (read-only view) in `src/renderer/src/features/home/ReferencesArticle/ReferencesArticle.tsx`
+- [x] T018 [US3] Render all 7 articles within the main layout in `src/renderer/src/features/home/Home.tsx`
 
 **Checkpoint**: All user stories should now be independently functional
 

@@ -4,7 +4,7 @@ import { GreetingsView } from './src/features/initialization/components/Greeting
 import { OnboardingForm } from './src/features/initialization/components/OnboardingForm';
 import { ErrorScreen } from './src/features/initialization/components/ErrorScreen';
 import { CorruptedDataModal } from './src/features/initialization/components/CorruptedDataModal';
-import { JsonDisplayView } from './src/features/data-display/components/JsonDisplayView';
+import { Home } from './src/features/home/Home';
 
 export const App: React.FC = () => {
   const status = useInitStore(state => state.status);
@@ -18,7 +18,7 @@ export const App: React.FC = () => {
     case 'no-data':
       return <OnboardingForm />;
     case 'has-data':
-      return <JsonDisplayView />;
+      return <Home />;
     case 'corrupted':
       return <CorruptedDataModal onReset={resetToOnboarding} />;
     case 'error':
