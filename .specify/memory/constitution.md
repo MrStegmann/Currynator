@@ -1,6 +1,6 @@
 <!-- Sync Impact Report
-Version: 1.1.0 -> 1.2.0
-Updated Principles: State & Data Management (added JSON Resume example schema).
+Version: 1.2.0 -> 1.3.0
+Updated Principles: Styling Constraints (added requirement to follow DESIGN.md guidelines).
 -->
 # Currynator Constitution
 
@@ -56,15 +56,10 @@ Updated Principles: State & Data Management (added JSON Resume example schema).
     }],
     "education": [{
       "institution": "University",
-      "url": "https://institution.com/",
       "area": "Software Development",
       "studyType": "Bachelor",
       "startDate": "2011-01-01",
-      "endDate": "2013-01-01",
-      "score": "4.0",
-      "courses": [
-        "DB1101 - Basic SQL"
-      ]
+      "endDate": "2013-01-01"
     }],
     "certificates": [{
       "name": "Certificate",
@@ -105,6 +100,7 @@ Updated Principles: State & Data Management (added JSON Resume example schema).
 - MUST use Jest as the primary testing framework.
 
 ### V. Styling Constraints
+- MUST follow the design system and aesthetic guidelines defined in `DESIGN.md`.
 - MUST use TailwindCSS exclusively for all styling.
 - Custom CSS files are strictly PROHIBITED.
 
@@ -116,4 +112,4 @@ Updated Principles: State & Data Management (added JSON Resume example schema).
 This constitution dictates the technical stack and architectural boundaries for the project.
 Amendments require discussion and updates to this document. All code contributions MUST comply with these rules.
 
-**Version**: 1.2.0 | **Ratified**: 2026-09-04 | **Last Amended**: 2026-09-04
+**Version**: 1.3.0 | **Ratified**: 2026-09-04 | **Last Amended**: 2026-09-05
