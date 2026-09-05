@@ -7,5 +7,6 @@ module.exports = {
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   transform: {
     '^.+\\.tsx?$': ['ts-jest', { tsconfig: 'tsconfig.test.json' }]
-  }
+  },
+  testPathIgnorePatterns: ['/node_modules/', '/dist/']
 };
