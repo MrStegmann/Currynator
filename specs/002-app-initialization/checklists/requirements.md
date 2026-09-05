@@ -1,4 +1,4 @@
-# Specification Quality Checklist: App Initialization & Dashboard
+# Specification Quality Checklist: App Initialization & Onboarding
 
 **Purpose**: Validate specification completeness and quality before proceeding to planning
 **Created**: 2026-09-05
@@ -31,4 +31,6 @@
 
 ## Notes
 
-- All items pass. The specification is ready for the next phase.
+- Scope has been significantly reduced from the previous version: Home dashboard, header, sidebar, and section editing have been removed.
+- The feature now focuses exclusively on: (1) Greetings loading state, (2) multi-step basics form, (3) raw JSON display screen.
+- All 16/16 checklist items pass.

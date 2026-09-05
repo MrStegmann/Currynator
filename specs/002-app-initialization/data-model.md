@@ -1,32 +1,21 @@
-# Data Model: App Initialization & Dashboard
+# Data Model: App Initialization & Onboarding
 
 ## Entities
 
 ### `ResumeData`
-Conforms to the JSON Resume schema format.
+The primary entity represents the JSON Resume format. For this specific feature, we are only concerned with the `basics` section, though the full schema will be defined for future extensibility.
 
-**Properties** (focusing on "basics" for this feature):
-- `basics` (Object):
-  - `name` (String, Mandatory)
-  - `email` (String, Mandatory)
-  - `label` (String, Mandatory)
-  - `image` (String, Optional)
-  - `phone` (String, Optional)
-  - `url` (String, Optional)
-  - `summary` (String, Optional)
-  - `location` (Object, Optional)
-  - `profiles` (Array, Optional)
+**Validation Rules (Zod):**
+- Must match the canonical JSON Resume schema structure.
+- In the `basics` section, the fields `name`, `email`, and `label` are strictly **mandatory** strings.
+- Other fields in `basics` (like `phone`, `url`, `summary`, `location`, `profiles`) are optional strings or objects.
 
-**Validation**:
-- Validated via a Zod schema (`resumeSchema`).
-- `name`, `email`, and `label` are strictly required strings per the specification.
+### `InitState`
+The client-side state machine governing the initialization flow.
 
-### `AppState`
-Global application state managed via Zustand.
-
-**Properties**:
-- `isLoading` (Boolean): True while checking for data via IPC.
-- `hasData` (Boolean): True if valid data exists.
-- `isError` (Boolean): True if IPC check fails.
-- `activeView` (String): Current route/view (e.g., 'onboarding', 'home').
-- `resumeData` (Object | null): The loaded JSON Resume data.
+**States:**
+- `loading`: App is starting, IPC call to check data is pending. UI shows Greetings View.
+- `no-data`: IPC call succeeded, no valid data found. UI shows Onboarding Form.
+- `has-data`: IPC call succeeded, valid data found (or form just completed). UI shows JSON display screen.
+- `error`: IPC call failed or timed out. UI shows Error screen with Retry.
+- `corrupted`: IPC call succeeded but data failed Zod validation. UI shows Modal to rewrite data.

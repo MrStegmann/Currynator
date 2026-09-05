@@ -1,4 +1,4 @@
-# Implementation Plan: App Initialization & Dashboard
+# Implementation Plan: App Initialization & Onboarding
 
 **Branch**: `002-app-initialization` | **Date**: 2026-09-05 | **Spec**: [spec.md](./spec.md)
 
@@ -6,7 +6,7 @@
 
 ## Summary
 
-Implement the initial application loading state ("Greetings" window) that checks for existing user data via IPC. If no data exists, a multi-step onboarding form for the JSON Resume "basics" is shown. Upon completion or if data exists, users are routed to the Home dashboard, featuring a minimal header, a sidebar navigation menu, and modular sections for viewing and editing JSON Resume data.
+Implement the initial application loading state ("Greetings" window) that checks for existing user data via IPC. If no data exists, a multi-step onboarding form for the JSON Resume "basics" is shown. Upon completion or if data exists, users are routed to a blank screen that displays the saved data as raw formatted JSON.
 
 ## Technical Context
 
@@ -26,7 +26,7 @@ Implement the initial application loading state ("Greetings" window) that checks
 
 **Constraints**: main.ts < 100 lines, No custom CSS (Tailwind only)
 
-**Scale/Scope**: App initialization and Dashboard for JSON Resume management
+**Scale/Scope**: App initialization and onboarding form with raw JSON display
 
 ## Constitution Check
 
@@ -45,6 +45,8 @@ Implement the initial application loading state ("Greetings" window) that checks
 - [x] Test-Driven Development (TDD) is MANDATORY.
 - [x] MUST use Jest as the primary testing framework.
 - [x] MUST use TailwindCSS exclusively for all styling.
+- [x] MUST integrate the Groq SDK.
+- [x] MUST use Playwright for PDF generation tasks (not applicable to this feature, but noted).
 
 ## Project Structure
 
@@ -79,16 +81,14 @@ src/renderer/
 │   │   ├── initialization/
 │   │   │   ├── components/
 │   │   │   │   ├── GreetingsView.tsx
-│   │   │   │   └── OnboardingForm.tsx
+│   │   │   │   ├── OnboardingForm.tsx
+│   │   │   │   ├── ErrorScreen.tsx
+│   │   │   │   └── CorruptedDataModal.tsx
 │   │   │   └── store/
 │   │   │       └── initStore.ts
-│   │   └── dashboard/
-│   │       ├── components/
-│   │       │   ├── Header.tsx
-│   │       │   ├── Sidebar.tsx
-│   │       │   └── ResumeSection.tsx
-│   │       └── store/
-│   │           └── dashboardStore.ts
+│   │   └── data-display/
+│   │       └── components/
+│   │           └── JsonDisplayView.tsx
 │   └── shared/
 │       ├── schema/
 │       │   └── resumeSchema.ts
@@ -97,4 +97,11 @@ src/renderer/
 └── tests/
 ```
 
-**Structure Decision**: Selected a clear separation between `src/main` (MVC pattern) and `src/renderer` (Feature-Based pattern) to strictly follow the constitution.
+**Structure Decision**: Selected a clear separation between `src/main` (MVC pattern) and `src/renderer` (Feature-Based pattern) to strictly follow the constitution. Replaced `dashboard/` feature with a lightweight `data-display/` feature containing only `JsonDisplayView.tsx` — a blank screen rendering formatted JSON.
+
+## Key Design Decisions
+
+1. **Schema Consolidation**: The canonical source will be `src/main/shared/schema/resumeSchema.ts` since the main process performs validation. The renderer will import types only.
+2. **State Machine**: The `initStore` drives the entire app flow through states: `loading` → `no-data` | `has-data` | `error` | `corrupted`.
+3. **No Router Needed**: Since there is only one flow (init → form or JSON display), no routing library is required.
+4. **IPC Contract**: Two channels: `check-saved-data` (returns `{ exists: boolean, data?: Resume }`) and `save-resume-data` (accepts `Resume`, returns `{ success: boolean }`).

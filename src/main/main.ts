@@ -1,12 +1,14 @@
 import { app, BrowserWindow } from 'electron';
 import { WindowView } from './views/WindowView.js';
-import { IpcController } from './controllers/IpcController.js';
+import { IpcController } from './src/controllers/IpcController.js';
+import { ResumeStorage } from './src/models/ResumeStorage.js';
 
 const windowView = new WindowView();
-const ipcController = new IpcController();
+const resumeStorage = new ResumeStorage();
+const ipcController = new IpcController(resumeStorage);
 
 app.whenReady().then(() => {
-  ipcController.register();
+  ipcController.registerHandlers();
   windowView.createMainWindow();
 
   app.on('activate', () => {

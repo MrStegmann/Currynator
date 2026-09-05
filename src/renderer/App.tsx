@@ -1,37 +1,29 @@
-import React, { useEffect } from 'react';
-import { useInitStore } from './features/initialization/store/initStore';
-import { GreetingsView } from './features/initialization/components/GreetingsView';
-import { OnboardingForm } from './features/initialization/components/OnboardingForm';
-import { ErrorScreen } from './features/initialization/components/ErrorScreen';
-import { CorruptedDataModal } from './features/initialization/components/CorruptedDataModal';
-import { Dashboard } from './features/dashboard/components/Dashboard';
+import React from 'react';
+import { useInitStore } from './src/features/initialization/store/initStore';
+import { GreetingsView } from './src/features/initialization/components/GreetingsView';
+import { OnboardingForm } from './src/features/initialization/components/OnboardingForm';
+import { ErrorScreen } from './src/features/initialization/components/ErrorScreen';
+import { CorruptedDataModal } from './src/features/initialization/components/CorruptedDataModal';
+import { JsonDisplayView } from './src/features/data-display/components/JsonDisplayView';
 
 export const App: React.FC = () => {
-  const { status, checkData } = useInitStore();
+  const status = useInitStore(state => state.status);
+  const error = useInitStore(state => state.error);
+  const checkSavedData = useInitStore(state => state.checkSavedData);
+  const resetToOnboarding = useInitStore(state => state.resetToOnboarding);
 
-  useEffect(() => {
-    checkData();
-  }, [checkData]);
-
-  if (status === 'loading') {
-    return <GreetingsView />;
+  switch (status) {
+    case 'loading':
+      return <GreetingsView />;
+    case 'no-data':
+      return <OnboardingForm />;
+    case 'has-data':
+      return <JsonDisplayView />;
+    case 'corrupted':
+      return <CorruptedDataModal onReset={resetToOnboarding} />;
+    case 'error':
+      return <ErrorScreen message={error || 'Unknown error occurred'} onRetry={checkSavedData} />;
+    default:
+      return null;
   }
-
-  if (status === 'onboarding') {
-    return <OnboardingForm />;
-  }
-
-  if (status === 'error' || status === 'fatal_error') {
-    return <ErrorScreen />;
-  }
-
-  if (status === 'corrupted_data') {
-    return <CorruptedDataModal />;
-  }
-
-  if (status === 'home') {
-    return <Dashboard />;
-  }
-
-  return null;
 };
