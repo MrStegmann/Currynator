@@ -99,13 +99,13 @@ description: "Task list for feature implementation"
 
 ### Implementation for User Story 4
 
-- [ ] T019 [P] [US4] Add local edit toggle state and pencil icon to BasicsArticle in `src/renderer/src/features/home/BasicsArticle/BasicsArticle.tsx`
-- [ ] T020 [P] [US4] Add local edit toggle state and pencil icon to WorkArticle in `src/renderer/src/features/home/WorkArticle/WorkArticle.tsx`
-- [ ] T021 [P] [US4] Add local edit toggle state and pencil icon to EducationArticle in `src/renderer/src/features/home/EducationArticle/EducationArticle.tsx`
-- [ ] T022 [P] [US4] Add local edit toggle state and pencil icon to CertificatesArticle in `src/renderer/src/features/home/CertificatesArticle/CertificatesArticle.tsx`
-- [ ] T023 [P] [US4] Add local edit toggle state and pencil icon to SkillsArticle in `src/renderer/src/features/home/SkillsArticle/SkillsArticle.tsx`
-- [ ] T024 [P] [US4] Add local edit toggle state and pencil icon to LanguagesArticle in `src/renderer/src/features/home/LanguagesArticle/LanguagesArticle.tsx`
-- [ ] T025 [P] [US4] Add local edit toggle state and pencil icon to ReferencesArticle in `src/renderer/src/features/home/ReferencesArticle/ReferencesArticle.tsx`
+- [x] T019 [P] [US4] Add local edit toggle state and pencil icon to BasicsArticle in `src/renderer/src/features/home/BasicsArticle/BasicsArticle.tsx`
+- [x] T020 [P] [US4] Add local edit toggle state and pencil icon to WorkArticle in `src/renderer/src/features/home/WorkArticle/WorkArticle.tsx`
+- [x] T021 [P] [US4] Add local edit toggle state and pencil icon to EducationArticle in `src/renderer/src/features/home/EducationArticle/EducationArticle.tsx`
+- [x] T022 [P] [US4] Add local edit toggle state and pencil icon to CertificatesArticle in `src/renderer/src/features/home/CertificatesArticle/CertificatesArticle.tsx`
+- [x] T023 [P] [US4] Add local edit toggle state and pencil icon to SkillsArticle in `src/renderer/src/features/home/SkillsArticle/SkillsArticle.tsx`
+- [x] T024 [P] [US4] Add local edit toggle state and pencil icon to LanguagesArticle in `src/renderer/src/features/home/LanguagesArticle/LanguagesArticle.tsx`
+- [x] T025 [P] [US4] Add local edit toggle state and pencil icon to ReferencesArticle in `src/renderer/src/features/home/ReferencesArticle/ReferencesArticle.tsx`
 
 ---
 
@@ -117,8 +117,8 @@ description: "Task list for feature implementation"
 
 ### Implementation for User Story 6
 
-- [ ] T026 [US6] Add react-hook-form inputs, validation, and Save button to BasicsArticle edit mode in `src/renderer/src/features/home/BasicsArticle/BasicsArticle.tsx`
-- [ ] T027 [US6] Wire BasicsArticle form save action to `useResumeStore` update method in `src/renderer/src/features/home/BasicsArticle/BasicsArticle.tsx`
+- [x] T026 [US6] Add react-hook-form inputs, validation, and Save button to BasicsArticle edit mode in `src/renderer/src/features/home/BasicsArticle/BasicsArticle.tsx`
+- [x] T027 [US6] Wire BasicsArticle form save action to `useResumeStore` update method in `src/renderer/src/features/home/BasicsArticle/BasicsArticle.tsx`
 
 ---
 
@@ -130,12 +130,12 @@ description: "Task list for feature implementation"
 
 ### Implementation for User Story 5
 
-- [ ] T028 [P] [US5] Implement Add/Edit Modal (react-hook-form) and CRUD methods for WorkArticle in `src/renderer/src/features/home/WorkArticle/WorkArticle.tsx`
-- [ ] T029 [P] [US5] Implement Add/Edit Modal (react-hook-form) and CRUD methods for EducationArticle in `src/renderer/src/features/home/EducationArticle/EducationArticle.tsx`
-- [ ] T030 [P] [US5] Implement Add/Edit Modal (react-hook-form) and CRUD methods for CertificatesArticle in `src/renderer/src/features/home/CertificatesArticle/CertificatesArticle.tsx`
-- [ ] T031 [P] [US5] Implement Add/Edit Modal (react-hook-form) and CRUD methods for SkillsArticle in `src/renderer/src/features/home/SkillsArticle/SkillsArticle.tsx`
-- [ ] T032 [P] [US5] Implement Add/Edit Modal (react-hook-form) and CRUD methods for LanguagesArticle in `src/renderer/src/features/home/LanguagesArticle/LanguagesArticle.tsx`
-- [ ] T033 [P] [US5] Implement Add/Edit Modal (react-hook-form) and CRUD methods for ReferencesArticle in `src/renderer/src/features/home/ReferencesArticle/ReferencesArticle.tsx`
+- [x] T028 [P] [US5] Implement Add/Edit Modal (react-hook-form) and CRUD methods for WorkArticle in `src/renderer/src/features/home/WorkArticle/WorkArticle.tsx`
+- [x] T029 [P] [US5] Implement Add/Edit Modal (react-hook-form) and CRUD methods for EducationArticle in `src/renderer/src/features/home/EducationArticle/EducationArticle.tsx`
+- [x] T030 [P] [US5] Implement Add/Edit Modal (react-hook-form) and CRUD methods for CertificatesArticle in `src/renderer/src/features/home/CertificatesArticle/CertificatesArticle.tsx`
+- [x] T031 [P] [US5] Implement Add/Edit Modal (react-hook-form) and CRUD methods for SkillsArticle in `src/renderer/src/features/home/SkillsArticle/SkillsArticle.tsx`
+- [x] T032 [P] [US5] Implement Add/Edit Modal (react-hook-form) and CRUD methods for LanguagesArticle in `src/renderer/src/features/home/LanguagesArticle/LanguagesArticle.tsx`
+- [x] T033 [P] [US5] Implement Add/Edit Modal (react-hook-form) and CRUD methods for ReferencesArticle in `src/renderer/src/features/home/ReferencesArticle/ReferencesArticle.tsx`
 
 ---
 
