@@ -6,6 +6,7 @@ interface ResumeState {
   isLoading: boolean;
   error: string | null;
   loadResume: () => Promise<void>;
+  setResumeData: (data: Resume) => void;
   updateBasics: (basics: Basics) => Promise<void>;
   addArrayItem: <K extends keyof Omit<Resume, 'basics'>>(section: K, item: any) => Promise<void>;
   updateArrayItem: <K extends keyof Omit<Resume, 'basics'>>(section: K, index: number, item: any) => Promise<void>;
@@ -34,12 +35,16 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
       const data = await window.electron.ipcRenderer.invoke('resume:load');
       // If it's a new user, data might be empty. Provide a default structure.
       const defaultData: Resume = {
-        basics: { name: '', label: '', email: '' }
+        basics: { name: 'User', label: '', email: '' }
       };
       set({ data: data || defaultData, isLoading: false });
     } catch (err: any) {
       set({ error: err.message, isLoading: false });
     }
+  },
+
+  setResumeData: (data: Resume) => {
+    set({ data, isLoading: false, error: null });
   },
 
   updateBasics: async (basics) => {

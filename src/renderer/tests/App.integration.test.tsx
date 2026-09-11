@@ -21,18 +21,23 @@ describe('App Integration', () => {
       success: true,
       data: mockData
     });
+    (window.electron.ipcRenderer.invoke as jest.Mock).mockImplementation((channel: string) => {
+      if (channel === 'resume:load') {
+        return Promise.resolve(mockData);
+      }
+      return Promise.resolve(null);
+    });
 
     render(<App />);
 
     // Initially loading state
     expect(screen.getByText(/loading/i)).toBeInTheDocument();
 
-    // After IPC resolves, it should show JsonDisplayView
+    // After IPC resolves, it should show Home view
     await waitFor(() => {
-      expect(screen.getByText(/Raw JSON Data/i)).toBeInTheDocument();
+      expect(screen.getByRole('heading', { level: 1, name: 'Home' })).toBeInTheDocument();
     });
 
-    const textarea = screen.getByRole('textbox');
-    expect(textarea).toHaveValue(JSON.stringify(mockData, null, 2));
+    expect(screen.getByText('Test')).toBeInTheDocument();
   });
 });

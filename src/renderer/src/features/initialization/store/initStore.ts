@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { ipcClient } from '../../../shared/ipc/ipcClient';
-import { Resume } from '../../../../../main/shared/schema/resumeSchema';
+import { Resume } from '../../../../../shared/schema/resumeSchema';
 
 export type InitStatus = 'loading' | 'no-data' | 'has-data' | 'error' | 'corrupted';
 

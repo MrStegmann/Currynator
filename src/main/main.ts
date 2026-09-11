@@ -1,7 +1,7 @@
 import { app, BrowserWindow } from 'electron';
 import { WindowView } from './views/WindowView.js';
-import { IpcController } from './src/controllers/IpcController.js';
-import { ResumeStorage } from './src/models/ResumeStorage.js';
+import { IpcController } from './controllers/IpcController.js';
+import { ResumeStorage } from './models/ResumeStorage.js';
 
 const windowView = new WindowView();
 const resumeStorage = new ResumeStorage();

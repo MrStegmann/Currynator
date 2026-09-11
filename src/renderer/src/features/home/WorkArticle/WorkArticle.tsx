@@ -3,7 +3,7 @@ import { Pencil, X, Plus, Trash2, Edit2 } from 'lucide-react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useResumeStore } from '../../../store/useResumeStore';
-import { WorkSchema, Work } from '../../../../shared/schema/resumeSchema';
+import { WorkSchema, Work } from '../../../../../shared/schema/resumeSchema';
 import { Modal } from '../../../shared/components/Modal/Modal';
 
 export const WorkArticle: React.FC = () => {

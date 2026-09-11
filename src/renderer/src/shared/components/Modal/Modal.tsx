@@ -37,7 +37,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }
       
       {/* Modal Dialog */}
       <div 
-        className="relative w-full max-w-2xl bg-surface-container-lowest rounded-xl shadow-2xl border border-outline-variant flex flex-col max-h-[90vh]"
+        className="relative z-10 w-full max-w-2xl bg-surface-container-lowest rounded-xl shadow-2xl border border-outline-variant flex flex-col max-h-[90vh]"
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"

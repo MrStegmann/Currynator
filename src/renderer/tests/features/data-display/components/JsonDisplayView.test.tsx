@@ -5,15 +5,15 @@ import { JsonDisplayView } from '../../../../src/features/data-display/component
 import { useInitStore } from '../../../../src/features/initialization/store/initStore';
 
 jest.mock('../../../../src/features/initialization/store/initStore', () => ({
-  useInitStore: {
-    getState: jest.fn()
-  }
+  useInitStore: jest.fn()
 }));
 
 describe('JsonDisplayView', () => {
   it('renders a read-only textarea with the formatted json data', () => {
     const mockData = { basics: { name: 'Test' } };
-    (useInitStore.getState as jest.Mock).mockReturnValue({ data: mockData });
+    (useInitStore as unknown as jest.Mock).mockImplementation((selector: any) =>
+      selector({ data: mockData })
+    );
 
     render(<JsonDisplayView />);
     
@@ -24,7 +24,9 @@ describe('JsonDisplayView', () => {
   });
 
   it('renders a fallback message if no data is found', () => {
-    (useInitStore.getState as jest.Mock).mockReturnValue({ data: null });
+    (useInitStore as unknown as jest.Mock).mockImplementation((selector: any) =>
+      selector({ data: null })
+    );
 
     render(<JsonDisplayView />);
     

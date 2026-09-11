@@ -1,5 +1,5 @@
 import { describe, it, expect, jest, beforeEach } from '@jest/globals';
-import { ResumeStorage } from '../../src/models/ResumeStorage.js';
+import { ResumeStorage } from '../../models/ResumeStorage.js';
 import fs from 'fs';
 import path from 'path';
 

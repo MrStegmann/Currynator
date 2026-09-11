@@ -3,7 +3,7 @@ import { Pencil, X, Plus, Trash2 } from 'lucide-react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useResumeStore } from '../../../store/useResumeStore';
-import { BasicsSchema, Basics } from '../../../../shared/schema/resumeSchema';
+import { BasicsSchema, Basics } from '../../../../../shared/schema/resumeSchema';
 
 export const BasicsArticle: React.FC = () => {
   const basics = useResumeStore(state => state.data?.basics);

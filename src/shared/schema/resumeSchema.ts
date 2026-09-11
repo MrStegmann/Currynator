@@ -2,9 +2,9 @@ import { z } from 'zod';
 
 export const BasicsSchema = z.object({
   name: z.string().min(1, "Name is required"),
-  label: z.string().min(1, "Label is required"),
+  label: z.string().optional().default(''),
   image: z.string().optional(),
-  email: z.string().email("Invalid email").min(1, "Email is required"),
+  email: z.string().email("Invalid email").optional().or(z.literal('')),
   phone: z.string().optional(),
   url: z.string().url("Invalid URL").optional().or(z.literal('')),
   summary: z.string().optional(),
@@ -16,50 +16,50 @@ export const BasicsSchema = z.object({
     region: z.string().optional()
   }).optional(),
   profiles: z.array(z.object({
-    network: z.string(),
-    username: z.string(),
+    network: z.string().optional(),
+    username: z.string().optional(),
     url: z.string().url().optional().or(z.literal(''))
   })).optional()
 });
 
 export const WorkSchema = z.object({
-  name: z.string().min(1, "Company name is required"),
-  position: z.string().min(1, "Position is required"),
+  name: z.string().optional().default(''),
+  position: z.string().optional().default(''),
   url: z.string().url("Invalid URL").optional().or(z.literal('')),
-  startDate: z.string().min(1, "Start date is required"),
-  endDate: z.string().min(1, "End date is required"), // Can be a Date string or "Currently"
+  startDate: z.string().optional().default(''),
+  endDate: z.string().optional().default(''),
   summary: z.string().optional(),
   highlights: z.array(z.string()).optional()
 });
 
 export const EducationSchema = z.object({
-  institution: z.string().min(1, "Institution is required"),
-  area: z.string().min(1, "Area is required"),
+  institution: z.string().optional().default(''),
+  area: z.string().optional().default(''),
   studyType: z.string().optional(),
-  startDate: z.string().min(1, "Start date is required"),
-  endDate: z.string().min(1, "End date is required")
+  startDate: z.string().optional().default(''),
+  endDate: z.string().optional().default('')
 });
 
 export const CertificateSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  date: z.string().min(1, "Date is required"),
-  issuer: z.string().min(1, "Issuer is required"),
+  name: z.string().optional().default(''),
+  date: z.string().optional().default(''),
+  issuer: z.string().optional().default(''),
   url: z.string().url("Invalid URL").optional().or(z.literal(''))
 });
 
 export const SkillSchema = z.object({
-  name: z.string().min(1, "Skill name is required"),
-  keywords: z.array(z.string()).min(1, "At least 1 keyword is required")
+  name: z.string().optional().default(''),
+  keywords: z.array(z.string()).optional().default([])
 });
 
 export const LanguageSchema = z.object({
-  language: z.string().min(1, "Language is required"),
+  language: z.string().optional().default(''),
   fluency: z.string().optional()
 });
 
 export const ReferenceSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  reference: z.string().min(1, "Reference text is required")
+  name: z.string().optional().default(''),
+  reference: z.string().optional().default('')
 });
 
 export const ResumeSchema = z.object({

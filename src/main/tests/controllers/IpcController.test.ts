@@ -1,6 +1,6 @@
 import { describe, it, expect, jest, beforeEach } from '@jest/globals';
-import { IpcController } from '../../src/controllers/IpcController.js';
-import { ResumeStorage } from '../../src/models/ResumeStorage.js';
+import { IpcController } from '../../controllers/IpcController.js';
+import { ResumeStorage } from '../../models/ResumeStorage.js';
 import { ipcMain } from 'electron';
 
 jest.mock('electron', () => ({
@@ -9,7 +9,7 @@ jest.mock('electron', () => ({
   }
 }));
 
-jest.mock('../../src/models/ResumeStorage.js');
+jest.mock('../../models/ResumeStorage.js');
 
 describe('IpcController', () => {
   let ipcController: IpcController;
