@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Pencil, X, Plus, Trash2, Edit2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -6,6 +6,88 @@ import { useResumeStore } from '../../../store/useResumeStore';
 import { ReferenceSchema, Reference } from '../../../../../shared/schema/resumeSchema';
 import { Modal } from '../../../shared/components/Modal/Modal';
 import { CopyButton } from '../../../shared/components/CopyButton/CopyButton';
+
+interface ReferenceModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (data: Reference) => Promise<void>;
+  initialData?: Reference | null;
+}
+
+const ReferenceModal: React.FC<ReferenceModalProps> = ({ isOpen, onClose, onSave, initialData }) => {
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<Reference>({
+    resolver: zodResolver(ReferenceSchema),
+    defaultValues: {
+      name: initialData?.name || '',
+      reference: initialData?.reference || ''
+    }
+  });
+
+  useEffect(() => {
+    if (isOpen) {
+      const timer = setTimeout(() => {
+        inputRef.current?.focus();
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
+
+  if (!isOpen) return null;
+
+  const { ref: nameRef, ...nameProps } = register("name");
+
+  return (
+    <Modal 
+      isOpen={isOpen} 
+      onClose={onClose} 
+      title={initialData ? "Edit Reference" : "Add Reference"}
+    >
+      <form onSubmit={handleSubmit(onSave)} className="space-y-6">
+        <div className="grid grid-cols-1 gap-4">
+          <div>
+            <label className="block text-label-md mb-1 text-on-surface">Name <span className="text-error">*</span></label>
+            <input 
+              type="text" 
+              placeholder="e.g. John Doe" 
+              {...nameProps}
+              ref={(e) => {
+                nameRef(e);
+                inputRef.current = e;
+              }}
+              className={`w-full p-2 bg-surface-container-lowest border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary ${errors.name ? 'border-error' : 'border-outline-variant'}`} 
+            />
+            {errors.name && <p className="text-error text-body-sm mt-1">{errors.name.message}</p>}
+          </div>
+          
+          <div>
+            <label className="block text-label-md mb-1 text-on-surface">Reference Text <span className="text-error">*</span></label>
+            <textarea {...register("reference")} rows={4} className={`w-full p-2 bg-surface-container-lowest border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary resize-y ${errors.reference ? 'border-error' : 'border-outline-variant'}`} placeholder="e.g. It was a pleasure working with..." />
+            {errors.reference && <p className="text-error text-body-sm mt-1">{errors.reference.message}</p>}
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-3 pt-4 border-t border-outline-variant mt-8">
+          <button 
+            type="button" 
+            onClick={onClose}
+            className="px-4 py-2 border border-outline-variant rounded-md text-on-surface hover:bg-surface-container-lowest transition-colors font-medium"
+          >
+            Cancel
+          </button>
+          <button 
+            type="submit" 
+            disabled={isSubmitting}
+            className="px-6 py-2 bg-primary text-on-primary rounded-md hover:bg-primary-container transition-colors font-medium shadow-sm disabled:opacity-50"
+          >
+            {isSubmitting ? 'Saving...' : 'Save Reference'}
+          </button>
+        </div>
+      </form>
+    </Modal>
+  );
+};
 
 export const ReferencesArticle: React.FC = () => {
   const references = useResumeStore(state => state.data?.references);
@@ -19,36 +101,29 @@ export const ReferencesArticle: React.FC = () => {
 
   const toggleEdit = () => setIsEditing(!isEditing);
 
-  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<Reference>({
-    resolver: zodResolver(ReferenceSchema)
-  });
-
   const openAddModal = () => {
     setEditingIndex(null);
-    reset({ name: '', reference: '' });
     setIsModalOpen(true);
   };
 
   const openEditModal = (index: number) => {
-    if (!references) return;
     setEditingIndex(index);
-    reset(references[index]);
     setIsModalOpen(true);
   };
 
-  const onSubmit = async (data: Reference) => {
+  const handleSave = async (data: Reference) => {
     if (editingIndex !== null) {
       await updateArrayItem('references', editingIndex, data);
     } else {
       await addArrayItem('references', data);
     }
+    setEditingIndex(null);
     setIsModalOpen(false);
   };
 
   const handleDelete = async (index: number) => {
-    if (confirm("Are you sure you want to delete this reference?")) {
-      await deleteArrayItem('references', index);
-    }
+    await deleteArrayItem('references', index);
+    setEditingIndex(null);
   };
 
   return (
@@ -99,6 +174,7 @@ export const ReferencesArticle: React.FC = () => {
 
         {isEditing && (
           <button 
+            type="button"
             onClick={openAddModal}
             className="flex items-center justify-center gap-2 w-full py-3 mt-2 border-2 border-dashed border-outline-variant rounded-lg text-primary hover:bg-primary-container hover:border-primary transition-colors font-medium"
           >
@@ -107,44 +183,13 @@ export const ReferencesArticle: React.FC = () => {
         )}
       </div>
 
-      <Modal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        title={editingIndex !== null ? "Edit Reference" : "Add Reference"}
-      >
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          <div className="grid grid-cols-1 gap-4">
-            <div>
-              <label className="block text-label-md mb-1 text-on-surface">Name <span className="text-error">*</span></label>
-              <input type="text" placeholder="e.g. John Doe" {...register("name")} className={`w-full p-2 bg-surface-container-lowest border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary ${errors.name ? 'border-error' : 'border-outline-variant'}`} />
-              {errors.name && <p className="text-error text-body-sm mt-1">{errors.name.message}</p>}
-            </div>
-            
-            <div>
-              <label className="block text-label-md mb-1 text-on-surface">Reference Text <span className="text-error">*</span></label>
-              <textarea {...register("reference")} rows={4} className={`w-full p-2 bg-surface-container-lowest border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary resize-y ${errors.reference ? 'border-error' : 'border-outline-variant'}`} placeholder="e.g. It was a pleasure working with..." />
-              {errors.reference && <p className="text-error text-body-sm mt-1">{errors.reference.message}</p>}
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-3 pt-4 border-t border-outline-variant mt-8">
-            <button 
-              type="button" 
-              onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2 border border-outline-variant rounded-md text-on-surface hover:bg-surface-container-lowest transition-colors font-medium"
-            >
-              Cancel
-            </button>
-            <button 
-              type="submit" 
-              disabled={isSubmitting}
-              className="px-6 py-2 bg-primary text-on-primary rounded-md hover:bg-primary-container transition-colors font-medium shadow-sm disabled:opacity-50"
-            >
-              {isSubmitting ? 'Saving...' : 'Save Reference'}
-            </button>
-          </div>
-        </form>
-      </Modal>
+      <ReferenceModal 
+        key={isModalOpen ? (editingIndex !== null ? `edit-${editingIndex}` : 'add-new') : 'closed'}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSave={handleSave}
+        initialData={editingIndex !== null && references ? references[editingIndex] : null}
+      />
     </article>
   );
 };

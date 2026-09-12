@@ -12,6 +12,7 @@ interface ResumeState {
   updateArrayItem: <K extends keyof Omit<Resume, 'basics'>>(section: K, index: number, item: any) => Promise<void>;
   deleteArrayItem: <K extends keyof Omit<Resume, 'basics'>>(section: K, index: number) => Promise<void>;
   analyzeSkills: (rawSkills?: string[]) => Promise<{ success: boolean; error?: string }>;
+  analyzeWork: () => Promise<{ success: boolean; error?: string }>;
 }
 
 // Ensure TypeScript knows about window.electron
@@ -149,6 +150,32 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
       }
     } catch (err: any) {
       const errorMsg = err.message || 'Unknown error calling Groq analysis';
+      return { success: false, error: errorMsg };
+    }
+  },
+
+  analyzeWork: async () => {
+    const { data } = get();
+    if (!data) return { success: false, error: 'No resume data available' };
+
+    const workData = data.work || [];
+    if (workData.length === 0) {
+      return { success: true };
+    }
+
+    try {
+      const response = await window.electron.ipcRenderer.invoke('groq:analyze-work', workData);
+      if (response.success && response.data) {
+        const newData = { ...data, work: response.data };
+        set({ data: newData });
+        await window.electron.ipcRenderer.invoke('resume:save', newData);
+        return { success: true };
+      } else {
+        const errorMsg = response.error || 'Failed to analyze work experience';
+        return { success: false, error: errorMsg };
+      }
+    } catch (err: any) {
+      const errorMsg = err.message || 'Unknown error calling Groq work analysis';
       return { success: false, error: errorMsg };
     }
   }

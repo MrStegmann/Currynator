@@ -1,12 +1,113 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Pencil, X, Plus, Trash2, Edit2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useResumeStore } from '../../../store/useResumeStore';
 import { EducationSchema, Education } from '../../../../../shared/schema/resumeSchema';
 import { Modal } from '../../../shared/components/Modal/Modal';
-
 import { CopyButton } from '../../../shared/components/CopyButton/CopyButton';
+
+interface EducationModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (data: Education) => Promise<void>;
+  initialData?: Education | null;
+}
+
+const EducationModal: React.FC<EducationModalProps> = ({ isOpen, onClose, onSave, initialData }) => {
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<Education>({
+    resolver: zodResolver(EducationSchema),
+    defaultValues: {
+      institution: initialData?.institution || '',
+      area: initialData?.area || '',
+      studyType: initialData?.studyType || '',
+      startDate: initialData?.startDate || '',
+      endDate: initialData?.endDate || ''
+    }
+  });
+
+  useEffect(() => {
+    if (isOpen) {
+      const timer = setTimeout(() => {
+        inputRef.current?.focus();
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
+
+  if (!isOpen) return null;
+
+  const { ref: instRef, ...instProps } = register("institution");
+
+  return (
+    <Modal 
+      isOpen={isOpen} 
+      onClose={onClose} 
+      title={initialData ? "Edit Education" : "Add Education"}
+    >
+      <form onSubmit={handleSubmit(onSave)} className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="md:col-span-2">
+            <label className="block text-label-md mb-1 text-on-surface">Institution <span className="text-error">*</span></label>
+            <input 
+              type="text" 
+              {...instProps}
+              ref={(e) => {
+                instRef(e);
+                inputRef.current = e;
+              }}
+              className={`w-full p-2 bg-surface-container-lowest border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary ${errors.institution ? 'border-error' : 'border-outline-variant'}`} 
+            />
+            {errors.institution && <p className="text-error text-body-sm mt-1">{errors.institution.message}</p>}
+          </div>
+          
+          <div>
+            <label className="block text-label-md mb-1 text-on-surface">Area of Study <span className="text-error">*</span></label>
+            <input type="text" placeholder="e.g. Computer Science" {...register("area")} className={`w-full p-2 bg-surface-container-lowest border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary ${errors.area ? 'border-error' : 'border-outline-variant'}`} />
+            {errors.area && <p className="text-error text-body-sm mt-1">{errors.area.message}</p>}
+          </div>
+
+          <div>
+            <label className="block text-label-md mb-1 text-on-surface">Study Type</label>
+            <input type="text" placeholder="e.g. Bachelor" {...register("studyType")} className={`w-full p-2 bg-surface-container-lowest border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary ${errors.studyType ? 'border-error' : 'border-outline-variant'}`} />
+            {errors.studyType && <p className="text-error text-body-sm mt-1">{errors.studyType.message}</p>}
+          </div>
+
+          <div>
+            <label className="block text-label-md mb-1 text-on-surface">Start Date <span className="text-error">*</span></label>
+            <input type="text" placeholder="e.g. 2018-09" {...register("startDate")} className={`w-full p-2 bg-surface-container-lowest border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary ${errors.startDate ? 'border-error' : 'border-outline-variant'}`} />
+            {errors.startDate && <p className="text-error text-body-sm mt-1">{errors.startDate.message}</p>}
+          </div>
+
+          <div>
+            <label className="block text-label-md mb-1 text-on-surface">End Date <span className="text-error">*</span></label>
+            <input type="text" placeholder="e.g. 2022-06 or Currently" {...register("endDate")} className={`w-full p-2 bg-surface-container-lowest border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary ${errors.endDate ? 'border-error' : 'border-outline-variant'}`} />
+            {errors.endDate && <p className="text-error text-body-sm mt-1">{errors.endDate.message}</p>}
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-3 pt-4 border-t border-outline-variant mt-8">
+          <button 
+            type="button" 
+            onClick={onClose}
+            className="px-4 py-2 border border-outline-variant rounded-md text-on-surface hover:bg-surface-container-lowest transition-colors font-medium"
+          >
+            Cancel
+          </button>
+          <button 
+            type="submit" 
+            disabled={isSubmitting}
+            className="px-6 py-2 bg-primary text-on-primary rounded-md hover:bg-primary-container transition-colors font-medium shadow-sm disabled:opacity-50"
+          >
+            {isSubmitting ? 'Saving...' : 'Save Education'}
+          </button>
+        </div>
+      </form>
+    </Modal>
+  );
+};
 
 export const EducationArticle: React.FC = () => {
   const education = useResumeStore(state => state.data?.education);
@@ -20,36 +121,29 @@ export const EducationArticle: React.FC = () => {
 
   const toggleEdit = () => setIsEditing(!isEditing);
 
-  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<Education>({
-    resolver: zodResolver(EducationSchema)
-  });
-
   const openAddModal = () => {
     setEditingIndex(null);
-    reset({ institution: '', area: '', studyType: '', startDate: '', endDate: '' });
     setIsModalOpen(true);
   };
 
   const openEditModal = (index: number) => {
-    if (!education) return;
     setEditingIndex(index);
-    reset(education[index]);
     setIsModalOpen(true);
   };
 
-  const onSubmit = async (data: Education) => {
+  const handleSave = async (data: Education) => {
     if (editingIndex !== null) {
       await updateArrayItem('education', editingIndex, data);
     } else {
       await addArrayItem('education', data);
     }
+    setEditingIndex(null);
     setIsModalOpen(false);
   };
 
   const handleDelete = async (index: number) => {
-    if (confirm("Are you sure you want to delete this education entry?")) {
-      await deleteArrayItem('education', index);
-    }
+    await deleteArrayItem('education', index);
+    setEditingIndex(null);
   };
 
   return (
@@ -103,6 +197,7 @@ export const EducationArticle: React.FC = () => {
 
         {isEditing && (
           <button 
+            type="button"
             onClick={openAddModal}
             className="flex items-center justify-center gap-2 w-full py-3 mt-2 border-2 border-dashed border-outline-variant rounded-lg text-primary hover:bg-primary-container hover:border-primary transition-colors font-medium"
           >
@@ -111,62 +206,13 @@ export const EducationArticle: React.FC = () => {
         )}
       </div>
 
-      <Modal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        title={editingIndex !== null ? "Edit Education" : "Add Education"}
-      >
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="md:col-span-2">
-              <label className="block text-label-md mb-1 text-on-surface">Institution <span className="text-error">*</span></label>
-              <input type="text" {...register("institution")} className={`w-full p-2 bg-surface-container-lowest border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary ${errors.institution ? 'border-error' : 'border-outline-variant'}`} />
-              {errors.institution && <p className="text-error text-body-sm mt-1">{errors.institution.message}</p>}
-            </div>
-            
-            <div>
-              <label className="block text-label-md mb-1 text-on-surface">Area of Study <span className="text-error">*</span></label>
-              <input type="text" placeholder="e.g. Computer Science" {...register("area")} className={`w-full p-2 bg-surface-container-lowest border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary ${errors.area ? 'border-error' : 'border-outline-variant'}`} />
-              {errors.area && <p className="text-error text-body-sm mt-1">{errors.area.message}</p>}
-            </div>
-
-            <div>
-              <label className="block text-label-md mb-1 text-on-surface">Study Type</label>
-              <input type="text" placeholder="e.g. Bachelor" {...register("studyType")} className={`w-full p-2 bg-surface-container-lowest border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary ${errors.studyType ? 'border-error' : 'border-outline-variant'}`} />
-              {errors.studyType && <p className="text-error text-body-sm mt-1">{errors.studyType.message}</p>}
-            </div>
-
-            <div>
-              <label className="block text-label-md mb-1 text-on-surface">Start Date <span className="text-error">*</span></label>
-              <input type="text" placeholder="e.g. 2018-09" {...register("startDate")} className={`w-full p-2 bg-surface-container-lowest border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary ${errors.startDate ? 'border-error' : 'border-outline-variant'}`} />
-              {errors.startDate && <p className="text-error text-body-sm mt-1">{errors.startDate.message}</p>}
-            </div>
-
-            <div>
-              <label className="block text-label-md mb-1 text-on-surface">End Date <span className="text-error">*</span></label>
-              <input type="text" placeholder="e.g. 2022-06 or Currently" {...register("endDate")} className={`w-full p-2 bg-surface-container-lowest border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary ${errors.endDate ? 'border-error' : 'border-outline-variant'}`} />
-              {errors.endDate && <p className="text-error text-body-sm mt-1">{errors.endDate.message}</p>}
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-3 pt-4 border-t border-outline-variant mt-8">
-            <button 
-              type="button" 
-              onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2 border border-outline-variant rounded-md text-on-surface hover:bg-surface-container-lowest transition-colors font-medium"
-            >
-              Cancel
-            </button>
-            <button 
-              type="submit" 
-              disabled={isSubmitting}
-              className="px-6 py-2 bg-primary text-on-primary rounded-md hover:bg-primary-container transition-colors font-medium shadow-sm disabled:opacity-50"
-            >
-              {isSubmitting ? 'Saving...' : 'Save Education'}
-            </button>
-          </div>
-        </form>
-      </Modal>
+      <EducationModal 
+        key={isModalOpen ? (editingIndex !== null ? `edit-${editingIndex}` : 'add-new') : 'closed'}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSave={handleSave}
+        initialData={editingIndex !== null && education ? education[editingIndex] : null}
+      />
     </article>
   );
 };

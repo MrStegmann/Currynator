@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Pencil, X, Plus, Trash2, Edit2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -6,6 +6,101 @@ import { useResumeStore } from '../../../store/useResumeStore';
 import { CertificateSchema, Certificate } from '../../../../../shared/schema/resumeSchema';
 import { Modal } from '../../../shared/components/Modal/Modal';
 import { CopyButton } from '../../../shared/components/CopyButton/CopyButton';
+
+interface CertificateModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (data: Certificate) => Promise<void>;
+  initialData?: Certificate | null;
+}
+
+const CertificateModal: React.FC<CertificateModalProps> = ({ isOpen, onClose, onSave, initialData }) => {
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<Certificate>({
+    resolver: zodResolver(CertificateSchema),
+    defaultValues: {
+      name: initialData?.name || '',
+      issuer: initialData?.issuer || '',
+      date: initialData?.date || '',
+      url: initialData?.url || ''
+    }
+  });
+
+  useEffect(() => {
+    if (isOpen) {
+      const timer = setTimeout(() => {
+        inputRef.current?.focus();
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
+
+  if (!isOpen) return null;
+
+  const { ref: nameRef, ...nameProps } = register("name");
+
+  return (
+    <Modal 
+      isOpen={isOpen} 
+      onClose={onClose} 
+      title={initialData ? "Edit Certificate" : "Add Certificate"}
+    >
+      <form onSubmit={handleSubmit(onSave)} className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="md:col-span-2">
+            <label className="block text-label-md mb-1 text-on-surface">Name <span className="text-error">*</span></label>
+            <input 
+              type="text" 
+              {...nameProps}
+              ref={(e) => {
+                nameRef(e);
+                inputRef.current = e;
+              }}
+              className={`w-full p-2 bg-surface-container-lowest border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary ${errors.name ? 'border-error' : 'border-outline-variant'}`} 
+            />
+            {errors.name && <p className="text-error text-body-sm mt-1">{errors.name.message}</p>}
+          </div>
+          
+          <div className="md:col-span-2">
+            <label className="block text-label-md mb-1 text-on-surface">Issuer <span className="text-error">*</span></label>
+            <input type="text" {...register("issuer")} className={`w-full p-2 bg-surface-container-lowest border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary ${errors.issuer ? 'border-error' : 'border-outline-variant'}`} />
+            {errors.issuer && <p className="text-error text-body-sm mt-1">{errors.issuer.message}</p>}
+          </div>
+
+          <div className="md:col-span-2">
+            <label className="block text-label-md mb-1 text-on-surface">Date <span className="text-error">*</span></label>
+            <input type="text" placeholder="e.g. 2021-01-01" {...register("date")} className={`w-full p-2 bg-surface-container-lowest border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary ${errors.date ? 'border-error' : 'border-outline-variant'}`} />
+            {errors.date && <p className="text-error text-body-sm mt-1">{errors.date.message}</p>}
+          </div>
+
+          <div className="md:col-span-2">
+            <label className="block text-label-md mb-1 text-on-surface">URL</label>
+            <input type="url" {...register("url")} className={`w-full p-2 bg-surface-container-lowest border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary ${errors.url ? 'border-error' : 'border-outline-variant'}`} />
+            {errors.url && <p className="text-error text-body-sm mt-1">{errors.url.message}</p>}
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-3 pt-4 border-t border-outline-variant mt-8">
+          <button 
+            type="button" 
+            onClick={onClose}
+            className="px-4 py-2 border border-outline-variant rounded-md text-on-surface hover:bg-surface-container-lowest transition-colors font-medium"
+          >
+            Cancel
+          </button>
+          <button 
+            type="submit" 
+            disabled={isSubmitting}
+            className="px-6 py-2 bg-primary text-on-primary rounded-md hover:bg-primary-container transition-colors font-medium shadow-sm disabled:opacity-50"
+          >
+            {isSubmitting ? 'Saving...' : 'Save Certificate'}
+          </button>
+        </div>
+      </form>
+    </Modal>
+  );
+};
 
 export const CertificatesArticle: React.FC = () => {
   const certificates = useResumeStore(state => state.data?.certificates);
@@ -19,36 +114,29 @@ export const CertificatesArticle: React.FC = () => {
 
   const toggleEdit = () => setIsEditing(!isEditing);
 
-  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<Certificate>({
-    resolver: zodResolver(CertificateSchema)
-  });
-
   const openAddModal = () => {
     setEditingIndex(null);
-    reset({ name: '', issuer: '', date: '', url: '' });
     setIsModalOpen(true);
   };
 
   const openEditModal = (index: number) => {
-    if (!certificates) return;
     setEditingIndex(index);
-    reset(certificates[index]);
     setIsModalOpen(true);
   };
 
-  const onSubmit = async (data: Certificate) => {
+  const handleSave = async (data: Certificate) => {
     if (editingIndex !== null) {
       await updateArrayItem('certificates', editingIndex, data);
     } else {
       await addArrayItem('certificates', data);
     }
+    setEditingIndex(null);
     setIsModalOpen(false);
   };
 
   const handleDelete = async (index: number) => {
-    if (confirm("Are you sure you want to delete this certificate?")) {
-      await deleteArrayItem('certificates', index);
-    }
+    await deleteArrayItem('certificates', index);
+    setEditingIndex(null);
   };
 
   return (
@@ -107,6 +195,7 @@ export const CertificatesArticle: React.FC = () => {
 
         {isEditing && (
           <button 
+            type="button"
             onClick={openAddModal}
             className="flex items-center justify-center gap-2 w-full py-3 mt-2 border-2 border-dashed border-outline-variant rounded-lg text-primary hover:bg-primary-container hover:border-primary transition-colors font-medium"
           >
@@ -115,56 +204,13 @@ export const CertificatesArticle: React.FC = () => {
         )}
       </div>
 
-      <Modal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        title={editingIndex !== null ? "Edit Certificate" : "Add Certificate"}
-      >
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="md:col-span-2">
-              <label className="block text-label-md mb-1 text-on-surface">Name <span className="text-error">*</span></label>
-              <input type="text" {...register("name")} className={`w-full p-2 bg-surface-container-lowest border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary ${errors.name ? 'border-error' : 'border-outline-variant'}`} />
-              {errors.name && <p className="text-error text-body-sm mt-1">{errors.name.message}</p>}
-            </div>
-            
-            <div className="md:col-span-2">
-              <label className="block text-label-md mb-1 text-on-surface">Issuer <span className="text-error">*</span></label>
-              <input type="text" {...register("issuer")} className={`w-full p-2 bg-surface-container-lowest border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary ${errors.issuer ? 'border-error' : 'border-outline-variant'}`} />
-              {errors.issuer && <p className="text-error text-body-sm mt-1">{errors.issuer.message}</p>}
-            </div>
-
-            <div className="md:col-span-2">
-              <label className="block text-label-md mb-1 text-on-surface">Date <span className="text-error">*</span></label>
-              <input type="text" placeholder="e.g. 2021-01-01" {...register("date")} className={`w-full p-2 bg-surface-container-lowest border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary ${errors.date ? 'border-error' : 'border-outline-variant'}`} />
-              {errors.date && <p className="text-error text-body-sm mt-1">{errors.date.message}</p>}
-            </div>
-
-            <div className="md:col-span-2">
-              <label className="block text-label-md mb-1 text-on-surface">URL</label>
-              <input type="url" {...register("url")} className={`w-full p-2 bg-surface-container-lowest border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary ${errors.url ? 'border-error' : 'border-outline-variant'}`} />
-              {errors.url && <p className="text-error text-body-sm mt-1">{errors.url.message}</p>}
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-3 pt-4 border-t border-outline-variant mt-8">
-            <button 
-              type="button" 
-              onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2 border border-outline-variant rounded-md text-on-surface hover:bg-surface-container-lowest transition-colors font-medium"
-            >
-              Cancel
-            </button>
-            <button 
-              type="submit" 
-              disabled={isSubmitting}
-              className="px-6 py-2 bg-primary text-on-primary rounded-md hover:bg-primary-container transition-colors font-medium shadow-sm disabled:opacity-50"
-            >
-              {isSubmitting ? 'Saving...' : 'Save Certificate'}
-            </button>
-          </div>
-        </form>
-      </Modal>
+      <CertificateModal 
+        key={isModalOpen ? (editingIndex !== null ? `edit-${editingIndex}` : 'add-new') : 'closed'}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSave={handleSave}
+        initialData={editingIndex !== null && certificates ? certificates[editingIndex] : null}
+      />
     </article>
   );
 };

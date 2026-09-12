@@ -34,7 +34,26 @@ export const BasicsArticle: React.FC = () => {
   // Reset form when basics change from store (or on load)
   useEffect(() => {
     if (basics) {
-      reset(basics);
+      reset({
+        name: basics.name || '',
+        label: basics.label || '',
+        email: basics.email || '',
+        phone: basics.phone || '',
+        url: basics.url || '',
+        summary: basics.summary || '',
+        location: {
+          address: basics.location?.address || '',
+          postalCode: basics.location?.postalCode || '',
+          city: basics.location?.city || '',
+          countryCode: basics.location?.countryCode || '',
+          region: basics.location?.region || ''
+        },
+        profiles: (basics.profiles || []).map(p => ({
+          network: p.network || '',
+          username: p.username || '',
+          url: p.url || ''
+        }))
+      });
     }
   }, [basics, reset]);
 

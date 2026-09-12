@@ -20,7 +20,7 @@
 
 **Purpose**: Environment setup and configuration verification
 
-- [ ] T001 Verify Groq API environment variable handling and test setup in `src/main/controllers/GroqController.ts`
+- [x] T001 Verify Groq API environment variable handling and test setup in `src/main/controllers/GroqController.ts`
 
 ---
 
@@ -28,9 +28,9 @@
 
 **Purpose**: Core backend Groq controller extension and IPC channel registration
 
-- [ ] T002 Write unit tests for `GroqController.analyzeWorkSection()` covering prompt execution, JSON array parsing, and field validation in `tests/main/controllers/GroqController.test.ts`
-- [ ] T003 Implement `analyzeWorkSection()` in `src/main/controllers/GroqController.ts` using `qwen/qwen3.8-27b` model and specified prompt contract
-- [ ] T004 Register `groq:analyze-work` IPC handler in `src/main/controllers/IpcController.ts`
+- [x] T002 Write unit tests for `GroqController.analyzeWorkSection()` covering prompt execution, JSON array parsing, and field validation in `tests/main/controllers/GroqController.test.ts`
+- [x] T003 Implement `analyzeWorkSection()` in `src/main/controllers/GroqController.ts` using `qwen/qwen3.8-27b` model and specified prompt contract
+- [x] T004 Register `groq:analyze-work` IPC handler in `src/main/controllers/IpcController.ts`
 
 **Checkpoint**: Backend controller and IPC contracts complete and verified.
 
@@ -44,13 +44,13 @@
 
 ### Tests for User Story 1 (TDD) ⚠️
 
-- [ ] T005 [P] [US1] Write unit tests for `analyzeWork()` store action in `src/renderer/tests/features/home/store/useResumeStore.work.test.ts`
-- [ ] T006 [P] [US1] Write component tests for "Analyze with AI" button in `src/renderer/tests/features/home/WorkArticle.test.tsx`
+- [x] T005 [P] [US1] Write unit tests for `analyzeWork()` store action in `src/renderer/tests/features/home/store/useResumeStore.work.test.ts`
+- [x] T006 [P] [US1] Write component tests for "Analyze with AI" button in `src/renderer/tests/features/home/WorkArticle.test.tsx`
 
 ### Implementation for User Story 1
 
-- [ ] T007 [US1] Implement `analyzeWork()` store action in `src/renderer/src/store/useResumeStore.ts`
-- [ ] T008 [US1] Add "Analyze with AI" button positioned immediately to the left of the Edit button in `src/renderer/src/features/home/WorkArticle/WorkArticle.tsx`
+- [x] T007 [US1] Implement `analyzeWork()` store action in `src/renderer/src/store/useResumeStore.ts`
+- [x] T008 [US1] Add "Analyze with AI" button positioned immediately to the left of the Edit button in `src/renderer/src/features/home/WorkArticle/WorkArticle.tsx`
 
 **Checkpoint**: User Story 1 fully functional and testable independently.
 
@@ -64,11 +64,11 @@
 
 ### Tests for User Story 2 (TDD) ⚠️
 
-- [ ] T009 [P] [US2] Write component tests for loading state and error banner rendering/retrying in `src/renderer/tests/features/home/WorkArticle.test.tsx`
+- [x] T009 [P] [US2] Write component tests for loading state and error banner rendering/retrying in `src/renderer/tests/features/home/WorkArticle.test.tsx`
 
 ### Implementation for User Story 2
 
-- [ ] T010 [US2] Implement loading state (spinning `Loader2` icon), button disabled state, and error alert banner with retry trigger in `src/renderer/src/features/home/WorkArticle/WorkArticle.tsx`
+- [x] T010 [US2] Implement loading state (spinning `Loader2` icon), button disabled state, and error alert banner with retry trigger in `src/renderer/src/features/home/WorkArticle/WorkArticle.tsx`
 
 **Checkpoint**: User Stories 1 AND 2 complete with complete error handling and loading feedback.
 
@@ -78,8 +78,8 @@
 
 **Purpose**: End-to-end verification and quality checks
 
-- [ ] T011 [P] Run full Jest test suite `npm test` and TypeScript check `npx tsc -b tsconfig.json`
-- [ ] T012 Run quickstart validation steps per `quickstart.md`
+- [x] T011 [P] Run full Jest test suite `npm test` and TypeScript check `npx tsc -b tsconfig.json`
+- [x] T012 Run quickstart validation steps per `quickstart.md`
 
 ---
 

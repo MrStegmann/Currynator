@@ -1,6 +1,6 @@
 import { ipcMain } from 'electron';
 import { ResumeStorage } from '../models/ResumeStorage.js';
-import { Resume } from '../shared/schema/resumeSchema.js';
+import { Resume, Work } from '../shared/schema/resumeSchema.js';
 import { LinkedinImportController } from './LinkedinImportController.js';
 import { GroqController } from './GroqController.js';
 
@@ -83,6 +83,18 @@ export class IpcController {
     ipcMain.handle('groq:analyze-skills', async (_, skills: string[]) => {
       try {
         return await this.groqController.analyzeSkills(skills);
+      } catch (error) {
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error'
+        };
+      }
+    });
+
+    // Groq Work Experience Analysis Handler
+    ipcMain.handle('groq:analyze-work', async (_, workData: Work[]) => {
+      try {
+        return await this.groqController.analyzeWorkSection(workData);
       } catch (error) {
         return {
           success: false,

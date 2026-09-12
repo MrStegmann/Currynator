@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Pencil, X, Plus, Trash2, Edit2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -6,6 +6,93 @@ import { useResumeStore } from '../../../store/useResumeStore';
 import { LanguageSchema, Language } from '../../../../../shared/schema/resumeSchema';
 import { Modal } from '../../../shared/components/Modal/Modal';
 import { CopyButton } from '../../../shared/components/CopyButton/CopyButton';
+
+interface LanguageModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (data: Language) => Promise<void>;
+  initialData?: Language | null;
+}
+
+const LanguageModal: React.FC<LanguageModalProps> = ({ isOpen, onClose, onSave, initialData }) => {
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<Language>({
+    resolver: zodResolver(LanguageSchema),
+    defaultValues: {
+      language: initialData?.language || '',
+      fluency: initialData?.fluency || ''
+    }
+  });
+
+  useEffect(() => {
+    if (isOpen) {
+      const timer = setTimeout(() => {
+        inputRef.current?.focus();
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
+
+  if (!isOpen) return null;
+
+  const { ref: languageRef, ...languageProps } = register("language");
+
+  return (
+    <Modal 
+      isOpen={isOpen} 
+      onClose={onClose} 
+      title={initialData ? "Edit Language" : "Add Language"}
+    >
+      <form onSubmit={handleSubmit(onSave)} className="space-y-6">
+        <div className="grid grid-cols-1 gap-4">
+          <div>
+            <label className="block text-label-md mb-1 text-on-surface">Language <span className="text-error">*</span></label>
+            <input 
+              type="text" 
+              placeholder="e.g. English" 
+              {...languageProps}
+              ref={(e) => {
+                languageRef(e);
+                inputRef.current = e;
+              }}
+              className={`w-full p-2 bg-surface-container-lowest border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary ${errors.language ? 'border-error' : 'border-outline-variant'}`} 
+            />
+            {errors.language && <p className="text-error text-body-sm mt-1">{errors.language.message}</p>}
+          </div>
+          
+          <div>
+            <label className="block text-label-md mb-1 text-on-surface">Fluency</label>
+            <input 
+              type="text" 
+              placeholder="e.g. Native" 
+              {...register("fluency")} 
+              className={`w-full p-2 bg-surface-container-lowest border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary ${errors.fluency ? 'border-error' : 'border-outline-variant'}`} 
+            />
+            {errors.fluency && <p className="text-error text-body-sm mt-1">{errors.fluency.message}</p>}
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-3 pt-4 border-t border-outline-variant mt-8">
+          <button 
+            type="button" 
+            onClick={onClose}
+            className="px-4 py-2 border border-outline-variant rounded-md text-on-surface hover:bg-surface-container-lowest transition-colors font-medium"
+          >
+            Cancel
+          </button>
+          <button 
+            type="submit" 
+            disabled={isSubmitting}
+            className="px-6 py-2 bg-primary text-on-primary rounded-md hover:bg-primary-container transition-colors font-medium shadow-sm disabled:opacity-50"
+          >
+            {isSubmitting ? 'Saving...' : 'Save Language'}
+          </button>
+        </div>
+      </form>
+    </Modal>
+  );
+};
 
 export const LanguagesArticle: React.FC = () => {
   const languages = useResumeStore(state => state.data?.languages);
@@ -19,36 +106,29 @@ export const LanguagesArticle: React.FC = () => {
 
   const toggleEdit = () => setIsEditing(!isEditing);
 
-  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<Language>({
-    resolver: zodResolver(LanguageSchema)
-  });
-
   const openAddModal = () => {
     setEditingIndex(null);
-    reset({ language: '', fluency: '' });
     setIsModalOpen(true);
   };
 
   const openEditModal = (index: number) => {
-    if (!languages) return;
     setEditingIndex(index);
-    reset(languages[index]);
     setIsModalOpen(true);
   };
 
-  const onSubmit = async (data: Language) => {
+  const handleSave = async (data: Language) => {
     if (editingIndex !== null) {
       await updateArrayItem('languages', editingIndex, data);
     } else {
       await addArrayItem('languages', data);
     }
+    setEditingIndex(null);
     setIsModalOpen(false);
   };
 
   const handleDelete = async (index: number) => {
-    if (confirm("Are you sure you want to delete this language?")) {
-      await deleteArrayItem('languages', index);
-    }
+    await deleteArrayItem('languages', index);
+    setEditingIndex(null);
   };
 
   return (
@@ -97,6 +177,7 @@ export const LanguagesArticle: React.FC = () => {
 
         {isEditing && (
           <button 
+            type="button"
             onClick={openAddModal}
             className="flex items-center justify-center gap-2 w-full py-3 mt-2 border-2 border-dashed border-outline-variant rounded-lg text-primary hover:bg-primary-container hover:border-primary transition-colors font-medium"
           >
@@ -105,44 +186,13 @@ export const LanguagesArticle: React.FC = () => {
         )}
       </div>
 
-      <Modal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        title={editingIndex !== null ? "Edit Language" : "Add Language"}
-      >
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          <div className="grid grid-cols-1 gap-4">
-            <div>
-              <label className="block text-label-md mb-1 text-on-surface">Language <span className="text-error">*</span></label>
-              <input type="text" placeholder="e.g. English" {...register("language")} className={`w-full p-2 bg-surface-container-lowest border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary ${errors.language ? 'border-error' : 'border-outline-variant'}`} />
-              {errors.language && <p className="text-error text-body-sm mt-1">{errors.language.message}</p>}
-            </div>
-            
-            <div>
-              <label className="block text-label-md mb-1 text-on-surface">Fluency</label>
-              <input type="text" placeholder="e.g. Native" {...register("fluency")} className={`w-full p-2 bg-surface-container-lowest border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary ${errors.fluency ? 'border-error' : 'border-outline-variant'}`} />
-              {errors.fluency && <p className="text-error text-body-sm mt-1">{errors.fluency.message}</p>}
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-3 pt-4 border-t border-outline-variant mt-8">
-            <button 
-              type="button" 
-              onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2 border border-outline-variant rounded-md text-on-surface hover:bg-surface-container-lowest transition-colors font-medium"
-            >
-              Cancel
-            </button>
-            <button 
-              type="submit" 
-              disabled={isSubmitting}
-              className="px-6 py-2 bg-primary text-on-primary rounded-md hover:bg-primary-container transition-colors font-medium shadow-sm disabled:opacity-50"
-            >
-              {isSubmitting ? 'Saving...' : 'Save Language'}
-            </button>
-          </div>
-        </form>
-      </Modal>
+      <LanguageModal 
+        key={isModalOpen ? (editingIndex !== null ? `edit-${editingIndex}` : 'add-new') : 'closed'}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSave={handleSave}
+        initialData={editingIndex !== null && languages ? languages[editingIndex] : null}
+      />
     </article>
   );
 };

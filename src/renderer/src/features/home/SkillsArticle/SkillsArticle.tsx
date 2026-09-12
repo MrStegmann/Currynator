@@ -1,12 +1,139 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Pencil, X, Plus, Trash2, Edit2, Sparkles, Loader2, AlertCircle, RotateCcw } from 'lucide-react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { useResumeStore } from '../../../store/useResumeStore';
-import { SkillSchema, Skill } from '../../../../../shared/schema/resumeSchema';
+import { Skill } from '../../../../../shared/schema/resumeSchema';
 import { Modal } from '../../../shared/components/Modal/Modal';
 import { NonElementalLabel } from './NonElementalLabel';
 import { CopyButton } from '../../../shared/components/CopyButton/CopyButton';
+
+const SkillFormSchema = z.object({
+  name: z.string().optional().default(''),
+  keywords: z.array(z.object({ text: z.string() })).optional().default([])
+});
+
+interface SkillFormInput {
+  name?: string;
+  keywords: { text: string }[];
+}
+
+interface SkillModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (data: SkillFormInput) => Promise<void>;
+  initialData?: Skill | null;
+}
+
+const SkillModal: React.FC<SkillModalProps> = ({ isOpen, onClose, onSave, initialData }) => {
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const formattedKeywords = (initialData?.keywords || []).map(k => (typeof k === 'string' ? { text: k } : { text: (k as any).text || '' }));
+
+  const { register, handleSubmit, control, formState: { errors, isSubmitting } } = useForm<SkillFormInput>({
+    resolver: zodResolver(SkillFormSchema),
+    defaultValues: {
+      name: initialData?.name || '',
+      keywords: formattedKeywords
+    }
+  });
+
+  const { fields: keywords, append: appendKeyword, remove: removeKeyword } = useFieldArray({
+    control,
+    name: "keywords"
+  });
+
+  useEffect(() => {
+    if (isOpen) {
+      const timer = setTimeout(() => {
+        inputRef.current?.focus();
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
+
+  if (!isOpen) return null;
+
+  const { ref: nameRef, ...nameProps } = register("name");
+
+  return (
+    <Modal 
+      isOpen={isOpen} 
+      onClose={onClose} 
+      title={initialData ? "Edit Skill Group" : "Add Skill Group"}
+    >
+      <form onSubmit={handleSubmit(onSave)} className="space-y-6">
+        <div className="grid grid-cols-1 gap-4">
+          <div>
+            <label className="block text-label-md mb-1 text-on-surface">Skill Group Name <span className="text-error">*</span></label>
+            <input 
+              type="text" 
+              placeholder="e.g. Frontend Technologies" 
+              {...nameProps}
+              ref={(e) => {
+                nameRef(e);
+                inputRef.current = e;
+              }}
+              className={`w-full p-2 bg-surface-container-lowest border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary ${errors.name ? 'border-error' : 'border-outline-variant'}`} 
+            />
+            {errors.name && <p className="text-error text-body-sm mt-1">{errors.name.message}</p>}
+          </div>
+          
+          <div className="border-t border-outline-variant pt-4 mt-2">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-label-md font-semibold text-on-surface m-0">Keywords <span className="text-error">*</span></h3>
+              <button 
+                type="button" 
+                onClick={() => appendKeyword({ text: '' })}
+                className="flex items-center gap-1 text-primary hover:text-primary-container text-label-md bg-surface-container px-3 py-1.5 rounded-md"
+              >
+                <Plus className="w-4 h-4" /> Add Keyword
+              </button>
+            </div>
+            
+            <div className="flex flex-wrap gap-2">
+              {keywords.map((field, index) => (
+                <div key={field.id} className="flex gap-1 items-center bg-surface-container rounded-md pr-1">
+                  <input 
+                    type="text"
+                    {...register(`keywords.${index}.text` as const)} 
+                    className="p-1.5 bg-transparent text-label-md focus:outline-none focus:ring-1 focus:ring-primary w-32" 
+                    placeholder="e.g. React"
+                  />
+                  <button 
+                    type="button" 
+                    onClick={() => removeKeyword(index)}
+                    className="text-outline-variant hover:text-error p-1 rounded transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+            {errors.keywords && <p className="text-error text-body-sm mt-2">{errors.keywords.message}</p>}
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-3 pt-4 border-t border-outline-variant mt-8">
+          <button 
+            type="button" 
+            onClick={onClose}
+            className="px-4 py-2 border border-outline-variant rounded-md text-on-surface hover:bg-surface-container-lowest transition-colors font-medium"
+          >
+            Cancel
+          </button>
+          <button 
+            type="submit" 
+            disabled={isSubmitting}
+            className="px-6 py-2 bg-primary text-on-primary rounded-md hover:bg-primary-container transition-colors font-medium shadow-sm disabled:opacity-50"
+          >
+            {isSubmitting ? 'Saving...' : 'Save Skill Group'}
+          </button>
+        </div>
+      </form>
+    </Modal>
+  );
+};
 
 export const SkillsArticle: React.FC = () => {
   const skills = useResumeStore(state => state.data?.skills);
@@ -33,41 +160,37 @@ export const SkillsArticle: React.FC = () => {
 
   const toggleEdit = () => setIsEditing(!isEditing);
 
-  const { register, handleSubmit, control, reset, formState: { errors, isSubmitting } } = useForm<Skill>({
-    resolver: zodResolver(SkillSchema)
-  });
-
-  const { fields: keywords, append: appendKeyword, remove: removeKeyword } = useFieldArray({
-    control,
-    name: "keywords" as never
-  });
-
   const openAddModal = () => {
     setEditingIndex(null);
-    reset({ name: '', keywords: [] });
     setIsModalOpen(true);
   };
 
   const openEditModal = (index: number) => {
-    if (!skills) return;
+    if (!skills || !skills[index]) return;
     setEditingIndex(index);
-    reset(skills[index]);
     setIsModalOpen(true);
   };
 
-  const onSubmit = async (data: Skill) => {
+  const handleSave = async (data: SkillFormInput) => {
+    const formattedSkill: Skill = {
+      name: data.name || '',
+      keywords: (data.keywords || [])
+        .map((k: any) => (typeof k === 'string' ? k : k?.text || ''))
+        .filter(t => typeof t === 'string' && t.trim() !== '')
+    };
+
     if (editingIndex !== null) {
-      await updateArrayItem('skills', editingIndex, data);
+      await updateArrayItem('skills', editingIndex, formattedSkill);
     } else {
-      await addArrayItem('skills', data);
+      await addArrayItem('skills', formattedSkill);
     }
+    setEditingIndex(null);
     setIsModalOpen(false);
   };
 
   const handleDelete = async (index: number) => {
-    if (confirm("Are you sure you want to delete this skill group?")) {
-      await deleteArrayItem('skills', index);
-    }
+    await deleteArrayItem('skills', index);
+    setEditingIndex(null);
   };
 
   return (
@@ -163,72 +286,13 @@ export const SkillsArticle: React.FC = () => {
         )}
       </div>
 
-      <Modal 
+      <SkillModal 
+        key={isModalOpen ? (editingIndex !== null ? `edit-${editingIndex}` : 'add-new') : 'closed'}
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
-        title={editingIndex !== null ? "Edit Skill Group" : "Add Skill Group"}
-      >
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          <div className="grid grid-cols-1 gap-4">
-            <div>
-              <label className="block text-label-md mb-1 text-on-surface">Skill Group Name <span className="text-error">*</span></label>
-              <input type="text" placeholder="e.g. Frontend Technologies" {...register("name")} className={`w-full p-2 bg-surface-container-lowest border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary ${errors.name ? 'border-error' : 'border-outline-variant'}`} />
-              {errors.name && <p className="text-error text-body-sm mt-1">{errors.name.message}</p>}
-            </div>
-            
-            <div className="border-t border-outline-variant pt-4 mt-2">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-label-md font-semibold text-on-surface m-0">Keywords <span className="text-error">*</span></h3>
-                <button 
-                  type="button" 
-                  onClick={() => appendKeyword(' ' as never)}
-                  className="flex items-center gap-1 text-primary hover:text-primary-container text-label-md bg-surface-container px-3 py-1.5 rounded-md"
-                >
-                  <Plus className="w-4 h-4" /> Add Keyword
-                </button>
-              </div>
-              
-              <div className="flex flex-wrap gap-2">
-                {keywords.map((field, index) => (
-                  <div key={field.id} className="flex gap-1 items-center bg-surface-container rounded-md pr-1">
-                    <input 
-                      type="text"
-                      {...register(`keywords.${index}` as const)} 
-                      className="p-1.5 bg-transparent text-label-md focus:outline-none focus:ring-1 focus:ring-primary w-32" 
-                      placeholder="e.g. React"
-                    />
-                    <button 
-                      type="button" 
-                      onClick={() => removeKeyword(index)}
-                      className="text-outline-variant hover:text-error p-1 rounded transition-colors"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-              {errors.keywords && <p className="text-error text-body-sm mt-2">{errors.keywords.message}</p>}
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-3 pt-4 border-t border-outline-variant mt-8">
-            <button 
-              type="button" 
-              onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2 border border-outline-variant rounded-md text-on-surface hover:bg-surface-container-lowest transition-colors font-medium"
-            >
-              Cancel
-            </button>
-            <button 
-              type="submit" 
-              disabled={isSubmitting}
-              className="px-6 py-2 bg-primary text-on-primary rounded-md hover:bg-primary-container transition-colors font-medium shadow-sm disabled:opacity-50"
-            >
-              {isSubmitting ? 'Saving...' : 'Save Skill Group'}
-            </button>
-          </div>
-        </form>
-      </Modal>
+        onSave={handleSave}
+        initialData={editingIndex !== null && skills ? skills[editingIndex] : null}
+      />
     </article>
   );
 };
