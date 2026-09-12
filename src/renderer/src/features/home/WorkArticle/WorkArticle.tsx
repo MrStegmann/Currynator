@@ -6,6 +6,8 @@ import { useResumeStore } from '../../../store/useResumeStore';
 import { WorkSchema, Work } from '../../../../../shared/schema/resumeSchema';
 import { Modal } from '../../../shared/components/Modal/Modal';
 
+import { CopyButton } from '../../../shared/components/CopyButton/CopyButton';
+
 export const WorkArticle: React.FC = () => {
   const work = useResumeStore(state => state.data?.work);
   const addArrayItem = useResumeStore(state => state.addArrayItem);
@@ -59,17 +61,20 @@ export const WorkArticle: React.FC = () => {
     <article className="bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm overflow-hidden relative">
       <div className="bg-surface-container-low px-6 py-4 border-b border-outline-variant flex justify-between items-center">
         <h2 className="text-headline-sm font-semibold text-on-surface m-0">Work</h2>
-        <button
-          onClick={toggleEdit}
-          className={`p-1.5 rounded-md transition-colors ${
-            isEditing 
-              ? 'bg-primary text-on-primary hover:bg-primary/90'
-              : 'text-on-surface-variant hover:bg-primary-container hover:text-primary'
-          }`}
-          aria-label={isEditing ? 'Done Editing Work' : 'Edit Work'}
-        >
-          {isEditing ? <X className="w-4 h-4" /> : <Pencil className="w-4 h-4" />}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={toggleEdit}
+            className={`p-1.5 rounded-md transition-colors ${
+              isEditing 
+                ? 'bg-primary text-on-primary hover:bg-primary/90'
+                : 'text-on-surface-variant hover:bg-primary-container hover:text-primary'
+            }`}
+            aria-label={isEditing ? 'Done Editing Work' : 'Edit Work'}
+          >
+            {isEditing ? <X className="w-4 h-4" /> : <Pencil className="w-4 h-4" />}
+          </button>
+          <CopyButton data={work} title="Copy Work JSON to clipboard" />
+        </div>
       </div>
       <div className="p-6 grid gap-6 text-body-md text-on-surface-variant">
         {!work || work.length === 0 ? (

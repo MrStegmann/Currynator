@@ -6,6 +6,7 @@ import { useResumeStore } from '../../../store/useResumeStore';
 import { SkillSchema, Skill } from '../../../../../shared/schema/resumeSchema';
 import { Modal } from '../../../shared/components/Modal/Modal';
 import { NonElementalLabel } from './NonElementalLabel';
+import { CopyButton } from '../../../shared/components/CopyButton/CopyButton';
 
 export const SkillsArticle: React.FC = () => {
   const skills = useResumeStore(state => state.data?.skills);
@@ -94,6 +95,7 @@ export const SkillsArticle: React.FC = () => {
           >
             {isEditing ? <X className="w-4 h-4" /> : <Pencil className="w-4 h-4" />}
           </button>
+          <CopyButton data={skills} title="Copy Skills JSON to clipboard" />
         </div>
       </div>
       <div className="p-6 grid gap-6 text-body-md text-on-surface-variant">
