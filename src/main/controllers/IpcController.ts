@@ -2,12 +2,15 @@ import { ipcMain } from 'electron';
 import { ResumeStorage } from '../models/ResumeStorage.js';
 import { Resume } from '../shared/schema/resumeSchema.js';
 import { LinkedinImportController } from './LinkedinImportController.js';
+import { GroqController } from './GroqController.js';
 
 export class IpcController {
   private linkedinImportController: LinkedinImportController;
+  private groqController: GroqController;
 
   constructor(private storage: ResumeStorage) {
     this.linkedinImportController = new LinkedinImportController(storage);
+    this.groqController = new GroqController();
   }
 
   registerHandlers() {
@@ -68,6 +71,18 @@ export class IpcController {
     ipcMain.handle('linkedin:save-imported', async (_, importedResume: Resume, strategy: 'replace' | 'keep') => {
       try {
         return this.linkedinImportController.saveImportedResume(importedResume, strategy);
+      } catch (error) {
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error'
+        };
+      }
+    });
+
+    // Groq Skill Categorization Handler
+    ipcMain.handle('groq:analyze-skills', async (_, skills: string[]) => {
+      try {
+        return await this.groqController.analyzeSkills(skills);
       } catch (error) {
         return {
           success: false,

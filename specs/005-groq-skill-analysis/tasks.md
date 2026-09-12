@@ -20,7 +20,7 @@
 
 **Purpose**: Environment and project setup for Groq SDK integration
 
-- [ ] T001 Configure `GROQ_API_KEY=` template variable in [.env.example](file:///d:/Github/Currynator/.env.example)
+- [X] T001 Configure `GROQ_API_KEY=` template variable in [.env.example](file:///d:/Github/Currynator/.env.example)
 
 ---
 
@@ -28,9 +28,9 @@
 
 **Purpose**: Core Groq controller and IPC backend routing that MUST be complete before UI integration
 
-- [ ] T002 [P] Create unit test suite for Groq controller and JSON response parser in [tests/main/controllers/GroqController.test.ts](file:///d:/Github/Currynator/tests/main/controllers/GroqController.test.ts)
-- [ ] T003 [P] Implement `GroqController` with SDK prompt execution and JSON parsing/sanitization in [src/main/controllers/GroqController.ts](file:///d:/Github/Currynator/src/main/controllers/GroqController.ts)
-- [ ] T004 Register `groq:analyze-skills` IPC channel handler in [src/main/controllers/IpcController.ts](file:///d:/Github/Currynator/src/main/controllers/IpcController.ts)
+- [X] T002 [P] Create unit test suite for Groq controller and JSON response parser in [tests/main/controllers/GroqController.test.ts](file:///d:/Github/Currynator/tests/main/controllers/GroqController.test.ts)
+- [X] T003 [P] Implement `GroqController` with SDK prompt execution and JSON parsing/sanitization in [src/main/controllers/GroqController.ts](file:///d:/Github/Currynator/src/main/controllers/GroqController.ts)
+- [X] T004 Register `groq:analyze-skills` IPC channel handler in [src/main/controllers/IpcController.ts](file:///d:/Github/Currynator/src/main/controllers/IpcController.ts)
 
 ---
 
@@ -42,8 +42,8 @@
 
 ### Implementation for User Story 1
 
-- [ ] T005 [P] [US1] Add `analyzeSkills` action to Zustand store in [src/renderer/src/store/useResumeStore.ts](file:///d:/Github/Currynator/src/renderer/src/store/useResumeStore.ts)
-- [ ] T006 [US1] Integrate `groq:analyze-skills` invocation into the skills import workflow in [src/renderer/src/features/home/SkillsArticle/SkillsArticle.tsx](file:///d:/Github/Currynator/src/renderer/src/features/home/SkillsArticle/SkillsArticle.tsx)
+- [X] T005 [P] [US1] Add `analyzeSkills` action to Zustand store in [src/renderer/src/store/useResumeStore.ts](file:///d:/Github/Currynator/src/renderer/src/store/useResumeStore.ts)
+- [X] T006 [US1] Integrate `groq:analyze-skills` invocation into the skills import workflow in [src/renderer/src/features/home/SkillsArticle/SkillsArticle.tsx](file:///d:/Github/Currynator/src/renderer/src/features/home/SkillsArticle/SkillsArticle.tsx)
 
 **Checkpoint**: At this point, User Story 1 is fully functional and skill categorization operates end-to-end.
 
@@ -57,9 +57,9 @@
 
 ### Implementation for User Story 2
 
-- [ ] T007 [P] [US2] Create unit test for floating label and hover tooltip interaction in [tests/renderer/components/NonElementalLabel.test.tsx](file:///d:/Github/Currynator/tests/renderer/components/NonElementalLabel.test.tsx)
-- [ ] T008 [P] [US2] Implement `NonElementalLabel` component with TailwindCSS styling and hover tooltip in [src/renderer/src/features/home/SkillsArticle/NonElementalLabel.tsx](file:///d:/Github/Currynator/src/renderer/src/features/home/SkillsArticle/NonElementalLabel.tsx)
-- [ ] T009 [US2] Integrate `NonElementalLabel` into `SkillsArticle` for `Non-Elemental` skill categories in [src/renderer/src/features/home/SkillsArticle/SkillsArticle.tsx](file:///d:/Github/Currynator/src/renderer/src/features/home/SkillsArticle/SkillsArticle.tsx)
+- [X] T007 [P] [US2] Create unit test for floating label and hover tooltip interaction in [tests/renderer/components/NonElementalLabel.test.tsx](file:///d:/Github/Currynator/tests/renderer/components/NonElementalLabel.test.tsx)
+- [X] T008 [P] [US2] Implement `NonElementalLabel` component with TailwindCSS styling and hover tooltip in [src/renderer/src/features/home/SkillsArticle/NonElementalLabel.tsx](file:///d:/Github/Currynator/src/renderer/src/features/home/SkillsArticle/NonElementalLabel.tsx)
+- [X] T009 [US2] Integrate `NonElementalLabel` into `SkillsArticle` for `Non-Elemental` skill categories in [src/renderer/src/features/home/SkillsArticle/SkillsArticle.tsx](file:///d:/Github/Currynator/src/renderer/src/features/home/SkillsArticle/SkillsArticle.tsx)
 
 **Checkpoint**: At this point, User Stories 1 AND 2 are both fully functional.
 
@@ -73,8 +73,8 @@
 
 ### Implementation for User Story 3
 
-- [ ] T010 [P] [US3] Add API key validation and timeout error tests in [tests/main/controllers/GroqController.test.ts](file:///d:/Github/Currynator/tests/main/controllers/GroqController.test.ts)
-- [ ] T011 [US3] Implement UI error notification and fallback handling when skill categorization fails in [src/renderer/src/features/home/SkillsArticle/SkillsArticle.tsx](file:///d:/Github/Currynator/src/renderer/src/features/home/SkillsArticle/SkillsArticle.tsx)
+- [X] T010 [P] [US3] Add API key validation and timeout error tests in [tests/main/controllers/GroqController.test.ts](file:///d:/Github/Currynator/tests/main/controllers/GroqController.test.ts)
+- [X] T011 [US3] Implement UI error notification and fallback handling when skill categorization fails in [src/renderer/src/features/home/SkillsArticle/SkillsArticle.tsx](file:///d:/Github/Currynator/src/renderer/src/features/home/SkillsArticle/SkillsArticle.tsx)
 
 **Checkpoint**: All user stories are functional, resilient, and fully tested.
 
@@ -82,8 +82,8 @@
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T012 [P] Execute full test suite `npm test` to ensure zero regressions
-- [ ] T013 Validate end-to-end feature behavior against [quickstart.md](file:///d:/Github/Currynator/specs/005-groq-skill-analysis/quickstart.md)
+- [X] T012 [P] Execute full test suite `npm test` to ensure zero regressions
+- [X] T013 Validate end-to-end feature behavior against [quickstart.md](file:///d:/Github/Currynator/specs/005-groq-skill-analysis/quickstart.md)
 
 ---
 

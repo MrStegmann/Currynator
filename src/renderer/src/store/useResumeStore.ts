@@ -11,6 +11,7 @@ interface ResumeState {
   addArrayItem: <K extends keyof Omit<Resume, 'basics'>>(section: K, item: any) => Promise<void>;
   updateArrayItem: <K extends keyof Omit<Resume, 'basics'>>(section: K, index: number, item: any) => Promise<void>;
   deleteArrayItem: <K extends keyof Omit<Resume, 'basics'>>(section: K, index: number) => Promise<void>;
+  analyzeSkills: (rawSkills?: string[]) => Promise<{ success: boolean; error?: string }>;
 }
 
 // Ensure TypeScript knows about window.electron
@@ -57,7 +58,7 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
     try {
       await window.electron.ipcRenderer.invoke('resume:save', newData);
     } catch (err: any) {
-      set({ error: err.message });
+      console.error('Error saving basics:', err);
       // Revert on failure
       set({ data });
     }
@@ -76,7 +77,7 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
     try {
       await window.electron.ipcRenderer.invoke('resume:save', newData);
     } catch (err: any) {
-      set({ error: err.message });
+      console.error(`Error saving ${String(section)} item:`, err);
       set({ data });
     }
   },
@@ -95,7 +96,7 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
     try {
       await window.electron.ipcRenderer.invoke('resume:save', newData);
     } catch (err: any) {
-      set({ error: err.message });
+      console.error(`Error saving ${String(section)} item:`, err);
       set({ data });
     }
   },
@@ -113,8 +114,42 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
     try {
       await window.electron.ipcRenderer.invoke('resume:save', newData);
     } catch (err: any) {
-      set({ error: err.message });
+      console.error(`Error saving ${String(section)} item:`, err);
       set({ data });
+    }
+  },
+
+  analyzeSkills: async (rawSkills) => {
+    const { data } = get();
+    if (!data) return { success: false, error: 'No resume data available' };
+
+    let skillsToProcess = rawSkills;
+    if (!skillsToProcess || skillsToProcess.length === 0) {
+      const existing = data.skills || [];
+      skillsToProcess = existing.flatMap(group => [
+        ...(group.name ? [group.name] : []),
+        ...(group.keywords || [])
+      ]);
+    }
+
+    if (skillsToProcess.length === 0) {
+      return { success: true };
+    }
+
+    try {
+      const response = await window.electron.ipcRenderer.invoke('groq:analyze-skills', skillsToProcess);
+      if (response.success && response.data) {
+        const newData = { ...data, skills: response.data };
+        set({ data: newData });
+        await window.electron.ipcRenderer.invoke('resume:save', newData);
+        return { success: true };
+      } else {
+        const errorMsg = response.error || 'Failed to analyze skills';
+        return { success: false, error: errorMsg };
+      }
+    } catch (err: any) {
+      const errorMsg = err.message || 'Unknown error calling Groq analysis';
+      return { success: false, error: errorMsg };
     }
   }
 }));

@@ -1,20 +1,34 @@
 import React, { useState } from 'react';
-import { Pencil, X, Plus, Trash2, Edit2 } from 'lucide-react';
+import { Pencil, X, Plus, Trash2, Edit2, Sparkles, Loader2, AlertCircle, RotateCcw } from 'lucide-react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useResumeStore } from '../../../store/useResumeStore';
 import { SkillSchema, Skill } from '../../../../../shared/schema/resumeSchema';
 import { Modal } from '../../../shared/components/Modal/Modal';
+import { NonElementalLabel } from './NonElementalLabel';
 
 export const SkillsArticle: React.FC = () => {
   const skills = useResumeStore(state => state.data?.skills);
   const addArrayItem = useResumeStore(state => state.addArrayItem);
   const updateArrayItem = useResumeStore(state => state.updateArrayItem);
   const deleteArrayItem = useResumeStore(state => state.deleteArrayItem);
+  const analyzeSkills = useResumeStore(state => state.analyzeSkills);
   
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analyzeError, setAnalyzeError] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
+
+  const handleAnalyzeSkills = async () => {
+    setIsAnalyzing(true);
+    setAnalyzeError(null);
+    const result = await analyzeSkills();
+    if (!result.success) {
+      setAnalyzeError(result.error || 'Skill analysis failed');
+    }
+    setIsAnalyzing(false);
+  };
 
   const toggleEdit = () => setIsEditing(!isEditing);
 
@@ -59,25 +73,62 @@ export const SkillsArticle: React.FC = () => {
     <article className="bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm overflow-hidden relative">
       <div className="bg-surface-container-low px-6 py-4 border-b border-outline-variant flex justify-between items-center">
         <h2 className="text-headline-sm font-semibold text-on-surface m-0">Skills</h2>
-        <button
-          onClick={toggleEdit}
-          className={`p-1.5 rounded-md transition-colors ${
-            isEditing 
-              ? 'bg-primary text-on-primary hover:bg-primary/90'
-              : 'text-on-surface-variant hover:bg-primary-container hover:text-primary'
-          }`}
-          aria-label={isEditing ? 'Done Editing Skills' : 'Edit Skills'}
-        >
-          {isEditing ? <X className="w-4 h-4" /> : <Pencil className="w-4 h-4" />}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleAnalyzeSkills}
+            disabled={isAnalyzing}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-label-md font-medium bg-primary-container text-primary hover:bg-primary hover:text-on-primary rounded-md transition-colors disabled:opacity-50"
+            title="Categorize skills by tech stack using Groq AI"
+          >
+            {isAnalyzing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+            {isAnalyzing ? 'Categorizing...' : 'Categorize with AI'}
+          </button>
+          <button
+            onClick={toggleEdit}
+            className={`p-1.5 rounded-md transition-colors ${
+              isEditing 
+                ? 'bg-primary text-on-primary hover:bg-primary/90'
+                : 'text-on-surface-variant hover:bg-primary-container hover:text-primary'
+            }`}
+            aria-label={isEditing ? 'Done Editing Skills' : 'Edit Skills'}
+          >
+            {isEditing ? <X className="w-4 h-4" /> : <Pencil className="w-4 h-4" />}
+          </button>
+        </div>
       </div>
       <div className="p-6 grid gap-6 text-body-md text-on-surface-variant">
+        {analyzeError && (
+          <div className="p-4 bg-error-container/20 border border-error/30 text-on-surface rounded-lg text-body-sm flex items-start justify-between gap-3">
+            <div className="flex items-start gap-2.5">
+              <span className="text-error mt-0.5"><AlertCircle className="w-5 h-5" /></span>
+              <div>
+                <strong className="block text-error text-label-md font-semibold mb-0.5">Categorization Failed</strong>
+                <p className="m-0 text-on-surface-variant text-body-sm">{analyzeError}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleAnalyzeSkills}
+                disabled={isAnalyzing}
+                className="flex items-center gap-1 px-2.5 py-1 text-label-sm font-medium bg-error-container text-on-error-container hover:bg-error/20 rounded transition-colors"
+              >
+                <RotateCcw className="w-3.5 h-3.5" /> Retry
+              </button>
+              <button onClick={() => setAnalyzeError(null)} className="p-1 text-on-surface-variant hover:text-on-surface rounded">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
         {!skills || skills.length === 0 ? (
           <p>No skills provided.</p>
         ) : (
           skills.map((skillGroup, index) => (
             <div key={index} className="relative group">
-              <strong className="text-on-surface block mb-2">{skillGroup.name}</strong>
+              <div className="flex items-center mb-2">
+                <strong className="text-on-surface">{skillGroup.name}</strong>
+                {skillGroup.name === 'Non-Elemental' && <NonElementalLabel />}
+              </div>
               <div className="flex flex-wrap gap-2">
                 {skillGroup.keywords.map((kw, idx) => (
                   <span key={idx} className="bg-surface-container px-3 py-1 rounded-md text-label-md">
