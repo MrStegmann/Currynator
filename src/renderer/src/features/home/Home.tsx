@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Header } from '../../shared/components/Header/Header';
 import { RightNavBar } from '../../shared/components/RightNavBar/RightNavBar';
 import { useResumeStore } from '../../store/useResumeStore';
+import { useCvDashboardStore, ActiveView } from '../cv-dashboard/store/useCvDashboardStore';
+import { CvDashboardView } from '../cv-dashboard/components/CvDashboardView';
 import { BasicsArticle } from './BasicsArticle/BasicsArticle';
 import { WorkArticle } from './WorkArticle/WorkArticle';
 import { EducationArticle } from './EducationArticle/EducationArticle';
@@ -16,6 +18,7 @@ export const Home: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isImportViewOpen, setIsImportViewOpen] = useState(false);
   const { data, loadResume, isLoading, error } = useResumeStore();
+  const { activeView, setActiveView } = useCvDashboardStore();
 
   useEffect(() => {
     loadResume();
@@ -25,12 +28,23 @@ export const Home: React.FC = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
+  const handleSelectView = (view: ActiveView) => {
+    setIsImportViewOpen(false);
+    setActiveView(view);
+  };
+
+  const currentHeaderTitle = isImportViewOpen
+    ? 'Import LinkedIn Data'
+    : activeView === 'CV Dashboard'
+    ? 'CV Dashboard'
+    : 'Home';
+
   return (
     <div className="min-h-screen bg-background text-on-background flex flex-col font-sans">
-      <Header currentViewName={isImportViewOpen ? "Import LinkedIn Data" : "Home"} onToggleSidebar={toggleSidebar} />
+      <Header currentViewName={currentHeaderTitle} onToggleSidebar={toggleSidebar} />
       
       <div className="flex flex-1 relative">
-        <RightNavBar isOpen={isSidebarOpen} activeView="Home" />
+        <RightNavBar isOpen={isSidebarOpen} activeView={activeView} onSelectView={handleSelectView} />
         
         <main
           className={`flex-1 p-6 lg:p-8 transition-all duration-300 ease-in-out ${
@@ -39,6 +53,8 @@ export const Home: React.FC = () => {
         >
           {isImportViewOpen ? (
             <ImportView onBack={() => setIsImportViewOpen(false)} />
+          ) : activeView === 'CV Dashboard' ? (
+            <CvDashboardView />
           ) : (
             <>
               <FloatingImportButton onClick={() => setIsImportViewOpen(true)} />
