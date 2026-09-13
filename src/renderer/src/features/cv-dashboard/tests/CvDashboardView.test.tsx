@@ -8,8 +8,11 @@ describe('CvDashboardView - User Story 1 (Empty State)', () => {
   beforeEach(() => {
     useCvDashboardStore.setState({
       cvItems: [],
+      jobApplications: [],
       activeView: 'CV Dashboard',
       deletingCvId: null,
+      isFormModalOpen: false,
+      editingJobApp: null,
     });
   });
 
@@ -58,6 +61,8 @@ describe('CvDashboardView - User Story 2 (Populated Grid)', () => {
       ],
       activeView: 'CV Dashboard',
       deletingCvId: null,
+      isFormModalOpen: false,
+      editingJobApp: null,
     });
   });
 
@@ -94,6 +99,8 @@ describe('CvDashboardView - User Story 3 (Card Actions & Delete Modal)', () => {
       ],
       activeView: 'CV Dashboard',
       deletingCvId: null,
+      isFormModalOpen: false,
+      editingJobApp: null,
     });
   });
 

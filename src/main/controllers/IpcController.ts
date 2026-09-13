@@ -3,14 +3,18 @@ import { ResumeStorage } from '../models/ResumeStorage.js';
 import { Resume, Work } from '../shared/schema/resumeSchema.js';
 import { LinkedinImportController } from './LinkedinImportController.js';
 import { GroqController } from './GroqController.js';
+import { JobApplicationController } from './JobApplicationController.js';
+import { JobApplication, JobApplicationStatus } from '../shared/schema/jobApplicationSchema.js';
 
 export class IpcController {
   private linkedinImportController: LinkedinImportController;
   private groqController: GroqController;
+  private jobApplicationController: JobApplicationController;
 
   constructor(private storage: ResumeStorage) {
     this.linkedinImportController = new LinkedinImportController(storage);
     this.groqController = new GroqController();
+    this.jobApplicationController = new JobApplicationController();
   }
 
   registerHandlers() {
@@ -102,5 +106,25 @@ export class IpcController {
         };
       }
     });
+
+    // Job Application Handlers
+    ipcMain.handle('job-application:get-all', async () => {
+      return this.jobApplicationController.getAll();
+    });
+
+    ipcMain.handle('job-application:save', async (_, data: JobApplication) => {
+      return this.jobApplicationController.save(data);
+    });
+
+    ipcMain.handle('job-application:delete', async (_, id: string) => {
+      return this.jobApplicationController.delete(id);
+    });
+
+    ipcMain.handle(
+      'job-application:update-status',
+      async (_, { id, status }: { id: string; status: JobApplicationStatus }) => {
+        return this.jobApplicationController.updateStatus(id, status);
+      }
+    );
   }
 }

@@ -11,5 +11,11 @@ contextBridge.exposeInMainWorld('electron', {
     removeListener: (channel: string, listener: (event: any, ...args: any[]) => void) => {
       ipcRenderer.removeListener(channel, listener);
     }
+  },
+  jobApplication: {
+    getAll: () => ipcRenderer.invoke('job-application:get-all'),
+    save: (data: any) => ipcRenderer.invoke('job-application:save', data),
+    delete: (id: string) => ipcRenderer.invoke('job-application:delete', id),
+    updateStatus: (id: string, status: string) => ipcRenderer.invoke('job-application:update-status', { id, status }),
   }
 });
