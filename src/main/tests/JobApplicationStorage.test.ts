@@ -89,6 +89,22 @@ describe('JobApplicationStorage', () => {
         'utf8'
       );
     });
+
+    it('should save application with match_score and tailored_json_resume', () => {
+      (fs.existsSync as jest.Mock).mockReturnValue(false);
+
+      const appWithCv: JobApplication = {
+        ...mockApp,
+        status: 'pending',
+        match_score: 92,
+        tailored_json_resume: { basics: { name: 'John Doe' } }
+      };
+
+      const saved = storage.save(appWithCv);
+      expect(saved.match_score).toBe(92);
+      expect(saved.tailored_json_resume).toEqual({ basics: { name: 'John Doe' } });
+      expect(saved.status).toBe('pending');
+    });
   });
 
   describe('delete', () => {

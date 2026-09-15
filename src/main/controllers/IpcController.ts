@@ -107,6 +107,18 @@ export class IpcController {
       }
     });
 
+    // Groq CV Job Driven Alignment Handler
+    ipcMain.handle('groq:cv-job-driven', async (_, payload: any) => {
+      try {
+        return await this.groqController.analyzeCvJobDriven(payload);
+      } catch (error) {
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error'
+        };
+      }
+    });
+
     // Job Application Handlers
     ipcMain.handle('job-application:get-all', async () => {
       return this.jobApplicationController.getAll();

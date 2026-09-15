@@ -1,0 +1,50 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "GroqCvJobDrivenContract",
+  "description": "IPC Contract for channel groq:cv-job-driven",
+  "type": "object",
+  "properties": {
+    "channel": {
+      "type": "string",
+      "enum": ["groq:cv-job-driven"]
+    },
+    "request": {
+      "type": "object",
+      "properties": {
+        "resume": {
+          "type": "object",
+          "description": "User's Master JSON Resume payload"
+        },
+        "jobApplication": {
+          "type": "object",
+          "properties": {
+            "title": { "type": "string" },
+            "jobDescription": { "type": "string" },
+            "jobRequirement": { "type": "string" },
+            "companyDescription": { "type": "string" },
+            "companyWebsiteUrl": { "type": "string" }
+          },
+          "required": ["title", "jobDescription", "jobRequirement"]
+        }
+      },
+      "required": ["resume", "jobApplication"]
+    },
+    "response": {
+      "type": "object",
+      "properties": {
+        "success": { "type": "boolean" },
+        "match_score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "json_resume": {
+          "type": "object",
+          "description": "Tailored JSON Resume with empty properties recursively omitted"
+        },
+        "error": { "type": "string" }
+      },
+      "required": ["success"]
+    }
+  }
+}

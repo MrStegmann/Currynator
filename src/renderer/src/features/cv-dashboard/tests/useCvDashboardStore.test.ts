@@ -1,5 +1,6 @@
-import { describe, it, expect, beforeEach } from '@jest/globals';
+import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { useCvDashboardStore } from '../store/useCvDashboardStore';
+import { ipcClient } from '../../../shared/ipc/ipcClient';
 
 describe('useCvDashboardStore', () => {
   beforeEach(() => {
@@ -21,6 +22,7 @@ describe('useCvDashboardStore', () => {
           updatedAt: '2026-09-11T14:30:00Z',
         },
       ],
+      jobApplications: [],
       activeView: 'Home',
       deletingCvId: null,
     });
@@ -54,5 +56,27 @@ describe('useCvDashboardStore', () => {
 
     useCvDashboardStore.getState().setDeletingCvId(null);
     expect(useCvDashboardStore.getState().deletingCvId).toBeNull();
+  });
+
+  it('should trigger Groq AI CV generation when saving a new job application', async () => {
+    const spyAnalyze = jest.spyOn(ipcClient, 'analyzeCvJobDriven').mockResolvedValue({
+      success: true,
+      match_score: 95,
+      json_resume: { basics: { name: 'Test User' } },
+    });
+
+    await useCvDashboardStore.getState().saveJobApplication({
+      title: 'AI Engineer',
+      jobDescription: 'LLM integration and prompt engineering',
+      jobRequirement: 'Python, TypeScript, Groq API',
+    });
+
+    const state = useCvDashboardStore.getState();
+    expect(state.jobApplications).toHaveLength(1);
+    expect(state.jobApplications[0].status).toBe('pending');
+    expect(state.jobApplications[0].match_score).toBe(95);
+    expect(state.jobApplications[0].tailored_json_resume).toEqual({ basics: { name: 'Test User' } });
+
+    spyAnalyze.mockRestore();
   });
 });

@@ -15,6 +15,24 @@ export interface GroqWorkAnalysisResponse {
   error?: string;
 }
 
+export interface GroqCvJobDrivenRequest {
+  resume: any;
+  jobApplication: {
+    title: string;
+    jobDescription: string;
+    jobRequirement: string;
+    companyDescription?: string;
+    companyWebsiteUrl?: string;
+  };
+}
+
+export interface GroqCvJobDrivenResponse {
+  success: boolean;
+  match_score?: number;
+  json_resume?: Record<string, any>;
+  error?: string;
+}
+
 function ensureEnvLoaded() {
   if (process.env.GROQ_API_KEY) return;
   try {
@@ -112,6 +130,46 @@ You will receive a JSON array containing professional work experience data for a
 2. Preserve Identifiers & Dates: You MUST keep 'name', 'position', 'url', 'startDate', and 'endDate' EXACTLY as given in the input. Do NOT clear them, change dates/company names, or return empty strings.
 3. Scope of Edits: You MUST ONLY correct spelling, fix grammatical errors, improve professional phrasing, and ensure proper vocabulary.
 4. Output Format: You MUST return ONLY a valid JSON array matching the exact structure and array length as the input, with the populated work experience objects. Do not return empty placeholders or conversational text.`;
+
+const GROQ_CV_JOB_SYSTEM_PROMPT = `You are an expert Technical Recruiter and Resume Alignment Engine.
+
+**Task:**
+Analyze the provided user Master JSON Resume against the target Job Application (title, description, requirements).
+Output a tailored JSON Resume that selects and highlights the most relevant work experience, skills, projects, and education matching the job requirements.
+
+**Strict Rules:**
+1. ZERO HALLUCINATION: You MUST ONLY use data existing in the provided Master JSON Resume. You MUST NEVER invent, extrapolate, or add non-existing skills, projects, company names, dates, or credentials.
+2. MATCH SCORE: Calculate a numeric match score (integer from 0 to 100) reflecting how closely the user's master resume matches the job requirements.
+3. Output Format: You MUST return ONLY a valid JSON object with the following structure:
+{
+  "match_score": 85,
+  "json_resume": { ... }
+}
+Do not include any markdown preamble, postscript, or explanation text outside the JSON object.`;
+
+function cleanEmptyProperties(obj: any): any {
+  if (obj === null || obj === undefined) return undefined;
+  if (typeof obj === 'string') {
+    return obj.trim() === '' ? undefined : obj;
+  }
+  if (Array.isArray(obj)) {
+    const cleanedArray = obj.map(cleanEmptyProperties).filter(item => item !== undefined);
+    return cleanedArray.length === 0 ? undefined : cleanedArray;
+  }
+  if (typeof obj === 'object') {
+    const result: Record<string, any> = {};
+    let hasKeys = false;
+    for (const key of Object.keys(obj)) {
+      const cleanedVal = cleanEmptyProperties(obj[key]);
+      if (cleanedVal !== undefined) {
+        result[key] = cleanedVal;
+        hasKeys = true;
+      }
+    }
+    return hasKeys ? result : undefined;
+  }
+  return obj;
+}
 
 export class GroqController {
   private groqClient: any;
@@ -229,6 +287,94 @@ export class GroqController {
         error: error instanceof Error ? error.message : 'Unknown error during Groq work analysis'
       };
     }
+  }
+
+  /**
+   * Analyze Master JSON Resume against Job Application details to generate a tailored CV & match score
+   */
+  public async analyzeCvJobDriven(payload: GroqCvJobDrivenRequest): Promise<GroqCvJobDrivenResponse> {
+    try {
+      if (process.env.NODE_ENV !== 'test') {
+        ensureEnvLoaded();
+      }
+      const apiKey = process.env.GROQ_API_KEY;
+      if (!apiKey && !this.groqClient) {
+        return {
+          success: false,
+          error: 'GROQ_API_KEY environment variable is missing.'
+        };
+      }
+
+      const client = this.groqClient || new Groq({ apiKey, dangerouslyAllowBrowser: true });
+
+      const userContent = `Master JSON Resume:\n${JSON.stringify(payload.resume, null, 2)}\n\nJob Application Requirements:\nTitle: ${payload.jobApplication.title}\nDescription: ${payload.jobApplication.jobDescription}\nRequirements: ${payload.jobApplication.jobRequirement}\nCompany Description: ${payload.jobApplication.companyDescription || ''}`;
+
+      const response = await client.chat.completions.create({
+        messages: [
+          { role: 'system', content: GROQ_CV_JOB_SYSTEM_PROMPT },
+          { role: 'user', content: userContent }
+        ],
+        model: 'qwen/qwen3.8-27b',
+        temperature: 0.1
+      });
+
+      const responseText = response.choices?.[0]?.message?.content || '';
+      const parsed = this.extractJsonObject(responseText);
+
+      const matchScore = typeof parsed.match_score === 'number'
+        ? Math.max(0, Math.min(100, Math.round(parsed.match_score)))
+        : 70;
+
+      const rawJsonResume = parsed.json_resume || payload.resume || {};
+      const cleanedJsonResume = cleanEmptyProperties(rawJsonResume) || {};
+
+      return {
+        success: true,
+        match_score: matchScore,
+        json_resume: cleanedJsonResume
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error during Groq CV job analysis'
+      };
+    }
+  }
+
+  /**
+   * Robustly extracts and parses a JSON object from raw model response text
+   */
+  private extractJsonObject(responseText: string): any {
+    let cleanText = responseText.trim();
+
+    try {
+      const parsed = JSON.parse(cleanText);
+      if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) return parsed;
+    } catch {}
+
+    const fenceMatch = cleanText.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+    if (fenceMatch) {
+      try {
+        const parsed = JSON.parse(fenceMatch[1].trim());
+        if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) return parsed;
+      } catch {}
+      cleanText = fenceMatch[1].trim();
+    }
+
+    const firstBrace = cleanText.indexOf('{');
+    if (firstBrace !== -1) {
+      let lastBrace = cleanText.lastIndexOf('}');
+      while (lastBrace > firstBrace) {
+        const candidate = cleanText.substring(firstBrace, lastBrace + 1);
+        try {
+          const parsed = JSON.parse(candidate);
+          if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) return parsed;
+        } catch {}
+        lastBrace = cleanText.lastIndexOf('}', lastBrace - 1);
+      }
+    }
+
+    throw new Error('Groq response did not return a valid JSON object');
   }
 
   /**

@@ -4,7 +4,8 @@ import { useCvDashboardStore } from '../store/useCvDashboardStore';
 import { CvDashboardEmptyState } from './CvDashboardEmptyState';
 import { CvItemCard } from './CvItemCard';
 import { DeleteCvModal } from './DeleteCvModal';
-import { JobApplicationFormModal } from './JobApplicationFormModal';
+import { PreviewCvModal } from './PreviewCvModal';
+import { JobApplicationFormView } from './JobApplicationFormView';
 
 export const CvDashboardView: React.FC = () => {
   const {
@@ -16,8 +17,12 @@ export const CvDashboardView: React.FC = () => {
     setDeletingCvId,
     isFormModalOpen,
     editingJobApp,
+    previewingCvApp,
+    regeneratingAppId,
     setFormModalOpen,
+    setPreviewingCvApp,
     saveJobApplication,
+    regenerateCv,
     updateJobApplicationStatus,
     loadJobApplications,
   } = useCvDashboardStore();
@@ -32,9 +37,24 @@ export const CvDashboardView: React.FC = () => {
 
   const totalItems = cvItems.length + jobApplications.length;
 
+  // Render Full-Page Form View when creating or editing a Job Application
+  if (isFormModalOpen) {
+    return (
+      <JobApplicationFormView
+        initialData={editingJobApp}
+        onSave={async (data) => {
+          await saveJobApplication(data);
+        }}
+        onBack={() => {
+          setFormModalOpen(false, null);
+        }}
+      />
+    );
+  }
+
   return (
     <div className="relative max-w-7xl mx-auto pb-12">
-      {/* Top-right Floating Action Button */}
+      {/* Top Header & Floating Add Button */}
       <div className="flex items-center justify-between mb-8">
         <div>
           <h2 className="text-headline-medium text-on-surface font-semibold m-0 tracking-tight">
@@ -80,6 +100,14 @@ export const CvDashboardView: React.FC = () => {
               onStatusChange={(id, newStatus) => {
                 updateJobApplicationStatus(id, newStatus);
               }}
+              onPreviewCv={(id) => {
+                const item = jobApplications.find((app) => app.id === id);
+                if (item) setPreviewingCvApp(item);
+              }}
+              onRegenerateCv={(id) => {
+                regenerateCv(id);
+              }}
+              isRegenerating={regeneratingAppId === jobApp.id}
             />
           ))}
 
@@ -88,12 +116,6 @@ export const CvDashboardView: React.FC = () => {
             <CvItemCard
               key={item.id}
               cvItem={item}
-              onView={(id) => {
-                // View placeholder
-              }}
-              onEdit={(id) => {
-                // Edit placeholder
-              }}
               onDelete={(id) => {
                 setDeletingCvId(id);
               }}
@@ -120,19 +142,12 @@ export const CvDashboardView: React.FC = () => {
         }}
       />
 
-      {/* Job Application Create/Edit Modal */}
-      {isFormModalOpen && (
-        <JobApplicationFormModal
-          isOpen={isFormModalOpen}
-          initialData={editingJobApp}
-          onSave={(data) => {
-            saveJobApplication(data);
-          }}
-          onClose={() => {
-            setFormModalOpen(false, null);
-          }}
-        />
-      )}
+      {/* Preview Tailored CV Modal */}
+      <PreviewCvModal
+        isOpen={Boolean(previewingCvApp)}
+        jobApplication={previewingCvApp}
+        onClose={() => setPreviewingCvApp(null)}
+      />
     </div>
   );
 };

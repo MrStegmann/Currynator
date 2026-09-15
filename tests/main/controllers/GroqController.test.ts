@@ -333,4 +333,82 @@ describe('GroqController', () => {
       expect(result.error).toContain('API quota exceeded');
     });
   });
+
+  describe('analyzeCvJobDriven', () => {
+    it('should return error if GROQ_API_KEY is not set', async () => {
+      delete process.env.GROQ_API_KEY;
+      const noKeyController = new GroqController();
+      const result = await noKeyController.analyzeCvJobDriven({
+        resume: { basics: { name: 'Alice' } } as any,
+        jobApplication: { title: 'Dev', jobDescription: 'Desc', jobRequirement: 'Req' }
+      });
+      expect(result.success).toBe(false);
+      expect(result.error).toMatch(/GROQ_API_KEY/i);
+    });
+
+    it('should parse match_score and tailored json_resume stripping empty properties', async () => {
+      const mockResume = {
+        basics: { name: 'John Doe', email: 'john@example.com', summary: '' },
+        work: [{ name: 'Tech Co', position: 'Dev', highlights: [] }],
+        skills: []
+      };
+
+      const mockJobApp = {
+        title: 'Senior Developer',
+        jobDescription: 'React dev needed',
+        jobRequirement: 'React expertise'
+      };
+
+      const mockResponseText = JSON.stringify({
+        match_score: 85,
+        json_resume: {
+          basics: {
+            name: 'John Doe',
+            email: 'john@example.com',
+            phone: '',
+            summary: null
+          },
+          work: [
+            {
+              name: 'Tech Co',
+              position: 'Dev',
+              highlights: []
+            }
+          ],
+          skills: []
+        }
+      });
+
+      const mockGroqClient = {
+        chat: {
+          completions: {
+            create: jest.fn<any>().mockResolvedValue({
+              choices: [{ message: { content: mockResponseText } }]
+            })
+          }
+        }
+      };
+
+      const customController = new GroqController(mockGroqClient as any);
+      const result = await customController.analyzeCvJobDriven({
+        resume: mockResume as any,
+        jobApplication: mockJobApp
+      });
+
+      expect(result.success).toBe(true);
+      expect(result.match_score).toBe(85);
+      expect(result.json_resume).toEqual({
+        basics: {
+          name: 'John Doe',
+          email: 'john@example.com'
+        },
+        work: [
+          {
+            name: 'Tech Co',
+            position: 'Dev'
+          }
+        ]
+      });
+    });
+  });
 });

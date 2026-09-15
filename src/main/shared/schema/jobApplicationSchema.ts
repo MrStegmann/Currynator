@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 export const JobApplicationStatusSchema = z.enum([
+  'pending',
   'applied',
   'called',
   'interview',
@@ -18,7 +19,9 @@ export const JobApplicationSchema = z.object({
   companyWebsiteUrl: z.string().optional().default(''),
   created_at: z.string(),
   updated_at: z.string(),
-  status: JobApplicationStatusSchema.default('applied'),
+  status: JobApplicationStatusSchema.default('pending'),
+  match_score: z.number().min(0).max(100).optional(),
+  tailored_json_resume: z.record(z.string(), z.any()).optional(),
 });
 
 export const JobApplicationListSchema = z.array(JobApplicationSchema);

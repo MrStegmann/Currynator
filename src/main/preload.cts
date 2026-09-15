@@ -12,6 +12,10 @@ contextBridge.exposeInMainWorld('electron', {
       ipcRenderer.removeListener(channel, listener);
     }
   },
+  groq: {
+    analyzeCvJobDriven: (payload: { resume: any; jobApplication: any }) =>
+      ipcRenderer.invoke('groq:cv-job-driven', payload),
+  },
   jobApplication: {
     getAll: () => ipcRenderer.invoke('job-application:get-all'),
     save: (data: any) => ipcRenderer.invoke('job-application:save', data),
