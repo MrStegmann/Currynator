@@ -4,6 +4,7 @@ import { RightNavBar } from '../../shared/components/RightNavBar/RightNavBar';
 import { useResumeStore } from '../../store/useResumeStore';
 import { useCvDashboardStore, ActiveView } from '../cv-dashboard/store/useCvDashboardStore';
 import { CvDashboardView } from '../cv-dashboard/components/CvDashboardView';
+import { ProjectsView } from '../projects/components/ProjectsView';
 import { BasicsArticle } from './BasicsArticle/BasicsArticle';
 import { WorkArticle } from './WorkArticle/WorkArticle';
 import { EducationArticle } from './EducationArticle/EducationArticle';
@@ -37,6 +38,8 @@ export const Home: React.FC = () => {
     ? 'Import LinkedIn Data'
     : activeView === 'CV Dashboard'
     ? 'CV Dashboard'
+    : activeView === 'Projects'
+    ? 'Projects'
     : 'Home';
 
   return (
@@ -55,6 +58,8 @@ export const Home: React.FC = () => {
             <ImportView onBack={() => setIsImportViewOpen(false)} />
           ) : activeView === 'CV Dashboard' ? (
             <CvDashboardView />
+          ) : activeView === 'Projects' ? (
+            <ProjectsView />
           ) : (
             <>
               <FloatingImportButton onClick={() => setIsImportViewOpen(true)} />

@@ -4,7 +4,7 @@ import { JobApplication, JobApplicationStatus } from '../../../../../main/shared
 import { ipcClient } from '../../../shared/ipc/ipcClient';
 import { useResumeStore } from '../../../store/useResumeStore';
 
-export type ActiveView = 'Home' | 'CV Dashboard';
+export type ActiveView = 'Home' | 'CV Dashboard' | 'Projects';
 
 interface CvDashboardState {
   cvItems: ApplicationCv[];

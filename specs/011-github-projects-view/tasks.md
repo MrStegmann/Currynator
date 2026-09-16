@@ -20,8 +20,8 @@
 
 **Purpose**: Type definitions and encryption utilities
 
-- [ ] T001 Create project type definitions in `src/renderer/src/features/projects/types/projects.ts`
-- [ ] T002 [P] Create token encryption and decryption utility in `src/renderer/src/features/projects/utils/tokenEncryption.ts`
+- [X] T001 Create project type definitions in `src/renderer/src/features/projects/types/projects.ts`
+- [X] T002 [P] Create token encryption and decryption utility in `src/renderer/src/features/projects/utils/tokenEncryption.ts`
 
 ---
 
@@ -29,10 +29,10 @@
 
 **Purpose**: GitHub API client and Zustand store
 
-- [ ] T003 [P] Add unit tests for token encryption in `tests/unit/projects/tokenEncryption.test.ts`
-- [ ] T004 Implement GitHub REST API service in `src/renderer/src/features/projects/utils/githubService.ts`
-- [ ] T005 [P] Add unit tests for GitHub service in `tests/unit/projects/githubService.test.ts`
-- [ ] T006 Implement Zustand projects store in `src/renderer/src/features/projects/store/useProjectsStore.ts`
+- [X] T003 [P] Add unit tests for token encryption in `tests/unit/projects/tokenEncryption.test.ts`
+- [X] T004 Implement GitHub REST API service in `src/renderer/src/features/projects/utils/githubService.ts`
+- [X] T005 [P] Add unit tests for GitHub service in `tests/unit/projects/githubService.test.ts`
+- [X] T006 Implement Zustand projects store in `src/renderer/src/features/projects/store/useProjectsStore.ts`
 
 ---
 
@@ -43,12 +43,12 @@
 **Independent Test**: Access setup view without saved token, verify 2-column layout, toggle password field between `password` and `text`, save token, and confirm store state updates.
 
 ### Tests for User Story 1
-- [ ] T007 [P] [US1] Create unit tests for TokenInputForm in `tests/unit/projects/TokenInputForm.test.tsx`
+- [X] T007 [P] [US1] Create unit tests for TokenInputForm in `tests/unit/projects/TokenInputForm.test.tsx`
 
 ### Implementation for User Story 1
-- [ ] T008 [P] [US1] Create TokenGuide left-column component in `src/renderer/src/features/projects/components/TokenGuide.tsx`
-- [ ] T009 [US1] Create TokenInputForm right-column component with password visibility toggle in `src/renderer/src/features/projects/components/TokenInputForm.tsx`
-- [ ] T010 [US1] Create TokenSetupView 2-column container layout in `src/renderer/src/features/projects/components/TokenSetupView.tsx`
+- [X] T008 [P] [US1] Create TokenGuide left-column component in `src/renderer/src/features/projects/components/TokenGuide.tsx`
+- [X] T009 [US1] Create TokenInputForm right-column component with password visibility toggle in `src/renderer/src/features/projects/components/TokenInputForm.tsx`
+- [X] T010 [US1] Create TokenSetupView 2-column container layout in `src/renderer/src/features/projects/components/TokenSetupView.tsx`
 
 **Checkpoint**: User Story 1 complete and independently testable.
 
@@ -61,12 +61,12 @@
 **Independent Test**: Load Projects view with token, verify cards in 5-column grid (`xl:grid-cols-5`), navigate pages with pagination bar, and verify offline local storage caching.
 
 ### Tests for User Story 2
-- [ ] T011 [P] [US2] Create unit tests for ProjectCard and ProjectsGrid in `tests/unit/projects/ProjectsGrid.test.tsx`
+- [X] T011 [P] [US2] Create unit tests for ProjectCard and ProjectsGrid in `tests/unit/projects/ProjectsGrid.test.tsx`
 
 ### Implementation for User Story 2
-- [ ] T012 [P] [US2] Create ProjectCard component in `src/renderer/src/features/projects/components/ProjectCard.tsx`
-- [ ] T013 [US2] Create ProjectsGrid component with 5-column responsive layout (`xl:grid-cols-5`) in `src/renderer/src/features/projects/components/ProjectsGrid.tsx`
-- [ ] T014 [US2] Create PaginationControls component for 10-item page navigation in `src/renderer/src/features/projects/components/PaginationControls.tsx`
+- [X] T012 [P] [US2] Create ProjectCard component in `src/renderer/src/features/projects/components/ProjectCard.tsx`
+- [X] T013 [US2] Create ProjectsGrid component with 5-column responsive layout (`xl:grid-cols-5`) in `src/renderer/src/features/projects/components/ProjectsGrid.tsx`
+- [X] T014 [US2] Create PaginationControls component for 10-item page navigation in `src/renderer/src/features/projects/components/PaginationControls.tsx`
 
 **Checkpoint**: User Story 2 complete and independently testable.
 
@@ -79,11 +79,11 @@
 **Independent Test**: Click Projects link in NavBar to open Projects page, click top-right floating refresh button to re-fetch repositories from GitHub API.
 
 ### Tests for User Story 3
-- [ ] T015 [P] [US3] Create FloatingRefreshButton component in `src/renderer/src/features/projects/components/FloatingRefreshButton.tsx`
-- [ ] T016 [US3] Create ProjectsView main container component in `src/renderer/src/features/projects/components/ProjectsView.tsx`
-- [ ] T017 [US3] Expand `ActiveView` in `src/renderer/src/features/cv-dashboard/store/useCvDashboardStore.ts` to include `'Projects'`
-- [ ] T018 [US3] Add "Projects" navigation link in `src/renderer/src/shared/components/RightNavBar/RightNavBar.tsx`
-- [ ] T019 [US3] Render `ProjectsView` when activeView is `'Projects'` in `src/renderer/src/features/home/Home.tsx`
+- [X] T015 [P] [US3] Create FloatingRefreshButton component in `src/renderer/src/features/projects/components/FloatingRefreshButton.tsx`
+- [X] T016 [US3] Create ProjectsView main container component in `src/renderer/src/features/projects/components/ProjectsView.tsx`
+- [X] T017 [US3] Expand `ActiveView` in `src/renderer/src/features/cv-dashboard/store/useCvDashboardStore.ts` to include `'Projects'`
+- [X] T018 [US3] Add "Projects" navigation link in `src/renderer/src/shared/components/RightNavBar/RightNavBar.tsx`
+- [X] T019 [US3] Render `ProjectsView` when activeView is `'Projects'` in `src/renderer/src/features/home/Home.tsx`
 
 **Checkpoint**: All user stories complete and independently functional.
 
@@ -91,8 +91,8 @@
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T020 [P] Execute quickstart validation guide in `specs/011-github-projects-view/quickstart.md`
-- [ ] T021 Run complete test suite (`npm test`) to verify zero regressions
+- [X] T020 [P] Execute quickstart validation guide in `specs/011-github-projects-view/quickstart.md`
+- [X] T021 Run complete test suite (`npm test`) to verify zero regressions
 
 ---
 

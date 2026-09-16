@@ -1,14 +1,15 @@
 import React from 'react';
-import { Home, FileText } from 'lucide-react';
+import { Home, FileText, FolderGit2 } from 'lucide-react';
+import { ActiveView } from '../../../features/cv-dashboard/store/useCvDashboardStore';
 
 interface RightNavBarProps {
   isOpen: boolean;
   activeView: string;
-  onSelectView?: (view: 'Home' | 'CV Dashboard') => void;
+  onSelectView?: (view: ActiveView) => void;
 }
 
 export const RightNavBar: React.FC<RightNavBarProps> = ({ isOpen, activeView, onSelectView }) => {
-  const handleViewClick = (e: React.MouseEvent, view: 'Home' | 'CV Dashboard') => {
+  const handleViewClick = (e: React.MouseEvent, view: ActiveView) => {
     e.preventDefault();
     if (onSelectView) {
       onSelectView(view);
@@ -45,6 +46,18 @@ export const RightNavBar: React.FC<RightNavBarProps> = ({ isOpen, activeView, on
         >
           <FileText className="w-5 h-5" />
           <span className="text-body-lg">CV Dashboard</span>
+        </a>
+        <a
+          href="#projects"
+          onClick={(e) => handleViewClick(e, 'Projects')}
+          className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+            activeView === 'Projects'
+              ? 'bg-primary-container text-on-primary-container font-semibold'
+              : 'text-on-surface hover:bg-surface-container-low hover:text-on-surface'
+          }`}
+        >
+          <FolderGit2 className="w-5 h-5" />
+          <span className="text-body-lg">Projects</span>
         </a>
       </nav>
     </aside>
