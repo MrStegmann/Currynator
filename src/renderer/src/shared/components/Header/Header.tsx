@@ -8,7 +8,7 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ currentViewName, onToggleSidebar }) => {
   return (
-    <header className="flex items-center justify-between px-6 py-4 bg-surface-container-lowest border-b border-outline-variant shadow-sm h-16">
+    <header className="sticky top-0 z-50 flex items-center justify-between px-6 py-4 bg-surface-container-lowest border-b border-outline-variant shadow-sm h-16">
       <div className="flex items-center">
         <button
           onClick={onToggleSidebar}

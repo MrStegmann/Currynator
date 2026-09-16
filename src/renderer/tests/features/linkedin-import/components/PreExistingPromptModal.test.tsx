@@ -4,10 +4,14 @@ import '@testing-library/jest-dom';
 import { PreExistingPromptModal } from '../../../../src/features/linkedin-import/components/PreExistingPromptModal';
 
 describe('PreExistingPromptModal', () => {
+  const mockExistingData = { basics: { name: 'Existing User' } };
+  const mockImportedData = { basics: { name: 'Imported User' } };
+
   const defaultProps = {
     isOpen: true,
-    onReplace: jest.fn(),
-    onKeep: jest.fn(),
+    existingData: mockExistingData,
+    importedData: mockImportedData,
+    onConfirm: jest.fn(),
     onCancel: jest.fn()
   };
 
@@ -16,26 +20,20 @@ describe('PreExistingPromptModal', () => {
   });
 
   it('does not render when isOpen is false', () => {
-    render(<PreExistingPromptModal {...defaultProps} isOpen={false} />);
-    expect(screen.queryByText(/Existing Resume Data Found/i)).not.toBeInTheDocument();
+    const { container } = render(<PreExistingPromptModal {...defaultProps} isOpen={false} />);
+    expect(container).toBeEmptyDOMElement();
   });
 
   it('renders modal title and options when isOpen is true', () => {
     render(<PreExistingPromptModal {...defaultProps} />);
-    expect(screen.getByText(/Existing Resume Data Found/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Replace/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Keep.*Merge/i })).toBeInTheDocument();
+    expect(screen.getByText(/Import Conflict Resolution/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Confirm Import/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Cancel Import/i })).toBeInTheDocument();
   });
 
-  it('calls onReplace when Replace button is clicked', () => {
+  it('calls onConfirm when Confirm Import button is clicked', () => {
     render(<PreExistingPromptModal {...defaultProps} />);
-    fireEvent.click(screen.getByRole('button', { name: /Replace/i }));
-    expect(defaultProps.onReplace).toHaveBeenCalledTimes(1);
-  });
-
-  it('calls onKeep when Keep/Merge button is clicked', () => {
-    render(<PreExistingPromptModal {...defaultProps} />);
-    fireEvent.click(screen.getByRole('button', { name: /Keep.*Merge/i }));
-    expect(defaultProps.onKeep).toHaveBeenCalledTimes(1);
+    fireEvent.click(screen.getByRole('button', { name: /Confirm Import/i }));
+    expect(defaultProps.onConfirm).toHaveBeenCalledTimes(1);
   });
 });

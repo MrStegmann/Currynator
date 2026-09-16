@@ -8,6 +8,8 @@ import { useImportStore } from '../store/useImportStore';
 import { useResumeStore } from '../../../store/useResumeStore';
 import { ipcClient } from '../../../shared/ipc/ipcClient';
 import { Resume } from '../../../../../shared/schema/resumeSchema';
+import { applyGranularImportResolution } from '../utils/applyGranularImportResolution';
+import { SectionResolutionMap } from '../types/importResolution';
 
 interface ImportViewProps {
   onBack: () => void;
@@ -16,7 +18,7 @@ interface ImportViewProps {
 
 export const ImportView: React.FC<ImportViewProps> = ({ onBack, onFileSelect }) => {
   const { stage, percentage, message, error, parsedResume, hasExistingData, skippedOptionalFiles, setProgress, setParsedData, reset } = useImportStore();
-  const { loadResume, setResumeData } = useResumeStore();
+  const { data: existingResumeData, loadResume } = useResumeStore();
   const [isPromptOpen, setIsPromptOpen] = useState(false);
 
   useEffect(() => {
@@ -94,15 +96,14 @@ export const ImportView: React.FC<ImportViewProps> = ({ onBack, onFileSelect }) 
     }
   };
 
-  const handlePromptReplace = async () => {
+  const handleConfirmResolution = async (resolutionMap: SectionResolutionMap) => {
     if (parsedResume) {
-      await saveParsedData(parsedResume, 'replace');
-    }
-  };
-
-  const handlePromptKeep = async () => {
-    if (parsedResume) {
-      await saveParsedData(parsedResume, 'keep');
+      const resolvedResume = applyGranularImportResolution({
+        existingData: existingResumeData || {},
+        importedData: parsedResume,
+        resolutionMap
+      });
+      await saveParsedData(resolvedResume, 'replace');
     }
   };
 
@@ -111,8 +112,9 @@ export const ImportView: React.FC<ImportViewProps> = ({ onBack, onFileSelect }) 
       {/* Pre-Existing Data Prompt Modal */}
       <PreExistingPromptModal
         isOpen={isPromptOpen}
-        onReplace={handlePromptReplace}
-        onKeep={handlePromptKeep}
+        existingData={existingResumeData || {}}
+        importedData={parsedResume || {}}
+        onConfirm={handleConfirmResolution}
         onCancel={() => {
           setIsPromptOpen(false);
           reset();
