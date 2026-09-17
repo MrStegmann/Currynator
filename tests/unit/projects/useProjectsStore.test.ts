@@ -15,6 +15,7 @@ describe('useProjectsStore', () => {
     expect(state.token).toBeNull();
     expect(state.isTokenConfigured).toBe(false);
     expect(state.repositories).toEqual([]);
+    expect(state.itemsPerPage).toBe(9);
   });
 
   it('saves token encrypted and fetches repositories', async () => {
@@ -59,5 +60,48 @@ describe('useProjectsStore', () => {
     expect(state.isTokenConfigured).toBe(true);
     expect(state.repositories).toHaveLength(1);
     expect(state.repositories[0].name).toBe('StoredRepo');
+  });
+
+  it('updates filter states and resets filters', () => {
+    const store = useProjectsStore.getState();
+
+    expect(store.searchQuery).toBe('');
+    expect(store.minStars).toBe(0);
+    expect(store.selectedLanguage).toBe('all');
+
+    useProjectsStore.getState().setSearchQuery('react');
+    useProjectsStore.getState().setMinStars(5);
+    useProjectsStore.getState().setSelectedLanguage('TypeScript');
+
+    let updatedState = useProjectsStore.getState();
+    expect(updatedState.searchQuery).toBe('react');
+    expect(updatedState.minStars).toBe(5);
+    expect(updatedState.selectedLanguage).toBe('TypeScript');
+
+    useProjectsStore.getState().resetFilters();
+    updatedState = useProjectsStore.getState();
+    expect(updatedState.searchQuery).toBe('');
+    expect(updatedState.minStars).toBe(0);
+    expect(updatedState.selectedLanguage).toBe('all');
+  });
+
+  it('resets currentPage to 1 when any filter state changes', () => {
+    useProjectsStore.getState().setCurrentPage(3);
+    expect(useProjectsStore.getState().currentPage).toBe(3);
+
+    useProjectsStore.getState().setSearchQuery('query');
+    expect(useProjectsStore.getState().currentPage).toBe(1);
+
+    useProjectsStore.getState().setCurrentPage(4);
+    useProjectsStore.getState().setMinStars(10);
+    expect(useProjectsStore.getState().currentPage).toBe(1);
+
+    useProjectsStore.getState().setCurrentPage(2);
+    useProjectsStore.getState().setSelectedLanguage('Python');
+    expect(useProjectsStore.getState().currentPage).toBe(1);
+
+    useProjectsStore.getState().setCurrentPage(5);
+    useProjectsStore.getState().resetFilters();
+    expect(useProjectsStore.getState().currentPage).toBe(1);
   });
 });

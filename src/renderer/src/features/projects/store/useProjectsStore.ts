@@ -16,11 +16,20 @@ export interface ProjectsState {
   currentPage: number;
   itemsPerPage: number;
 
+  // Filter state
+  searchQuery: string;
+  minStars: number;
+  selectedLanguage: string;
+
   loadInitialState: () => void;
   saveToken: (plainToken: string) => Promise<boolean>;
   clearToken: () => void;
   fetchRepositories: (forceRefresh?: boolean) => Promise<boolean>;
   setCurrentPage: (page: number) => void;
+  setSearchQuery: (query: string) => void;
+  setMinStars: (stars: number) => void;
+  setSelectedLanguage: (language: string) => void;
+  resetFilters: () => void;
 }
 
 export const useProjectsStore = create<ProjectsState>((set, get) => ({
@@ -31,7 +40,12 @@ export const useProjectsStore = create<ProjectsState>((set, get) => ({
   isRefreshing: false,
   error: null,
   currentPage: 1,
-  itemsPerPage: 10,
+  itemsPerPage: 9,
+
+  // Initial Filter State
+  searchQuery: '',
+  minStars: 0,
+  selectedLanguage: 'all',
 
   loadInitialState: () => {
     try {
@@ -83,7 +97,10 @@ export const useProjectsStore = create<ProjectsState>((set, get) => ({
       isTokenConfigured: false,
       repositories: [],
       error: null,
-      currentPage: 1
+      currentPage: 1,
+      searchQuery: '',
+      minStars: 0,
+      selectedLanguage: 'all'
     });
   },
 
@@ -130,5 +147,13 @@ export const useProjectsStore = create<ProjectsState>((set, get) => ({
     }
   },
 
-  setCurrentPage: (page: number) => set({ currentPage: page })
+  setCurrentPage: (page: number) => set({ currentPage: page }),
+
+  setSearchQuery: (query: string) => set({ searchQuery: query, currentPage: 1 }),
+
+  setMinStars: (stars: number) => set({ minStars: stars, currentPage: 1 }),
+
+  setSelectedLanguage: (language: string) => set({ selectedLanguage: language, currentPage: 1 }),
+
+  resetFilters: () => set({ searchQuery: '', minStars: 0, selectedLanguage: 'all', currentPage: 1 })
 }));

@@ -15,6 +15,13 @@ export interface GitHubRepository {
   language: string | null;
   updated_at: string;
   private: boolean;
+  size: number;
+}
+
+export interface ProjectFilterState {
+  searchQuery: string;
+  minStars: number;
+  selectedLanguage: string;
 }
 
 export interface ProjectsPaginationState {
@@ -23,3 +30,4 @@ export interface ProjectsPaginationState {
   totalItems: number;
   totalPages: number;
 }
+

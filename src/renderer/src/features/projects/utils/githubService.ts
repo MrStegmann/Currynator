@@ -52,7 +52,16 @@ export async function fetchGitHubRepositories(token: string): Promise<GitHubApiF
       };
     }
 
-    const repositories: GitHubRepository[] = reposData.map((repo: any) => ({
+    const codebaseRepos = reposData.filter(
+      (repo: any) =>
+        typeof repo.size === 'number' &&
+        repo.size > 0 &&
+        repo.language !== null &&
+        repo.language !== undefined &&
+        String(repo.language).trim() !== ''
+    );
+
+    const repositories: GitHubRepository[] = codebaseRepos.map((repo: any) => ({
       id: repo.id,
       name: repo.name,
       full_name: repo.full_name || repo.name,
@@ -62,7 +71,8 @@ export async function fetchGitHubRepositories(token: string): Promise<GitHubApiF
       forks_count: repo.forks_count || 0,
       language: repo.language || null,
       updated_at: repo.updated_at || new Date().toISOString(),
-      private: Boolean(repo.private)
+      private: Boolean(repo.private),
+      size: repo.size || 0
     }));
 
     return {

@@ -35,10 +35,17 @@ describe('ProjectsView Component', () => {
       isRefreshing: false,
       error: null,
       currentPage: 1,
-      itemsPerPage: 10,
+      itemsPerPage: 9,
+      searchQuery: '',
+      minStars: 0,
+      selectedLanguage: 'all',
       loadInitialState: mockLoadInitialState,
       fetchRepositories: mockFetchRepositories,
-      setCurrentPage: mockSetCurrentPage
+      setCurrentPage: mockSetCurrentPage,
+      setSearchQuery: jest.fn(),
+      setMinStars: jest.fn(),
+      setSelectedLanguage: jest.fn(),
+      resetFilters: jest.fn()
     });
   });
 
@@ -60,10 +67,17 @@ describe('ProjectsView Component', () => {
       isRefreshing: false,
       error: null,
       currentPage: 1,
-      itemsPerPage: 10,
+      itemsPerPage: 9,
+      searchQuery: '',
+      minStars: 0,
+      selectedLanguage: 'all',
       loadInitialState: mockLoadInitialState,
       fetchRepositories: mockFetchRepositories,
-      setCurrentPage: mockSetCurrentPage
+      setCurrentPage: mockSetCurrentPage,
+      setSearchQuery: jest.fn(),
+      setMinStars: jest.fn(),
+      setSelectedLanguage: jest.fn(),
+      resetFilters: jest.fn()
     });
 
     render(<ProjectsView />);

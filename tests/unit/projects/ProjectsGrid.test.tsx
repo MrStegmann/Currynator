@@ -58,15 +58,33 @@ describe('ProjectsGrid Component', () => {
     }
   ];
 
-  it('renders grid with 5-column responsive Tailwind class and repository cards', () => {
+  it('renders grid with 3-column responsive Tailwind class and repository cards', () => {
     const { container } = render(<ProjectsGrid repositories={sampleRepos} />);
 
     const gridDiv = container.querySelector('.grid');
     expect(gridDiv).toBeInTheDocument();
-    expect(gridDiv).toHaveClass('xl:grid-cols-5');
+    expect(gridDiv).toHaveClass('lg:grid-cols-3');
 
     expect(screen.getByText('Repo1')).toBeInTheDocument();
     expect(screen.getByText('Repo2')).toBeInTheDocument();
+  });
+
+  it('renders No Matching Projects card with clear filters button when hasActiveFilters is true', () => {
+    const handleReset = jest.fn();
+    render(
+      <ProjectsGrid
+        repositories={[]}
+        hasActiveFilters={true}
+        onResetFilters={handleReset}
+      />
+    );
+
+    expect(screen.getByText('No Matching Projects')).toBeInTheDocument();
+    const clearBtn = screen.getByRole('button', { name: /clear filters/i });
+    expect(clearBtn).toBeInTheDocument();
+
+    fireEvent.click(clearBtn);
+    expect(handleReset).toHaveBeenCalledTimes(1);
   });
 });
 
