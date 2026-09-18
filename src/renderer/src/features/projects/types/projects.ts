@@ -31,3 +31,28 @@ export interface ProjectsPaginationState {
   totalPages: number;
 }
 
+export type ProjectScoreCategory =
+  | 'readme_structure'
+  | 'real_demo'
+  | 'commit_history'
+  | 'codebase_structure'
+  | 'language_best_practices'
+  | 'no_debug_artifacts'
+  | 'test_coverage';
+
+export interface ScoreLogItem {
+  category: ProjectScoreCategory | string;
+  title: string;
+  score: number;
+  log: string;
+  improvements: string[];
+}
+
+export interface AIScoreResult {
+  repoId: number;
+  repoName: string;
+  totalScore: number;
+  evaluatedAt: string;
+  logs: ScoreLogItem[];
+}
+

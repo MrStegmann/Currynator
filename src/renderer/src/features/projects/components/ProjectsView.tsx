@@ -5,6 +5,8 @@ import { ProjectsGrid } from './ProjectsGrid';
 import { ProjectFilterBar } from './ProjectFilterBar';
 import { PaginationControls } from './PaginationControls';
 import { FloatingRefreshButton } from './FloatingRefreshButton';
+import { FloatingScoreButton } from './FloatingScoreButton';
+import { ScoreConfirmModal } from './ScoreConfirmModal';
 import { Loader2 } from 'lucide-react';
 
 export const ProjectsView: React.FC = () => {
@@ -19,13 +21,21 @@ export const ProjectsView: React.FC = () => {
     searchQuery,
     minStars,
     selectedLanguage,
+    selectedRepoIds,
+    isScoring,
+    projectScores,
+    isConfirmModalOpen,
     loadInitialState,
     fetchRepositories,
     setCurrentPage,
     setSearchQuery,
     setMinStars,
     setSelectedLanguage,
-    resetFilters
+    resetFilters,
+    toggleSelectRepo,
+    scoreSelectedProjects,
+    scoreAllProjects,
+    setConfirmModalOpen
   } = useProjectsStore();
 
   useEffect(() => {
@@ -61,6 +71,15 @@ export const ProjectsView: React.FC = () => {
     });
   }, [repositories, searchQuery, minStars, selectedLanguage]);
 
+  const handleScoreButtonClick = () => {
+    const selectedCount = selectedRepoIds ? selectedRepoIds.length : 0;
+    if (selectedCount > 0) {
+      scoreSelectedProjects();
+    } else {
+      setConfirmModalOpen(true);
+    }
+  };
+
   if (!isTokenConfigured) {
     return <TokenSetupView />;
   }
@@ -73,7 +92,21 @@ export const ProjectsView: React.FC = () => {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 relative pb-12">
-      {/* Floating Refresh Action Button Fixed Top-Right */}
+      {/* Confirmation Modal when 0 items selected */}
+      <ScoreConfirmModal
+        isOpen={isConfirmModalOpen}
+        projectCount={repositories ? repositories.length : 0}
+        onConfirm={scoreAllProjects}
+        onCancel={() => setConfirmModalOpen(false)}
+        isProcessing={isScoring}
+      />
+
+      {/* Floating Action Buttons Fixed Top-Right */}
+      <FloatingScoreButton
+        onScore={handleScoreButtonClick}
+        isScoring={isScoring}
+        selectedCount={selectedRepoIds ? selectedRepoIds.length : 0}
+      />
       <FloatingRefreshButton
         onRefresh={() => fetchRepositories(true)}
         isRefreshing={isRefreshing}
@@ -85,7 +118,7 @@ export const ProjectsView: React.FC = () => {
             GitHub Projects ({totalItems})
           </h2>
           <p className="text-body-sm text-on-surface-variant mt-1">
-            Synced repositories from your GitHub account.
+            Synced repositories from your GitHub account. Select projects or click score to evaluate quality with Groq AI.
           </p>
         </div>
       </div>
@@ -115,6 +148,9 @@ export const ProjectsView: React.FC = () => {
             repositories={currentRepositories}
             hasActiveFilters={Boolean((searchQuery || '').trim().length > 0 || (minStars || 0) > 0 || (selectedLanguage && selectedLanguage !== 'all'))}
             onResetFilters={resetFilters}
+            selectedRepoIds={selectedRepoIds}
+            onToggleSelectRepo={toggleSelectRepo}
+            projectScores={projectScores}
           />
 
           {/* Simple Pagination Controls (Max 9 per page) */}

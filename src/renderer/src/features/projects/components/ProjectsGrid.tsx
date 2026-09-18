@@ -1,5 +1,5 @@
 import React from 'react';
-import { GitHubRepository } from '../types/projects';
+import { GitHubRepository, AIScoreResult } from '../types/projects';
 import { ProjectCard } from './ProjectCard';
 import { FolderGit2, SearchX, RotateCcw } from 'lucide-react';
 
@@ -7,12 +7,18 @@ interface ProjectsGridProps {
   repositories: GitHubRepository[];
   hasActiveFilters?: boolean;
   onResetFilters?: () => void;
+  selectedRepoIds?: number[];
+  onToggleSelectRepo?: (id: number) => void;
+  projectScores?: Record<number, AIScoreResult>;
 }
 
 export const ProjectsGrid: React.FC<ProjectsGridProps> = ({
   repositories,
   hasActiveFilters = false,
-  onResetFilters
+  onResetFilters,
+  selectedRepoIds = [],
+  onToggleSelectRepo,
+  projectScores = {}
 }) => {
   if (!repositories || repositories.length === 0) {
     if (hasActiveFilters) {
@@ -55,7 +61,13 @@ export const ProjectsGrid: React.FC<ProjectsGridProps> = ({
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {repositories.map(repo => (
-        <ProjectCard key={repo.id} repository={repo} />
+        <ProjectCard
+          key={repo.id}
+          repository={repo}
+          isSelected={selectedRepoIds.includes(repo.id)}
+          onToggleSelect={onToggleSelectRepo ? () => onToggleSelectRepo(repo.id) : undefined}
+          scoreResult={projectScores[repo.id]}
+        />
       ))}
     </div>
   );

@@ -119,6 +119,18 @@ export class IpcController {
       }
     });
 
+    // Groq Project Scoring Handler
+    ipcMain.handle('groq:score-project', async (_, payload: any) => {
+      try {
+        return await this.groqController.scoreProject(payload);
+      } catch (error) {
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error'
+        };
+      }
+    });
+
     // Job Application Handlers
     ipcMain.handle('job-application:get-all', async () => {
       return this.jobApplicationController.getAll();

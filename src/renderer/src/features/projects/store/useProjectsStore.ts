@@ -1,10 +1,11 @@
 import { create } from 'zustand';
-import { GitHubRepository } from '../types/projects';
+import { GitHubRepository, AIScoreResult } from '../types/projects';
 import { encryptGitHubToken, decryptGitHubToken } from '../utils/tokenEncryption';
 import { fetchGitHubRepositories } from '../utils/githubService';
 
 const TOKEN_STORAGE_KEY = 'currynator_github_token';
 const REPOS_STORAGE_KEY = 'currynator_github_repos';
+const SCORES_STORAGE_KEY = 'currynator_project_scores';
 
 export interface ProjectsState {
   token: string | null;
@@ -15,6 +16,13 @@ export interface ProjectsState {
   error: string | null;
   currentPage: number;
   itemsPerPage: number;
+
+  // Selection & Scoring State
+  selectedRepoIds: number[];
+  isScoring: boolean;
+  scoringError: string | null;
+  projectScores: Record<number, AIScoreResult>;
+  isConfirmModalOpen: boolean;
 
   // Filter state
   searchQuery: string;
@@ -30,6 +38,13 @@ export interface ProjectsState {
   setMinStars: (stars: number) => void;
   setSelectedLanguage: (language: string) => void;
   resetFilters: () => void;
+
+  // Selection & Scoring Actions
+  toggleSelectRepo: (id: number) => void;
+  clearSelection: () => void;
+  scoreSelectedProjects: () => Promise<boolean>;
+  scoreAllProjects: () => Promise<boolean>;
+  setConfirmModalOpen: (open: boolean) => void;
 }
 
 export const useProjectsStore = create<ProjectsState>((set, get) => ({
@@ -47,6 +62,12 @@ export const useProjectsStore = create<ProjectsState>((set, get) => ({
   minStars: 0,
   selectedLanguage: 'all',
 
+  // Initial Selection & Scoring State
+  selectedRepoIds: [],
+  isScoring: false,
+  scoringError: null,
+  projectScores: {},
+
   loadInitialState: () => {
     try {
       const encryptedToken = localStorage.getItem(TOKEN_STORAGE_KEY);
@@ -56,10 +77,14 @@ export const useProjectsStore = create<ProjectsState>((set, get) => ({
       const cachedReposStr = localStorage.getItem(REPOS_STORAGE_KEY);
       const cachedRepos: GitHubRepository[] = cachedReposStr ? JSON.parse(cachedReposStr) : [];
 
+      const cachedScoresStr = localStorage.getItem(SCORES_STORAGE_KEY);
+      const cachedScores: Record<number, AIScoreResult> = cachedScoresStr ? JSON.parse(cachedScoresStr) : {};
+
       set({
         token: plainToken,
         isTokenConfigured: isConfigured,
-        repositories: Array.isArray(cachedRepos) ? cachedRepos : []
+        repositories: Array.isArray(cachedRepos) ? cachedRepos : [],
+        projectScores: cachedScores && typeof cachedScores === 'object' ? cachedScores : {}
       });
     } catch (err) {
       console.error('Error loading initial projects state:', err);
@@ -92,6 +117,7 @@ export const useProjectsStore = create<ProjectsState>((set, get) => ({
   clearToken: () => {
     localStorage.removeItem(TOKEN_STORAGE_KEY);
     localStorage.removeItem(REPOS_STORAGE_KEY);
+    localStorage.removeItem(SCORES_STORAGE_KEY);
     set({
       token: null,
       isTokenConfigured: false,
@@ -100,7 +126,11 @@ export const useProjectsStore = create<ProjectsState>((set, get) => ({
       currentPage: 1,
       searchQuery: '',
       minStars: 0,
-      selectedLanguage: 'all'
+      selectedLanguage: 'all',
+      selectedRepoIds: [],
+      projectScores: {},
+      isScoring: false,
+      scoringError: null
     });
   },
 
@@ -155,5 +185,102 @@ export const useProjectsStore = create<ProjectsState>((set, get) => ({
 
   setSelectedLanguage: (language: string) => set({ selectedLanguage: language, currentPage: 1 }),
 
-  resetFilters: () => set({ searchQuery: '', minStars: 0, selectedLanguage: 'all', currentPage: 1 })
+  resetFilters: () => set({ searchQuery: '', minStars: 0, selectedLanguage: 'all', currentPage: 1 }),
+
+  toggleSelectRepo: (id: number) => {
+    const current = get().selectedRepoIds || [];
+    const exists = current.includes(id);
+    const updated = exists ? current.filter(item => item !== id) : [...current, id];
+    set({ selectedRepoIds: updated });
+  },
+
+  clearSelection: () => set({ selectedRepoIds: [] }),
+
+  scoreSelectedProjects: async () => {
+    const { selectedRepoIds, repositories, projectScores } = get();
+    if (!selectedRepoIds || selectedRepoIds.length === 0) return false;
+
+    set({ isScoring: true, scoringError: null });
+
+    const selectedRepos = repositories.filter(repo => selectedRepoIds.includes(repo.id));
+    const updatedScores = { ...projectScores };
+    let hasError = false;
+
+    try {
+      for (const repo of selectedRepos) {
+        if ((window as any).electron?.groq?.scoreProject) {
+          const res = await (window as any).electron.groq.scoreProject({
+            id: repo.id,
+            name: repo.name,
+            description: repo.description,
+            language: repo.language,
+            html_url: repo.html_url
+          });
+
+          if (res.success && res.data) {
+            updatedScores[repo.id] = res.data;
+          } else {
+            hasError = true;
+            set({ scoringError: res.error || `Failed to score repository ${repo.name}` });
+          }
+        }
+      }
+
+      localStorage.setItem(SCORES_STORAGE_KEY, JSON.stringify(updatedScores));
+      set({ projectScores: updatedScores, isScoring: false });
+      return !hasError;
+    } catch (err) {
+      set({
+        isScoring: false,
+        scoringError: err instanceof Error ? err.message : 'Error scoring selected projects'
+      });
+      return false;
+    }
+  },
+
+  isConfirmModalOpen: false,
+
+  setConfirmModalOpen: (open: boolean) => set({ isConfirmModalOpen: open }),
+
+  scoreAllProjects: async () => {
+
+    const { repositories, projectScores } = get();
+    if (!repositories || repositories.length === 0) return false;
+
+    set({ isScoring: true, scoringError: null, isConfirmModalOpen: false });
+
+    const updatedScores = { ...projectScores };
+    let hasError = false;
+
+    try {
+      for (const repo of repositories) {
+        if ((window as any).electron?.groq?.scoreProject) {
+          const res = await (window as any).electron.groq.scoreProject({
+            id: repo.id,
+            name: repo.name,
+            description: repo.description,
+            language: repo.language,
+            html_url: repo.html_url
+          });
+
+          if (res.success && res.data) {
+            updatedScores[repo.id] = res.data;
+          } else {
+            hasError = true;
+            set({ scoringError: res.error || `Failed to score repository ${repo.name}` });
+          }
+        }
+      }
+
+      localStorage.setItem(SCORES_STORAGE_KEY, JSON.stringify(updatedScores));
+      set({ projectScores: updatedScores, isScoring: false });
+      return !hasError;
+    } catch (err) {
+      set({
+        isScoring: false,
+        scoringError: err instanceof Error ? err.message : 'Error scoring all projects'
+      });
+      return false;
+    }
+  }
 }));

@@ -15,6 +15,8 @@ contextBridge.exposeInMainWorld('electron', {
   groq: {
     analyzeCvJobDriven: (payload: { resume: any; jobApplication: any }) =>
       ipcRenderer.invoke('groq:cv-job-driven', payload),
+    scoreProject: (payload: any) =>
+      ipcRenderer.invoke('groq:score-project', payload),
   },
   jobApplication: {
     getAll: () => ipcRenderer.invoke('job-application:get-all'),

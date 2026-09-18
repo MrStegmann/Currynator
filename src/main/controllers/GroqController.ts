@@ -33,6 +33,35 @@ export interface GroqCvJobDrivenResponse {
   error?: string;
 }
 
+export interface GroqProjectScorePayload {
+  id: number;
+  name: string;
+  description?: string | null;
+  language?: string | null;
+  html_url: string;
+  readmeContent?: string;
+  commitLogs?: string[];
+  fileTree?: string[];
+}
+
+export interface GroqProjectScoreResponse {
+  success: boolean;
+  data?: {
+    repoId: number;
+    repoName: string;
+    totalScore: number;
+    evaluatedAt: string;
+    logs: {
+      category: string;
+      title: string;
+      score: number;
+      log: string;
+      improvements: string[];
+    }[];
+  };
+  error?: string;
+}
+
 function ensureEnvLoaded() {
   if (process.env.GROQ_API_KEY) return;
   try {
@@ -449,5 +478,147 @@ export class GroqController {
       name: typeof item.name === 'string' ? item.name : 'Non-grouped',
       keywords: Array.isArray(item.keywords) ? item.keywords.map(String) : []
     }));
+  }
+
+  /**
+   * Evaluates a project repository using Groq AI across 7 criteria and returns structured JSON logs and total score.
+   */
+  public async scoreProject(payload: GroqProjectScorePayload): Promise<GroqProjectScoreResponse> {
+    ensureEnvLoaded();
+    const apiKey = process.env.GROQ_API_KEY;
+
+    if (!apiKey) {
+      return {
+        success: false,
+        error: 'GROQ_API_KEY is not configured in environment or .env file.'
+      };
+    }
+
+    try {
+      const client = new Groq({ apiKey });
+
+      const promptUserContent = `Evaluate project repository:
+Repository Name: ${payload.name}
+Description: ${payload.description || 'None'}
+Primary Language: ${payload.language || 'Unknown'}
+URL: ${payload.html_url}
+README Excerpt: ${payload.readmeContent ? payload.readmeContent.substring(0, 1500) : 'None'}
+Commit Logs: ${payload.commitLogs && payload.commitLogs.length > 0 ? payload.commitLogs.slice(0, 10).join('; ') : 'None'}
+File Tree: ${payload.fileTree && payload.fileTree.length > 0 ? payload.fileTree.slice(0, 30).join(', ') : 'None'}
+`;
+
+      const response = await client.chat.completions.create({
+        model: 'llama-3.3-70b-versatile',
+        messages: [
+          {
+            role: 'system',
+            content: `You are an expert Principal Code Auditor and Technical Evaluator.
+Evaluate the provided repository payload against 7 core criteria:
+1. readme_structure: README.md file structure
+2. real_demo: Presence of a real demo (URLs, live links, preview badges)
+3. commit_history: Clean commit log history
+4. codebase_structure: Codebase structure and pattern consistency
+5. language_best_practices: Programming language best practices and naming conventions
+6. no_debug_artifacts: Absence of console.log() or debug artifacts
+7. test_coverage: Presence of unit or integration tests
+
+Respond strictly with a JSON object in this exact schema:
+{
+  "totalScore": <number 1 to 100>,
+  "logs": [
+    {
+      "category": "readme_structure",
+      "title": "README.md Structure",
+      "score": <number 1-100>,
+      "log": "<detailed audit note>",
+      "improvements": ["<bullet point improvement suggestion>", ...]
+    },
+    {
+      "category": "real_demo",
+      "title": "Real Demo",
+      "score": <number 1-100>,
+      "log": "<detailed audit note>",
+      "improvements": ["<bullet point improvement suggestion>", ...]
+    },
+    {
+      "category": "commit_history",
+      "title": "Clean Commit Log",
+      "score": <number 1-100>,
+      "log": "<detailed audit note>",
+      "improvements": ["<bullet point improvement suggestion>", ...]
+    },
+    {
+      "category": "codebase_structure",
+      "title": "Codebase Structure",
+      "score": <number 1-100>,
+      "log": "<detailed audit note>",
+      "improvements": ["<bullet point improvement suggestion>", ...]
+    },
+    {
+      "category": "language_best_practices",
+      "title": "Best Practices & Naming",
+      "score": <number 1-100>,
+      "log": "<detailed audit note>",
+      "improvements": ["<bullet point improvement suggestion>", ...]
+    },
+    {
+      "category": "no_debug_artifacts",
+      "title": "Absence of Debug Artifacts",
+      "score": <number 1-100>,
+      "log": "<detailed audit note>",
+      "improvements": ["<bullet point improvement suggestion>", ...]
+    },
+    {
+      "category": "test_coverage",
+      "title": "Testing Quality",
+      "score": <number 1-100>,
+      "log": "<detailed audit note>",
+      "improvements": ["<bullet point improvement suggestion>", ...]
+    }
+  ]
+}`
+          },
+          {
+            role: 'user',
+            content: promptUserContent
+          }
+        ],
+        temperature: 0.2,
+        response_format: { type: 'json_object' }
+      });
+
+      const content = response.choices[0]?.message?.content;
+      if (!content) {
+        return { success: false, error: 'Empty response from Groq API' };
+      }
+
+      const parsed = JSON.parse(content);
+      const totalScore = Math.max(1, Math.min(100, Math.round(Number(parsed.totalScore) || 50)));
+
+      const rawLogs = Array.isArray(parsed.logs) ? parsed.logs : [];
+      const logs = rawLogs.map((item: any) => ({
+        category: String(item.category || 'general'),
+        title: String(item.title || item.category || 'Evaluation'),
+        score: Math.max(1, Math.min(100, Math.round(Number(item.score) || 50))),
+        log: String(item.log || ''),
+        improvements: Array.isArray(item.improvements) ? item.improvements.map(String) : []
+      }));
+
+      return {
+        success: true,
+        data: {
+          repoId: payload.id,
+          repoName: payload.name,
+          totalScore,
+          evaluatedAt: new Date().toISOString(),
+          logs
+        }
+      };
+    } catch (err) {
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : 'Error evaluating project score with Groq API'
+      };
+    }
   }
 }
