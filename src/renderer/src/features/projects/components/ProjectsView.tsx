@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useProjectsStore } from '../store/useProjectsStore';
 import { TokenSetupView } from './TokenSetupView';
 import { ProjectsGrid } from './ProjectsGrid';
@@ -7,7 +7,9 @@ import { PaginationControls } from './PaginationControls';
 import { FloatingRefreshButton } from './FloatingRefreshButton';
 import { FloatingScoreButton } from './FloatingScoreButton';
 import { ScoreConfirmModal } from './ScoreConfirmModal';
-import { Loader2 } from 'lucide-react';
+import { ProjectScoreModal } from './ProjectScoreModal';
+import { GitHubRepository } from '../types/projects';
+import { Loader2, AlertCircle } from 'lucide-react';
 
 export const ProjectsView: React.FC = () => {
   const {
@@ -23,6 +25,7 @@ export const ProjectsView: React.FC = () => {
     selectedLanguage,
     selectedRepoIds,
     isScoring,
+    scoringError,
     projectScores,
     isConfirmModalOpen,
     loadInitialState,
@@ -37,6 +40,8 @@ export const ProjectsView: React.FC = () => {
     scoreAllProjects,
     setConfirmModalOpen
   } = useProjectsStore();
+
+  const [activeScoreModalRepo, setActiveScoreModalRepo] = useState<GitHubRepository | null>(null);
 
   useEffect(() => {
     loadInitialState();
@@ -101,6 +106,14 @@ export const ProjectsView: React.FC = () => {
         isProcessing={isScoring}
       />
 
+      {/* Project Score Breakdown & Improvement Tips Modal */}
+      <ProjectScoreModal
+        isOpen={Boolean(activeScoreModalRepo)}
+        onClose={() => setActiveScoreModalRepo(null)}
+        repositoryName={activeScoreModalRepo?.name || ''}
+        scoreResult={activeScoreModalRepo ? projectScores[activeScoreModalRepo.id] : undefined}
+      />
+
       {/* Floating Action Buttons Fixed Top-Right */}
       <FloatingScoreButton
         onScore={handleScoreButtonClick}
@@ -122,6 +135,16 @@ export const ProjectsView: React.FC = () => {
           </p>
         </div>
       </div>
+
+      {/* Scoring Error Alert Banner */}
+      {scoringError && (
+        <div className="bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-400 p-4 rounded-xl flex items-center justify-between text-body-sm">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-5 h-5 flex-shrink-0" />
+            <span>{scoringError}</span>
+          </div>
+        </div>
+      )}
 
       {/* Loading State */}
       {isLoading ? (
@@ -151,6 +174,7 @@ export const ProjectsView: React.FC = () => {
             selectedRepoIds={selectedRepoIds}
             onToggleSelectRepo={toggleSelectRepo}
             projectScores={projectScores}
+            onOpenScoreModal={(repo) => setActiveScoreModalRepo(repo)}
           />
 
           {/* Simple Pagination Controls (Max 9 per page) */}

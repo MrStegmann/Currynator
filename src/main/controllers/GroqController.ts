@@ -508,7 +508,7 @@ File Tree: ${payload.fileTree && payload.fileTree.length > 0 ? payload.fileTree.
 `;
 
       const response = await client.chat.completions.create({
-        model: 'llama-3.3-70b-versatile',
+        model: 'qwen/qwen3.8-27b',
         messages: [
           {
             role: 'system',

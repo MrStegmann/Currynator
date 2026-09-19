@@ -47,6 +47,27 @@ export interface ProjectsState {
   setConfirmModalOpen: (open: boolean) => void;
 }
 
+const scoreSingleProject = async (repo: GitHubRepository): Promise<{ success: boolean; data?: AIScoreResult; error?: string }> => {
+  const payload = {
+    id: repo.id,
+    name: repo.name,
+    description: repo.description,
+    language: repo.language,
+    html_url: repo.html_url
+  };
+
+  if ((window as any).electron?.groq?.scoreProject) {
+    return (window as any).electron.groq.scoreProject(payload);
+  }
+  if ((window as any).electron?.ipcRenderer?.invoke) {
+    return (window as any).electron.ipcRenderer.invoke('groq:score-project', payload);
+  }
+  return {
+    success: false,
+    error: 'Electron IPC bridge is unavailable in this environment.'
+  };
+};
+
 export const useProjectsStore = create<ProjectsState>((set, get) => ({
   token: null,
   isTokenConfigured: false,
@@ -205,29 +226,27 @@ export const useProjectsStore = create<ProjectsState>((set, get) => ({
     const selectedRepos = repositories.filter(repo => selectedRepoIds.includes(repo.id));
     const updatedScores = { ...projectScores };
     let hasError = false;
+    let lastError: string | null = null;
 
     try {
       for (const repo of selectedRepos) {
-        if ((window as any).electron?.groq?.scoreProject) {
-          const res = await (window as any).electron.groq.scoreProject({
-            id: repo.id,
-            name: repo.name,
-            description: repo.description,
-            language: repo.language,
-            html_url: repo.html_url
-          });
+        const res = await scoreSingleProject(repo);
 
-          if (res.success && res.data) {
-            updatedScores[repo.id] = res.data;
-          } else {
-            hasError = true;
-            set({ scoringError: res.error || `Failed to score repository ${repo.name}` });
-          }
+        if (res.success && res.data) {
+          updatedScores[repo.id] = res.data;
+        } else {
+          hasError = true;
+          lastError = res.error || `Failed to score repository ${repo.name}`;
         }
       }
 
       localStorage.setItem(SCORES_STORAGE_KEY, JSON.stringify(updatedScores));
-      set({ projectScores: updatedScores, isScoring: false });
+      set({
+        projectScores: updatedScores,
+        isScoring: false,
+        scoringError: hasError ? lastError : null,
+        selectedRepoIds: []
+      });
       return !hasError;
     } catch (err) {
       set({
@@ -243,7 +262,6 @@ export const useProjectsStore = create<ProjectsState>((set, get) => ({
   setConfirmModalOpen: (open: boolean) => set({ isConfirmModalOpen: open }),
 
   scoreAllProjects: async () => {
-
     const { repositories, projectScores } = get();
     if (!repositories || repositories.length === 0) return false;
 
@@ -251,29 +269,26 @@ export const useProjectsStore = create<ProjectsState>((set, get) => ({
 
     const updatedScores = { ...projectScores };
     let hasError = false;
+    let lastError: string | null = null;
 
     try {
       for (const repo of repositories) {
-        if ((window as any).electron?.groq?.scoreProject) {
-          const res = await (window as any).electron.groq.scoreProject({
-            id: repo.id,
-            name: repo.name,
-            description: repo.description,
-            language: repo.language,
-            html_url: repo.html_url
-          });
+        const res = await scoreSingleProject(repo);
 
-          if (res.success && res.data) {
-            updatedScores[repo.id] = res.data;
-          } else {
-            hasError = true;
-            set({ scoringError: res.error || `Failed to score repository ${repo.name}` });
-          }
+        if (res.success && res.data) {
+          updatedScores[repo.id] = res.data;
+        } else {
+          hasError = true;
+          lastError = res.error || `Failed to score repository ${repo.name}`;
         }
       }
 
       localStorage.setItem(SCORES_STORAGE_KEY, JSON.stringify(updatedScores));
-      set({ projectScores: updatedScores, isScoring: false });
+      set({
+        projectScores: updatedScores,
+        isScoring: false,
+        scoringError: hasError ? lastError : null
+      });
       return !hasError;
     } catch (err) {
       set({

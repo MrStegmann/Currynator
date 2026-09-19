@@ -10,6 +10,7 @@ interface ProjectsGridProps {
   selectedRepoIds?: number[];
   onToggleSelectRepo?: (id: number) => void;
   projectScores?: Record<number, AIScoreResult>;
+  onOpenScoreModal?: (repository: GitHubRepository) => void;
 }
 
 export const ProjectsGrid: React.FC<ProjectsGridProps> = ({
@@ -18,7 +19,8 @@ export const ProjectsGrid: React.FC<ProjectsGridProps> = ({
   onResetFilters,
   selectedRepoIds = [],
   onToggleSelectRepo,
-  projectScores = {}
+  projectScores = {},
+  onOpenScoreModal
 }) => {
   if (!repositories || repositories.length === 0) {
     if (hasActiveFilters) {
@@ -67,6 +69,7 @@ export const ProjectsGrid: React.FC<ProjectsGridProps> = ({
           isSelected={selectedRepoIds.includes(repo.id)}
           onToggleSelect={onToggleSelectRepo ? () => onToggleSelectRepo(repo.id) : undefined}
           scoreResult={projectScores[repo.id]}
+          onOpenScoreModal={onOpenScoreModal}
         />
       ))}
     </div>

@@ -56,3 +56,11 @@ export interface AIScoreResult {
   logs: ScoreLogItem[];
 }
 
+export interface ProjectScoreModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  repositoryName: string;
+  scoreResult?: AIScoreResult;
+  triggerRef?: React.RefObject<HTMLElement>;
+}
+

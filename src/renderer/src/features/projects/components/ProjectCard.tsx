@@ -1,32 +1,38 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { GitHubRepository, AIScoreResult } from '../types/projects';
-import { Star, GitFork, ExternalLink, Lock, CheckSquare, Square, ChevronDown, ChevronUp, Sparkles, AlertCircle } from 'lucide-react';
+import { Star, GitFork, ExternalLink, Lock, CheckSquare, Square, Sparkles } from 'lucide-react';
 
-interface ProjectCardProps {
+export interface ProjectCardProps {
   repository: GitHubRepository;
   isSelected?: boolean;
   onToggleSelect?: () => void;
   scoreResult?: AIScoreResult;
+  onOpenScoreModal?: (repository: GitHubRepository) => void;
 }
 
 export const ProjectCard: React.FC<ProjectCardProps> = ({
   repository,
   isSelected = false,
   onToggleSelect,
-  scoreResult
+  scoreResult,
+  onOpenScoreModal
 }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-
   const getScoreBadgeColor = (score: number) => {
-    if (score >= 80) return 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30';
-    if (score >= 50) return 'bg-amber-500/10 text-amber-600 border-amber-500/30';
-    return 'bg-rose-500/10 text-rose-600 border-rose-500/30';
+    if (score >= 80) return 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30 dark:text-emerald-400';
+    if (score >= 50) return 'bg-amber-500/10 text-amber-600 border-amber-500/30 dark:text-amber-400';
+    return 'bg-rose-500/10 text-rose-600 border-rose-500/30 dark:text-rose-400';
+  };
+
+  const handleScoreClick = () => {
+    if (onOpenScoreModal) {
+      onOpenScoreModal(repository);
+    }
   };
 
   return (
     <div className={`bg-surface-container-lowest border rounded-2xl p-5 transition-all flex flex-col justify-between shadow-sm group ${isSelected ? 'border-primary ring-2 ring-primary/20 bg-primary/5' : 'border-outline-variant hover:border-primary/50'}`}>
       <div>
-        {/* Card Header with Selection Checkbox */}
+        {/* Card Header with Selection Checkbox and Top-Right Score Badge */}
         <div className="flex items-start justify-between gap-2 mb-2">
           <div className="flex items-center gap-2.5 min-w-0">
             {onToggleSelect && (
@@ -51,10 +57,21 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
 
           <div className="flex items-center gap-1.5 flex-shrink-0">
             {scoreResult && (
-              <span className={`px-2.5 py-0.5 rounded-full text-label-md font-bold border flex items-center gap-1 ${getScoreBadgeColor(scoreResult.totalScore)}`}>
+              <button
+                type="button"
+                onClick={handleScoreClick}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleScoreClick();
+                  }
+                }}
+                className={`px-2.5 py-0.5 rounded-full text-label-md font-bold border flex items-center gap-1 transition-all cursor-pointer hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary/40 ${getScoreBadgeColor(scoreResult.totalScore)}`}
+                aria-label={`View score breakdown for ${repository.name}`}
+              >
                 <Sparkles className="w-3.5 h-3.5" />
                 {scoreResult.totalScore}/100
-              </span>
+              </button>
             )}
 
             {repository.private && (
@@ -69,48 +86,6 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
         <p className="text-body-sm text-on-surface-variant line-clamp-2 min-h-[2.5rem] leading-relaxed m-0 mb-3">
           {repository.description || 'No description provided.'}
         </p>
-
-        {/* AI Score Breakdown & Improvement Section */}
-        {scoreResult && (
-          <div className="mb-4 bg-surface-container/60 border border-outline-variant/60 rounded-xl p-3">
-            <button
-              type="button"
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="w-full flex items-center justify-between text-body-xs font-semibold text-on-surface hover:text-primary transition-colors cursor-pointer"
-            >
-              <span className="flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-primary" />
-                AI Score Audit Breakdown ({scoreResult.logs.length} Sections)
-              </span>
-              {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-            </button>
-
-            {isExpanded && (
-              <div className="mt-3 space-y-3 pt-2 border-t border-outline-variant/40 text-body-xs">
-                {scoreResult.logs.map((logItem, idx) => (
-                  <div key={idx} className="space-y-1">
-                    <div className="flex items-center justify-between font-medium text-on-surface">
-                      <span>{logItem.title}</span>
-                      <span className="font-bold text-primary">{logItem.score}/100</span>
-                    </div>
-                    {logItem.log && (
-                      <p className="text-on-surface-variant text-[11px] leading-snug m-0">
-                        {logItem.log}
-                      </p>
-                    )}
-                    {logItem.improvements && logItem.improvements.length > 0 && (
-                      <ul className="list-disc list-inside text-[11px] text-on-surface-variant/90 space-y-0.5 pl-1 m-0 pt-0.5">
-                        {logItem.improvements.map((imp, impIdx) => (
-                          <li key={impIdx}>{imp}</li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
       </div>
 
       {/* Card Footer Metadata */}
