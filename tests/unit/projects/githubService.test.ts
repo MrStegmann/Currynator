@@ -1,4 +1,4 @@
-import { fetchGitHubRepositories } from '../../../src/renderer/src/features/projects/utils/githubService';
+import { fetchGitHubRepositories, fetchProjectCodebaseDetails, filterAndSummarizeFileTree } from '../../../src/renderer/src/features/projects/utils/githubService';
 
 describe('githubService Utility', () => {
   const originalFetch = global.fetch;
@@ -84,5 +84,72 @@ describe('githubService Utility', () => {
 
     expect(result.success).toBe(false);
     expect(result.error).toBe('Network error');
+  });
+
+  it('filters out node_modules, dist, and package-lock from file tree', () => {
+    const rawPaths = [
+      'node_modules/express/index.js',
+      'dist/bundle.js',
+      'package-lock.json',
+      'package.json',
+      'src/index.ts',
+      'src/components/App.tsx',
+      'tests/App.test.tsx'
+    ];
+
+    const filtered = filterAndSummarizeFileTree(rawPaths);
+
+    expect(filtered).not.toContain('node_modules/express/index.js');
+    expect(filtered).not.toContain('dist/bundle.js');
+    expect(filtered).not.toContain('package-lock.json');
+    expect(filtered).toContain('package.json');
+    expect(filtered).toContain('src/index.ts');
+    expect(filtered).toContain('tests/App.test.tsx');
+  });
+
+  it('fetches README, commits, and file tree successfully in fetchProjectCodebaseDetails', async () => {
+    const mockReadmeText = '# Currynator App\nAI project evaluation workspace.';
+    const mockCommitsData = [
+      { commit: { message: 'feat: add codebase inspection\n\nDetailed breakdown.' } },
+      { commit: { message: 'fix: resolve rate limit handling' } }
+    ];
+    const mockTreeData = {
+      tree: [
+        { path: 'package.json' },
+        { path: 'src/index.ts' },
+        { path: 'tests/index.test.ts' }
+      ]
+    };
+
+    global.fetch = jest.fn().mockImplementation((url: string) => {
+      if (url.includes('/readme')) {
+        return Promise.resolve({ ok: true, status: 200, text: () => Promise.resolve(mockReadmeText) });
+      }
+      if (url.includes('/commits')) {
+        return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(mockCommitsData) });
+      }
+      if (url.includes('/trees/')) {
+        return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(mockTreeData) });
+      }
+      return Promise.reject(new Error('Unknown URL'));
+    });
+
+    const result = await fetchProjectCodebaseDetails('valid-token', 'owner/repo', 'main');
+
+    expect(result.success).toBe(true);
+    expect(result.data?.readmeContent).toBe(mockReadmeText);
+    expect(result.data?.commitLogs).toEqual(['feat: add codebase inspection', 'fix: resolve rate limit handling']);
+    expect(result.data?.fileTree).toEqual(['package.json', 'src/index.ts', 'tests/index.test.ts']);
+  });
+
+  it('enforces zero-fallback policy on 403 Forbidden permission error', async () => {
+    global.fetch = jest.fn().mockImplementation(() => {
+      return Promise.resolve({ ok: false, status: 403, json: () => Promise.resolve({ message: 'Resource not accessible' }) });
+    });
+
+    const result = await fetchProjectCodebaseDetails('limited-token', 'owner/private-repo');
+
+    expect(result.success).toBe(false);
+    expect(result.error).toMatch(/lacks required 'repo' scope/i);
   });
 });

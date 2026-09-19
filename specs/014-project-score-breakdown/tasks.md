@@ -88,6 +88,24 @@
 
 ---
 
+## Phase 7: Codebase Inspection & Performance Optimization (User Story 4 - Deep Codebase Evaluation)
+
+**Goal**: Fetch actual repository codebase content (README, recent commit messages, recursive file tree) using GitHub PAT, construct enriched AI prompt payloads, and enforce zero fallback defaults.
+
+**Independent Test**: Score a selected project card, verify `fetchProjectCodebaseDetails` fetches README text, commit logs, and file tree from GitHub API, and `GroqController` receives real codebase payload.
+
+### Implementation for User Story 4
+
+- [x] T013 [P] [US4] Implement `fetchProjectCodebaseDetails(token, owner, repo, defaultBranch)` in `src/renderer/src/features/projects/utils/githubService.ts` to fetch `README.md`, recent commits, and file tree via GitHub REST API.
+- [x] T014 [P] [US4] Add unit tests for `fetchProjectCodebaseDetails` and file tree filtering in `tests/unit/projects/githubService.test.ts`.
+- [x] T015 [US4] Update `scoreSingleProject` in `src/renderer/src/features/projects/store/useProjectsStore.ts` to fetch codebase details before scoring and construct an enriched payload containing `readmeContent`, `commitLogs`, and `fileTree`.
+- [x] T016 [US4] Enforce strict zero-fallback policy in `src/renderer/src/features/projects/store/useProjectsStore.ts`—propagate explicit GitHub API error message if token scope or fetch fails.
+- [x] T017 [US4] Calibrate prompt and audit criteria in `src/main/controllers/GroqController.ts` to evaluate real `readmeContent`, `commitLogs`, and `fileTree` data.
+- [x] T018 [US4] Update `TokenSetupView.tsx` in `src/renderer/src/features/projects/components/TokenSetupView.tsx` to provide token scope guidance (`repo` scope required for private repository inspection).
+- [x] T019 [US4] Run full test suite (`npm test`) to verify codebase enrichment, zero-fallback error propagation, and Groq scoring.
+
+---
+
 ## Dependencies & Execution Order
 
 ### Phase Dependencies

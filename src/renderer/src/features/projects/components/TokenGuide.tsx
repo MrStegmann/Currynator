@@ -16,7 +16,7 @@ export const TokenGuide: React.FC = () => {
     {
       num: 3,
       title: 'Configure Token Scope',
-      description: 'Add a note (e.g., "Currynator") and check the "repo" scope to grant access to view your repositories.'
+      description: 'Add a note (e.g., "Currynator") and check the "repo" scope to grant access to view public and private project codebases.'
     },
     {
       num: 4,

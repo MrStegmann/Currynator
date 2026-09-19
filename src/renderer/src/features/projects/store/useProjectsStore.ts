@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { GitHubRepository, AIScoreResult } from '../types/projects';
 import { encryptGitHubToken, decryptGitHubToken } from '../utils/tokenEncryption';
-import { fetchGitHubRepositories } from '../utils/githubService';
+import { fetchGitHubRepositories, fetchProjectCodebaseDetails } from '../utils/githubService';
 
 const TOKEN_STORAGE_KEY = 'currynator_github_token';
 const REPOS_STORAGE_KEY = 'currynator_github_repos';
@@ -47,13 +47,32 @@ export interface ProjectsState {
   setConfirmModalOpen: (open: boolean) => void;
 }
 
-const scoreSingleProject = async (repo: GitHubRepository): Promise<{ success: boolean; data?: AIScoreResult; error?: string }> => {
+const scoreSingleProject = async (token: string | null, repo: GitHubRepository): Promise<{ success: boolean; data?: AIScoreResult; error?: string }> => {
+  let codebaseData: { readmeContent?: string; commitLogs?: string[]; fileTree?: string[] } = {};
+
+  if (token) {
+    const codebaseRes = await fetchProjectCodebaseDetails(token, repo.full_name || repo.name);
+    if (!codebaseRes.success) {
+      // Zero-fallback policy: propagate explicit GitHub API error
+      return {
+        success: false,
+        error: codebaseRes.error || `Failed to fetch codebase details for ${repo.name}.`
+      };
+    }
+    if (codebaseRes.data) {
+      codebaseData = codebaseRes.data;
+    }
+  }
+
   const payload = {
     id: repo.id,
     name: repo.name,
     description: repo.description,
     language: repo.language,
-    html_url: repo.html_url
+    html_url: repo.html_url,
+    readmeContent: codebaseData.readmeContent,
+    commitLogs: codebaseData.commitLogs,
+    fileTree: codebaseData.fileTree
   };
 
   if ((window as any).electron?.groq?.scoreProject) {
@@ -218,7 +237,7 @@ export const useProjectsStore = create<ProjectsState>((set, get) => ({
   clearSelection: () => set({ selectedRepoIds: [] }),
 
   scoreSelectedProjects: async () => {
-    const { selectedRepoIds, repositories, projectScores } = get();
+    const { token, selectedRepoIds, repositories, projectScores } = get();
     if (!selectedRepoIds || selectedRepoIds.length === 0) return false;
 
     set({ isScoring: true, scoringError: null });
@@ -230,7 +249,7 @@ export const useProjectsStore = create<ProjectsState>((set, get) => ({
 
     try {
       for (const repo of selectedRepos) {
-        const res = await scoreSingleProject(repo);
+        const res = await scoreSingleProject(token, repo);
 
         if (res.success && res.data) {
           updatedScores[repo.id] = res.data;
@@ -262,7 +281,7 @@ export const useProjectsStore = create<ProjectsState>((set, get) => ({
   setConfirmModalOpen: (open: boolean) => set({ isConfirmModalOpen: open }),
 
   scoreAllProjects: async () => {
-    const { repositories, projectScores } = get();
+    const { token, repositories, projectScores } = get();
     if (!repositories || repositories.length === 0) return false;
 
     set({ isScoring: true, scoringError: null, isConfirmModalOpen: false });
@@ -273,7 +292,7 @@ export const useProjectsStore = create<ProjectsState>((set, get) => ({
 
     try {
       for (const repo of repositories) {
-        const res = await scoreSingleProject(repo);
+        const res = await scoreSingleProject(token, repo);
 
         if (res.success && res.data) {
           updatedScores[repo.id] = res.data;
