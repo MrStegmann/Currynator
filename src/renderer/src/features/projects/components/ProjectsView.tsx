@@ -4,8 +4,6 @@ import { TokenSetupView } from './TokenSetupView';
 import { ProjectsGrid } from './ProjectsGrid';
 import { ProjectFilterBar } from './ProjectFilterBar';
 import { PaginationControls } from './PaginationControls';
-import { FloatingRefreshButton } from './FloatingRefreshButton';
-import { FloatingScoreButton } from './FloatingScoreButton';
 import { ScoreConfirmModal } from './ScoreConfirmModal';
 import { ProjectScoreModal } from './ProjectScoreModal';
 import { GitHubRepository } from '../types/projects';
@@ -16,10 +14,6 @@ export const ProjectsView: React.FC = () => {
     isTokenConfigured,
     repositories,
     isLoading,
-    isRefreshing,
-    error,
-    currentPage,
-    itemsPerPage,
     searchQuery,
     minStars,
     selectedLanguage,
@@ -29,14 +23,14 @@ export const ProjectsView: React.FC = () => {
     projectScores,
     isConfirmModalOpen,
     loadInitialState,
-    fetchRepositories,
+    currentPage,
+    itemsPerPage,
     setCurrentPage,
     setSearchQuery,
     setMinStars,
     setSelectedLanguage,
     resetFilters,
     toggleSelectRepo,
-    scoreSelectedProjects,
     scoreAllProjects,
     setConfirmModalOpen
   } = useProjectsStore();
@@ -76,15 +70,6 @@ export const ProjectsView: React.FC = () => {
     });
   }, [repositories, searchQuery, minStars, selectedLanguage]);
 
-  const handleScoreButtonClick = () => {
-    const selectedCount = selectedRepoIds ? selectedRepoIds.length : 0;
-    if (selectedCount > 0) {
-      scoreSelectedProjects();
-    } else {
-      setConfirmModalOpen(true);
-    }
-  };
-
   if (!isTokenConfigured) {
     return <TokenSetupView />;
   }
@@ -112,17 +97,6 @@ export const ProjectsView: React.FC = () => {
         onClose={() => setActiveScoreModalRepo(null)}
         repositoryName={activeScoreModalRepo?.name || ''}
         scoreResult={activeScoreModalRepo ? projectScores[activeScoreModalRepo.id] : undefined}
-      />
-
-      {/* Floating Action Buttons Fixed Top-Right */}
-      <FloatingScoreButton
-        onScore={handleScoreButtonClick}
-        isScoring={isScoring}
-        selectedCount={selectedRepoIds ? selectedRepoIds.length : 0}
-      />
-      <FloatingRefreshButton
-        onRefresh={() => fetchRepositories(true)}
-        isRefreshing={isRefreshing}
       />
 
       <div className="flex items-center justify-between border-b border-outline-variant pb-4">

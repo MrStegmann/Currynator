@@ -64,17 +64,6 @@ export const CvDashboardView: React.FC = () => {
             Gestiona tus currículums y solicitudes de empleo personalizadas.
           </p>
         </div>
-
-        <button
-          type="button"
-          onClick={() => setFormModalOpen(true, null)}
-          aria-label="Nueva Solicitud de Empleo"
-          title="Nueva Solicitud de Empleo"
-          className="flex items-center gap-2 px-4 py-2.5 bg-primary text-on-primary font-medium rounded-xl shadow-md hover:bg-primary/90 hover:shadow-lg transition-all duration-200"
-        >
-          <Plus className="w-5 h-5" />
-          <span>Nueva Solicitud</span>
-        </button>
       </div>
 
       {totalItems === 0 ? (

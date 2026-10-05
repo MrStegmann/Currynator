@@ -56,7 +56,7 @@ describe('ProjectsView Component', () => {
     expect(mockLoadInitialState).toHaveBeenCalledTimes(1);
   });
 
-  it('renders ProjectsGrid and FloatingRefreshButton when token is configured', () => {
+  it('renders ProjectsGrid when token is configured', () => {
     (useProjectsStore as unknown as jest.Mock).mockReturnValue({
       token: 'ghp_validtoken',
       isTokenConfigured: true,
@@ -83,6 +83,5 @@ describe('ProjectsView Component', () => {
     render(<ProjectsView />);
 
     expect(screen.getByText('ConfiguredRepo')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /refresh projects/i })).toBeInTheDocument();
   });
 });

@@ -1,14 +1,12 @@
 import React from 'react';
 import { Home, FileText, FolderGit2 } from 'lucide-react';
-import { ActiveView } from '../../../features/cv-dashboard/store/useCvDashboardStore';
+import { ActiveView, SideNavBarProps } from '../../types/navigation';
 
-interface RightNavBarProps {
-  isOpen: boolean;
-  activeView: string;
-  onSelectView?: (view: ActiveView) => void;
-}
-
-export const RightNavBar: React.FC<RightNavBarProps> = ({ isOpen, activeView, onSelectView }) => {
+export const RightNavBar: React.FC<SideNavBarProps> = ({
+  isOpen,
+  activeView,
+  onSelectView,
+}) => {
   const handleViewClick = (e: React.MouseEvent, view: ActiveView) => {
     e.preventDefault();
     if (onSelectView) {
@@ -35,18 +33,7 @@ export const RightNavBar: React.FC<RightNavBarProps> = ({ isOpen, activeView, on
           <Home className="w-5 h-5" />
           <span className="text-body-lg">Home</span>
         </a>
-        <a
-          href="#cv-dashboard"
-          onClick={(e) => handleViewClick(e, 'CV Dashboard')}
-          className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-            activeView === 'CV Dashboard'
-              ? 'bg-primary-container text-on-primary-container font-semibold'
-              : 'text-on-surface hover:bg-surface-container-low hover:text-on-surface'
-          }`}
-        >
-          <FileText className="w-5 h-5" />
-          <span className="text-body-lg">CV Dashboard</span>
-        </a>
+
         <a
           href="#projects"
           onClick={(e) => handleViewClick(e, 'Projects')}
@@ -58,6 +45,19 @@ export const RightNavBar: React.FC<RightNavBarProps> = ({ isOpen, activeView, on
         >
           <FolderGit2 className="w-5 h-5" />
           <span className="text-body-lg">Projects</span>
+        </a>
+
+        <a
+          href="#cv-dashboard"
+          onClick={(e) => handleViewClick(e, 'CV Dashboard')}
+          className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+            activeView === 'CV Dashboard'
+              ? 'bg-primary-container text-on-primary-container font-semibold'
+              : 'text-on-surface hover:bg-surface-container-low hover:text-on-surface'
+          }`}
+        >
+          <FileText className="w-5 h-5" />
+          <span className="text-body-lg">CV Dashboard</span>
         </a>
       </nav>
     </aside>

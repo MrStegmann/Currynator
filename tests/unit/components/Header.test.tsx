@@ -4,9 +4,9 @@ import '@testing-library/jest-dom';
 import { Header } from '../../../src/renderer/src/shared/components/Header/Header';
 
 describe('Header Component', () => {
-  it('renders current view title and menu toggle button', () => {
+  it('renders current view title and menu toggle button when showBurger is true', () => {
     const handleToggle = jest.fn();
-    render(<Header currentViewName="Home View" onToggleSidebar={handleToggle} />);
+    render(<Header currentViewName="Home View" onToggleSidebar={handleToggle} showBurger={true} />);
 
     expect(screen.getByText('Home View')).toBeInTheDocument();
     
