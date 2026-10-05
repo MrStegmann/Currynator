@@ -3,6 +3,7 @@ import { Upload, Plus, RefreshCw, Sparkles, Loader2 } from 'lucide-react';
 import { DynamicToolbarProps } from '../../types/navigation';
 
 export const DynamicToolbar: React.FC<DynamicToolbarProps> = ({
+  isOpen = true,
   activeView,
   onImportCsv,
   onNewApply,
@@ -14,7 +15,9 @@ export const DynamicToolbar: React.FC<DynamicToolbarProps> = ({
   return (
     <aside
       aria-label="Toolbar"
-      className="fixed top-16 right-0 h-[calc(100vh-4rem)] w-64 bg-surface-container-lowest border-l border-outline-variant shadow-sm z-40 p-4 flex flex-col gap-4 overflow-y-auto"
+      className={`fixed top-16 right-0 h-[calc(100vh-4rem)] bg-surface-container-lowest border-l border-outline-variant shadow-sm z-40 p-4 flex flex-col gap-4 overflow-y-auto transition-all duration-300 ease-in-out ${
+        isOpen ? 'w-64 opacity-100 translate-x-0' : 'w-0 opacity-0 translate-x-full pointer-events-none p-0 border-none'
+      }`}
     >
 
       <div className="flex flex-col gap-3">

@@ -35,4 +35,31 @@ describe('Header Component', () => {
     );
     expect(screen.getByRole('button', { name: 'Dynamic Action' })).toBeInTheDocument();
   });
+
+  it('renders toolbar toggle button and handles click when showToolbarToggle is true', () => {
+    const handleToggleToolbar = jest.fn();
+    render(
+      <Header
+        currentViewName="Home"
+        onToggleToolbar={handleToggleToolbar}
+        showToolbarToggle={true}
+      />
+    );
+
+    const toolbarButton = screen.getByRole('button', { name: /toggle toolbar/i });
+    expect(toolbarButton).toBeInTheDocument();
+
+    fireEvent.click(toolbarButton);
+    expect(handleToggleToolbar).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not render toolbar toggle button when showToolbarToggle is false', () => {
+    render(
+      <Header
+        currentViewName="Home"
+        showToolbarToggle={false}
+      />
+    );
+    expect(screen.queryByRole('button', { name: /toggle toolbar/i })).not.toBeInTheDocument();
+  });
 });

@@ -18,7 +18,15 @@ import { ReferencesArticle } from './ReferencesArticle/ReferencesArticle';
 import { ImportView } from '../linkedin-import/components/ImportView';
 
 export const Home: React.FC = () => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSmallScreen, setIsSmallScreen] = useState(() =>
+    typeof window !== 'undefined' ? window.innerWidth < 1024 : false
+  );
+  const [isSidebarOpen, setIsSidebarOpen] = useState(() =>
+    typeof window !== 'undefined' ? window.innerWidth >= 1024 : true
+  );
+  const [isToolbarOpen, setIsToolbarOpen] = useState(() =>
+    typeof window !== 'undefined' ? window.innerWidth >= 1024 : true
+  );
   const [isImportViewOpen, setIsImportViewOpen] = useState(false);
   const { loadResume, isLoading, error } = useResumeStore();
   const { activeView, setActiveView, setFormModalOpen } = useCvDashboardStore();
@@ -35,13 +43,33 @@ export const Home: React.FC = () => {
     loadResume();
   }, [loadResume]);
 
+  useEffect(() => {
+    const handleResize = () => {
+      const small = window.innerWidth < 1024;
+      setIsSmallScreen(small);
+      if (!small) {
+        setIsSidebarOpen(true);
+        setIsToolbarOpen(true);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const toggleSidebar = () => {
     setIsSidebarOpen((prev) => !prev);
+  };
+
+  const toggleToolbar = () => {
+    setIsToolbarOpen((prev) => !prev);
   };
 
   const handleSelectView = (view: ActiveView) => {
     setIsImportViewOpen(false);
     setActiveView(view);
+    if (isSmallScreen) {
+      setIsSidebarOpen(false);
+    }
   };
 
   const handleImportCsv = () => {
@@ -78,7 +106,9 @@ export const Home: React.FC = () => {
       <Header
         currentViewName={currentHeaderTitle}
         onToggleSidebar={toggleSidebar}
-        showBurger={false}
+        onToggleToolbar={toggleToolbar}
+        showBurger={isSmallScreen}
+        showToolbarToggle={isSmallScreen && !isImportViewOpen}
       />
       
       <div className="flex flex-1 relative">
@@ -87,11 +117,19 @@ export const Home: React.FC = () => {
           activeView={activeView as ActiveView}
           onSelectView={handleSelectView}
         />
+
+        {isSmallScreen && isSidebarOpen && (
+          <div
+            className="fixed inset-0 bg-black/40 z-30 lg:hidden"
+            onClick={() => setIsSidebarOpen(false)}
+            aria-hidden="true"
+          />
+        )}
         
         <main
           className={`flex-1 p-6 lg:p-8 transition-all duration-300 ease-in-out ${
-            isSidebarOpen ? 'ml-64' : 'ml-0'
-          } ${!isImportViewOpen ? 'mr-64' : 'mr-0'}`}
+            isSidebarOpen ? 'ml-0 lg:ml-64' : 'ml-0'
+          } ${(!isImportViewOpen && isToolbarOpen) ? 'mr-0 lg:mr-64' : 'mr-0'}`}
         >
           {isImportViewOpen ? (
             <ImportView onBack={() => setIsImportViewOpen(false)} />
@@ -125,8 +163,17 @@ export const Home: React.FC = () => {
           )}
         </main>
 
+        {isSmallScreen && !isImportViewOpen && isToolbarOpen && (
+          <div
+            className="fixed inset-0 bg-black/40 z-30 lg:hidden"
+            onClick={() => setIsToolbarOpen(false)}
+            aria-hidden="true"
+          />
+        )}
+
         {!isImportViewOpen && (
           <DynamicToolbar
+            isOpen={isToolbarOpen}
             activeView={activeView as ActiveView}
             onImportCsv={handleImportCsv}
             onNewApply={handleNewApply}

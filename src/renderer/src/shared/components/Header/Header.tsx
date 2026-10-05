@@ -1,11 +1,13 @@
 import React from 'react';
-import { Menu } from 'lucide-react';
+import { Menu, PanelRight } from 'lucide-react';
 import { HeaderProps } from '../../types/navigation';
 
 export const Header: React.FC<HeaderProps> = ({
   currentViewName,
   onToggleSidebar,
+  onToggleToolbar,
   showBurger = false,
+  showToolbarToggle = false,
   rightSlot,
 }) => {
   return (
@@ -25,11 +27,18 @@ export const Header: React.FC<HeaderProps> = ({
         </h1>
       </div>
 
-      {rightSlot && (
-        <div className="flex items-center gap-3">
-          {rightSlot}
-        </div>
-      )}
+      <div className="flex items-center gap-3">
+        {rightSlot}
+        {showToolbarToggle && (
+          <button
+            onClick={onToggleToolbar}
+            className="p-2 -mr-2 rounded-md hover:bg-surface-container-low focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-colors"
+            aria-label="Toggle toolbar"
+          >
+            <PanelRight className="w-6 h-6 text-on-surface" />
+          </button>
+        )}
+      </div>
     </header>
   );
 };

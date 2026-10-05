@@ -83,4 +83,17 @@ describe('DynamicToolbar Component', () => {
     expect(syncButton).toBeDisabled();
     expect(scoreButton).toBeDisabled();
   });
+
+  it('applies hidden/translated classes when isOpen is false', () => {
+    const { container } = render(
+      <DynamicToolbar
+        isOpen={false}
+        activeView="Home"
+      />
+    );
+
+    const aside = container.querySelector('aside');
+    expect(aside).toHaveClass('translate-x-full');
+    expect(aside).toHaveClass('w-0');
+  });
 });

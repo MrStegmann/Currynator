@@ -137,4 +137,22 @@ describe('Dynamic Toolbar Integration', () => {
     fireEvent.click(scoreBtn);
     expect(mockSetConfirmModalOpen).toHaveBeenCalledWith(true);
   });
+
+  it('renders burger and toolbar toggle buttons on small screen width', () => {
+    // Simulate mobile/small screen width
+    window.innerWidth = 800;
+
+    render(<Home />);
+
+    const burgerBtn = screen.getByRole('button', { name: /toggle sidebar/i });
+    const toolbarToggleBtn = screen.getByRole('button', { name: /toggle toolbar/i });
+
+    expect(burgerBtn).toBeInTheDocument();
+    expect(toolbarToggleBtn).toBeInTheDocument();
+
+    // Toggle sidebar
+    fireEvent.click(burgerBtn);
+    // Toggle toolbar
+    fireEvent.click(toolbarToggleBtn);
+  });
 });

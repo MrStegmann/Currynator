@@ -23,6 +23,7 @@ export interface ToolbarActionItem {
 }
 
 export interface DynamicToolbarProps {
+  isOpen?: boolean;
   activeView: ActiveView;
   onImportCsv?: () => void;
   onNewApply?: () => void;
@@ -35,7 +36,9 @@ export interface DynamicToolbarProps {
 export interface HeaderProps {
   currentViewName: string;
   onToggleSidebar?: () => void;
+  onToggleToolbar?: () => void;
   showBurger?: boolean;
+  showToolbarToggle?: boolean;
   rightSlot?: React.ReactNode;
 }
 
