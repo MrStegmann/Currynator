@@ -3,6 +3,7 @@ import { Pencil, X, Plus, Trash2, Edit2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useResumeStore } from '../../../store/useResumeStore';
+import { sortChronologicalDescending } from '../../../shared/utils/dateSorting';
 import { CertificateSchema, Certificate } from '../../../../../shared/schema/resumeSchema';
 import { Modal } from '../../../shared/components/Modal/Modal';
 import { CopyButton } from '../../../shared/components/CopyButton/CopyButton';

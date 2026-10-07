@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, Sparkles, Briefcase, Award, GraduationCap, FolderGit2 } from 'lucide-react';
 import { JobApplication } from '../../../../../main/shared/schema/jobApplicationSchema';
+import { sortChronologicalDescending } from '../../../shared/utils/dateSorting';
 
 interface PreviewCvModalProps {
   isOpen: boolean;
@@ -17,10 +18,11 @@ export const PreviewCvModal: React.FC<PreviewCvModalProps> = ({
 
   const tailored = jobApplication.tailored_json_resume || {};
   const basics = tailored.basics || {};
-  const work = Array.isArray(tailored.work) ? tailored.work : [];
+  const work = sortChronologicalDescending(Array.isArray(tailored.work) ? tailored.work : []);
   const skills = Array.isArray(tailored.skills) ? tailored.skills : [];
-  const education = Array.isArray(tailored.education) ? tailored.education : [];
-  const projects = Array.isArray(tailored.projects) ? tailored.projects : [];
+  const education = sortChronologicalDescending(Array.isArray(tailored.education) ? tailored.education : []);
+  const certificates = sortChronologicalDescending(Array.isArray(tailored.certificates) ? tailored.certificates : []);
+  const projects = sortChronologicalDescending(Array.isArray(tailored.projects) ? tailored.projects : []);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm animate-fade-in">

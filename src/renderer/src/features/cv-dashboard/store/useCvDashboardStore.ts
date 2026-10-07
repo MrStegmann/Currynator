@@ -3,6 +3,44 @@ import { ApplicationCv } from '../models/applicationCvSchema';
 import { JobApplication, JobApplicationStatus } from '../../../../../main/shared/schema/jobApplicationSchema';
 import { ipcClient } from '../../../shared/ipc/ipcClient';
 import { useResumeStore } from '../../../store/useResumeStore';
+import { useProjectsStore } from '../../projects/store/useProjectsStore';
+import { sortChronologicalDescending } from '../../../shared/utils/dateSorting';
+import { extractLanguageKeywords, matchProjectsByKeywords } from '../../projects/utils/projectMatcher';
+
+export function sortTailoredCv(tailoredCv?: Record<string, any> | null): Record<string, any> | undefined {
+  if (!tailoredCv || typeof tailoredCv !== 'object') return tailoredCv as any;
+  return {
+    ...tailoredCv,
+    work: Array.isArray(tailoredCv.work) ? sortChronologicalDescending(tailoredCv.work) : tailoredCv.work,
+    education: Array.isArray(tailoredCv.education) ? sortChronologicalDescending(tailoredCv.education) : tailoredCv.education,
+    certificates: Array.isArray(tailoredCv.certificates) ? sortChronologicalDescending(tailoredCv.certificates) : tailoredCv.certificates,
+    projects: Array.isArray(tailoredCv.projects) ? sortChronologicalDescending(tailoredCv.projects) : tailoredCv.projects,
+  };
+}
+
+export function getMatchedGithubProjects(jobRequirement?: string, jobDescription?: string): any[] {
+  const reqText = `${jobRequirement || ''} ${jobDescription || ''}`.trim();
+  const keywords = extractLanguageKeywords(reqText);
+  if (keywords.length === 0) return [];
+
+  let repos = useProjectsStore.getState().repositories || [];
+  if (!repos || repos.length === 0) {
+    useProjectsStore.getState().loadInitialState();
+    repos = useProjectsStore.getState().repositories || [];
+  }
+  if (!repos || repos.length === 0) return [];
+
+  const matched = matchProjectsByKeywords({ repositories: repos, keywords })
+    .filter((m) => m.isMatched)
+    .map((m) => ({
+      name: m.repository.name,
+      description: m.repository.description || '',
+      url: m.repository.html_url,
+      updated_at: m.repository.updated_at
+    }));
+
+  return sortChronologicalDescending(matched);
+}
 
 export type ActiveView = 'Home' | 'CV Dashboard' | 'Projects';
 
@@ -58,7 +96,11 @@ export const useCvDashboardStore = create<CvDashboardState>((set, get) => ({
       try {
         const res = await (window as any).electron.jobApplication.getAll();
         if (res.success && Array.isArray(res.data)) {
-          set({ jobApplications: res.data });
+          const sortedList = res.data.map((app: JobApplication) => ({
+            ...app,
+            tailored_json_resume: sortTailoredCv(app.tailored_json_resume),
+          }));
+          set({ jobApplications: sortedList });
         }
       } catch (err) {
         console.error('Error loading job applications:', err);
@@ -73,7 +115,7 @@ export const useCvDashboardStore = create<CvDashboardState>((set, get) => ({
     const status: JobApplicationStatus = appData.status || 'pending';
 
     let matchScore = appData.match_score;
-    let tailoredCv = appData.tailored_json_resume;
+    let tailoredCv = sortTailoredCv(appData.tailored_json_resume);
 
     // Trigger Groq AI CV generation upon creating a new job application if not provided
     if (isNew && !tailoredCv && typeof window !== 'undefined' && (window as any).electron) {
@@ -107,12 +149,19 @@ export const useCvDashboardStore = create<CvDashboardState>((set, get) => ({
 
         if (groqRes && groqRes.success) {
           matchScore = groqRes.match_score;
-          tailoredCv = groqRes.json_resume;
+          tailoredCv = sortTailoredCv(groqRes.json_resume);
         } else if (groqRes && !groqRes.success) {
           console.error('Groq AI CV generation returned error:', groqRes.error);
         }
       } catch (err) {
         console.error('Error during AI CV tailoring on creation:', err);
+      }
+    }
+
+    if (tailoredCv && (!tailoredCv.projects || tailoredCv.projects.length === 0)) {
+      const matchedProjects = getMatchedGithubProjects(appData.jobRequirement, appData.jobDescription);
+      if (matchedProjects.length > 0) {
+        tailoredCv.projects = matchedProjects;
       }
     }
 
@@ -186,7 +235,7 @@ export const useCvDashboardStore = create<CvDashboardState>((set, get) => ({
         const updatedApp: JobApplication = {
           ...target,
           match_score: groqRes.match_score,
-          tailored_json_resume: groqRes.json_resume,
+          tailored_json_resume: sortTailoredCv(groqRes.json_resume),
           updated_at: new Date().toISOString(),
         };
 

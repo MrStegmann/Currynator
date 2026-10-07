@@ -1,5 +1,18 @@
 import { create } from 'zustand';
 import { Resume, Basics } from '../../../shared/schema/resumeSchema';
+import { sortChronologicalDescending } from '../shared/utils/dateSorting';
+
+const CHRONOLOGICAL_SECTIONS = new Set(['work', 'education', 'certificates', 'projects']);
+
+function sortResumeCollections(resume: Resume): Resume {
+  return {
+    ...resume,
+    work: resume.work ? sortChronologicalDescending(resume.work) : resume.work,
+    education: resume.education ? sortChronologicalDescending(resume.education) : resume.education,
+    certificates: resume.certificates ? sortChronologicalDescending(resume.certificates) : resume.certificates,
+    projects: resume.projects ? sortChronologicalDescending(resume.projects) : resume.projects
+  };
+}
 
 interface ResumeState {
   data: Resume | null;
@@ -39,14 +52,15 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
       const defaultData: Resume = {
         basics: { name: 'User', label: '', email: '' }
       };
-      set({ data: data || defaultData, isLoading: false });
+      const resumeToSet = data ? sortResumeCollections(data) : defaultData;
+      set({ data: resumeToSet, isLoading: false });
     } catch (err: any) {
       set({ error: err.message, isLoading: false });
     }
   },
 
   setResumeData: (data: Resume) => {
-    set({ data, isLoading: false, error: null });
+    set({ data: sortResumeCollections(data), isLoading: false, error: null });
   },
 
   updateBasics: async (basics) => {
@@ -70,7 +84,10 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
     if (!data) return;
 
     const currentArray = data[section] || [];
-    const newArray = [...currentArray, item];
+    let newArray = [...currentArray, item];
+    if (CHRONOLOGICAL_SECTIONS.has(section as string)) {
+      newArray = sortChronologicalDescending(newArray);
+    }
     const newData = { ...data, [section]: newArray };
     
     set({ data: newData });
@@ -88,8 +105,11 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
     if (!data) return;
 
     const currentArray = data[section] || [];
-    const newArray = [...currentArray];
+    let newArray = [...currentArray];
     newArray[index] = item;
+    if (CHRONOLOGICAL_SECTIONS.has(section as string)) {
+      newArray = sortChronologicalDescending(newArray);
+    }
     const newData = { ...data, [section]: newArray };
     
     set({ data: newData });
